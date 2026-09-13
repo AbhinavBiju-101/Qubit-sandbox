@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qubit Sandbox — learn quantum computing by running it</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body data-page="home">
+
+<main>
+  <div class="shell">
+
+    <section class="hero grid-2">
+      <div>
+        <div class="eyebrow">SINGLE &amp; TWO QUBIT SYSTEMS · IN THE BROWSER</div>
+        <h1>Quantum computing, run live in front of you.</h1>
+        <p class="lede">
+          Not slides about qubits — an actual qubit. Flip a Hadamard gate and
+          watch 1,000 real measurements land where quantum mechanics says
+          they should. See how a physical qubit is built. See why 100 of
+          them is a much harder problem than 10.
+        </p>
+        <div class="cta-row">
+          <a class="btn primary" href="/single-qubit">Flip your first qubit →</a>
+          <a class="btn" href="/physical-qubit">See how one is built</a>
+        </div>
+      </div>
+
+      <div class="panel" id="hero-demo-panel">
+        <div class="panel-label">LIVE · |0⟩ + H GATE</div>
+        <svg id="hero-bloch" viewBox="0 0 260 260" style="width:100%; max-width:260px; display:block; margin:0 auto;"></svg>
+        <div style="display:flex; justify-content:space-between; margin-top:10px; font-family:var(--font-mono); font-size:0.85rem;">
+          <span class="muted">P(0) = <span id="hero-p0" style="color:var(--ice)">50.0%</span></span>
+          <span class="muted">P(1) = <span id="hero-p1" style="color:var(--copper)">50.0%</span></span>
+        </div>
+      </div>
+    </section>
+
+    <hr class="hair">
+
+    <section>
+      <div class="section-title"><h2>Four rooms, one thread</h2></div>
+      <p class="muted">Each page answers one question the hackathon problem set actually asks. They build on each other in order, but you can jump around.</p>
+
+      <div class="grid-3" style="margin-top:22px;">
+        <a href="/single-qubit" class="panel" style="text-decoration:none; display:block;">
+          <div class="pill">01 · superposition</div>
+          <h3 style="margin-top:14px;">Single Qubit Lab</h3>
+          <p class="muted" style="font-size:0.92rem;">Apply H, X, Y, Z and a tunable rotation gate to one qubit. Run 1,000 shots and watch the histogram settle — including the 75/25 split.</p>
+        </a>
+        <a href="/two-qubit" class="panel" style="text-decoration:none; display:block;">
+          <div class="pill">02 · measurement</div>
+          <h3 style="margin-top:14px;">Two Qubit Lab</h3>
+          <p class="muted" style="font-size:0.92rem;">Prepare |00⟩ through |11⟩ with the fewest possible gates, then see what changes once the two qubits are entangled.</p>
+        </a>
+        <a href="/physical-qubit" class="panel" style="text-decoration:none; display:block;">
+          <div class="pill">03 · hardware</div>
+          <h3 style="margin-top:14px;">Physical Qubit</h3>
+          <p class="muted" style="font-size:0.92rem;">Josephson junction → transmon → resonator → readout. Turn up the temperature and watch coherence fall apart in real time.</p>
+        </a>
+      </div>
+
+      <a href="/reality-check" class="panel" style="text-decoration:none; display:block; margin-top:18px;">
+        <div class="pill">04 · scaling</div>
+        <h3 style="margin-top:14px;">Reality Check — from 10 qubits to 100</h3>
+        <p class="muted" style="font-size:0.92rem; max-width:none;">Real published numbers from today's quantum processors, and the specific reason wiring — not physics — is what makes scaling hard.</p>
+      </a>
+    </section>
+
+    <hr class="hair">
+
+    <section class="callout">
+      <strong>Why this exists:</strong> most explanations of qubits stop at
+      an analogy ("it's a coin that's both heads and tails"). This sandbox
+      is the next step down — the actual amplitudes, the actual 2×2
+      matrices, the actual measurement statistics — so the analogy stops
+      being necessary.
+    </section>
+
+  </div>
+</main>
+
+<script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bloch.js') }}"></script>
+<script>
+  // small live hero demo: |0> -> H -> continuously re-sampled shots
+  const heroQ = new Qubit();
+  heroQ.H();
+  const heroWidget = createBlochWidget(document.getElementById('hero-bloch'));
+  const b = heroQ.bloch();
+  heroWidget.set(b.theta, b.phi);
+
+  function refreshHero() {
+    const { p0, p1 } = heroQ.sampleShots(1000);
+    document.getElementById('hero-p0').textContent = (p0 * 100).toFixed(1) + '%';
+    document.getElementById('hero-p1').textContent = (p1 * 100).toFixed(1) + '%';
+  }
+  refreshHero();
+  setInterval(refreshHero, 2200);
+</script>
+<script src="{{ url_for('static', filename='js/chrome.js') }}"></script>
+</body>
+</html>

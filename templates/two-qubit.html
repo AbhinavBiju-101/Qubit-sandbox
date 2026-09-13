@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Two Qubit Lab — Qubit Sandbox</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body data-page="two">
+
+<main>
+  <div class="shell">
+
+    <div class="hero">
+      <div class="eyebrow">PROBLEM 2 · FIND THE SECRET QUBIT</div>
+      <h1>Two qubits, four basis states.</h1>
+      <p class="lede">Pick a target state. We'll prepare it from |00⟩ with the minimum number of X gates, then measure both qubits and confirm what came out.</p>
+    </div>
+
+    <div class="grid-2" style="margin-top:32px;">
+
+      <div class="panel">
+        <div class="panel-label">TARGET STATE</div>
+        <div class="tag-list" id="target-buttons">
+          <div class="tag" data-target="00">|00⟩</div>
+          <div class="tag" data-target="01">|01⟩</div>
+          <div class="tag" data-target="10">|10⟩</div>
+          <div class="tag" data-target="11">|11⟩</div>
+        </div>
+
+        <hr class="hair">
+
+        <div class="mono" style="font-size:0.9rem;">
+          <div class="muted">Gate recipe from |00⟩:</div>
+          <div id="recipe" style="color:var(--ice); margin-top:4px;">— select a target —</div>
+          <div class="muted" style="margin-top:10px;">Gate count: <span id="gatecount" style="color:var(--text);">0</span></div>
+        </div>
+
+        <button id="prepare-btn" class="primary" style="width:100%; margin-top:16px;">Prepare state</button>
+      </div>
+
+      <div class="panel">
+        <div class="panel-label">MEASUREMENT</div>
+        <p class="muted" style="font-size:0.92rem;">Measuring collapses each qubit to a definite 0 or 1. For a computational basis state (no superposition here), the result is certain — every run agrees.</p>
+
+        <button id="measure-btn" style="width:100%;" disabled>Measure both qubits</button>
+
+        <div class="grid-3" style="grid-template-columns:1fr 1fr; margin-top:18px;">
+          <div class="stat"><span class="num" id="q1-result">—</span><span class="label">Qubit 1</span></div>
+          <div class="stat"><span class="num" id="q2-result">—</span><span class="label">Qubit 2</span></div>
+        </div>
+
+        <div class="callout" style="margin-top:16px;">
+          Measured state → <span class="mono" id="measured-state" style="color:var(--text);">—</span>
+        </div>
+      </div>
+
+    </div>
+
+    <hr class="hair">
+
+    <section class="panel">
+      <div class="panel-label">BONUS · WHAT ENTANGLEMENT CHANGES</div>
+      <h2 style="margin-top:6px;">Correlated, not independent</h2>
+      <p class="muted">Minimum gates for a fixed basis state is one story. Here's the more interesting one: apply H to qubit 1, then CNOT from qubit 1 onto qubit 2. Neither qubit has a definite value on its own anymore — but measuring them is no longer independent, either.</p>
+
+      <button id="bell-btn" class="small">Create Bell state: H(q1) → CNOT(q1→q2)</button>
+      <button id="bell-shots-btn" class="small" style="margin-left:8px;">Run 200 shots</button>
+
+      <div style="margin-top:20px; display:grid; grid-template-columns:repeat(4,1fr); gap:10px;">
+        <div class="stat"><span class="num" id="bell-00">—</span><span class="label">|00⟩</span></div>
+        <div class="stat"><span class="num" id="bell-01">—</span><span class="label">|01⟩</span></div>
+        <div class="stat"><span class="num" id="bell-10">—</span><span class="label">|10⟩</span></div>
+        <div class="stat"><span class="num" id="bell-11">—</span><span class="label">|11⟩</span></div>
+      </div>
+      <p class="muted" style="font-size:0.86rem; margin-top:12px;">Notice what's missing: |01⟩ and |10⟩ stay near zero. The two qubits always agree with each other, even though each one is individually 50/50 — that agreement is what "entangled" actually means, concretely.</p>
+    </section>
+
+  </div>
+</main>
+
+<script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
+<script src="{{ url_for('static', filename='js/twoqubit.js') }}"></script>
+<script>
+  const tq = new TwoQubit();
+  let selectedTarget = null;
+
+  document.querySelectorAll('#target-buttons .tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+      document.querySelectorAll('#target-buttons .tag').forEach(t => t.classList.remove('active'));
+      tag.classList.add('active');
+      selectedTarget = tag.dataset.target;
+      const gates = TwoQubit.minGatesFor(selectedTarget);
+      document.getElementById('recipe').textContent = gates.length ? gates.join(' → ') : '(none needed — already |00⟩)';
+      document.getElementById('gatecount').textContent = gates.length;
+      document.getElementById('measure-btn').disabled = true;
+      document.getElementById('q1-result').textContent = '—';
+      document.getElementById('q2-result').textContent = '—';
+      document.getElementById('measured-state').textContent = '—';
+    });
+  });
+
+  document.getElementById('prepare-btn').addEventListener('click', () => {
+    if (!selectedTarget) return;
+    tq.reset();
+    if (selectedTarget[0] === '1') tq.X1();
+    if (selectedTarget[1] === '1') tq.X2();
+    document.getElementById('measure-btn').disabled = false;
+    document.getElementById('q1-result').textContent = '—';
+    document.getElementById('q2-result').textContent = '—';
+    document.getElementById('measured-state').textContent = 'prepared, not yet measured';
+  });
+
+  document.getElementById('measure-btn').addEventListener('click', () => {
+    const result = tq.measure();
+    document.getElementById('q1-result').textContent = result[0];
+    document.getElementById('q2-result').textContent = result[1];
+    document.getElementById('measured-state').textContent = '|' + result + '⟩';
+  });
+
+  // Bonus: Bell state
+  document.getElementById('bell-btn').addEventListener('click', () => {
+    tq.reset(); tq.H1(); tq.CNOT();
+    ['00','01','10','11'].forEach(k => document.getElementById('bell-'+k).textContent = '0%');
+  });
+  document.getElementById('bell-shots-btn').addEventListener('click', () => {
+    const counts = tq.sampleShots(200);
+    const total = 200;
+    ['00','01','10','11'].forEach(k => {
+      document.getElementById('bell-'+k).textContent = ((counts[k]/total)*100).toFixed(0) + '%';
+    });
+  });
+</script>
+<script src="{{ url_for('static', filename='js/chrome.js') }}"></script>
+</body>
+</html>
