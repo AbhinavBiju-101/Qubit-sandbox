@@ -1,86 +1,118 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Two Qubit Lab — Qubit Sandbox</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body data-page="two">
+{% extends "base.html" %}
+{% block title %}Two Qubits — Qubit Sandbox{% endblock %}
+{% block page_title %}Lesson 2 · Two Qubits{% endblock %}
 
-<main>
-  <div class="shell">
+{% block content %}
 
-    <div class="hero">
-      <div class="eyebrow">PROBLEM 2 · FIND THE SECRET QUBIT</div>
-      <h1>Two qubits, four basis states.</h1>
-      <p class="lede">Pick a target state. We'll prepare it from |00⟩ with the minimum number of X gates, then measure both qubits and confirm what came out.</p>
-    </div>
+<div class="pill green" style="margin-bottom:14px;">HACKATHON PROBLEM 2 · FIND THE SECRET QUBIT</div>
+<h1 style="margin-bottom:6px;">Two qubits, four basis states.</h1>
+<p class="muted" style="font-size:1.05rem;">Three steps: understand the state space, prepare and measure it, then see what entanglement changes.</p>
 
-    <div class="grid-2" style="margin-top:32px;">
+<div class="lesson-progress-row">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
 
+<!-- ===================== STEP 1 — THEORY ===================== -->
+<div class="lesson-step" data-step="step1">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">1</div>
+    <h3>From one qubit to two</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">One qubit has 2 basis states, |0⟩ and |1⟩. Two qubits don't have 2+2 — they have <span class="mono">2×2 = 4</span>: |00⟩, |01⟩, |10⟩, |11⟩. Each one gets its own complex amplitude, so a general 2-qubit state needs <em>4</em> numbers, not 2.</p>
+    <p class="muted">That multiplication, not addition, is why qubit count matters so much: 10 qubits describe a state space of <span class="mono">2¹⁰ = 1,024</span> amplitudes; 20 qubits already need over a million.</p>
+    <div class="callout blue">If neither qubit is touched by a gate that mixes them, the two behave completely independently — that's the "prepare and measure" case in Step 2. Step 3's bonus is what happens once a gate <em>does</em> mix them.</div>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step1"> Got it — four states, not two
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 2 — PREPARE & MEASURE ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
+    <h3>Prepare a target state, then measure it</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Pick a target below. We'll prepare it from |00⟩ using the minimum number of X gates, then measure both qubits and confirm what came out.</p>
+
+    <div class="grid-2" style="margin-top:18px;">
       <div class="panel">
-        <div class="panel-label">TARGET STATE</div>
+        <div class="panel-label">SANDBOX · TARGET STATE</div>
         <div class="tag-list" id="target-buttons">
           <div class="tag" data-target="00">|00⟩</div>
           <div class="tag" data-target="01">|01⟩</div>
           <div class="tag" data-target="10">|10⟩</div>
           <div class="tag" data-target="11">|11⟩</div>
         </div>
-
         <hr class="hair">
-
         <div class="mono" style="font-size:0.9rem;">
           <div class="muted">Gate recipe from |00⟩:</div>
-          <div id="recipe" style="color:var(--ice); margin-top:4px;">— select a target —</div>
+          <div id="recipe" style="color:var(--primary); margin-top:4px;">— select a target —</div>
           <div class="muted" style="margin-top:10px;">Gate count: <span id="gatecount" style="color:var(--text);">0</span></div>
         </div>
-
-        <button id="prepare-btn" class="primary" style="width:100%; margin-top:16px;">Prepare state</button>
+        <button id="prepare-btn" class="primary block" style="margin-top:16px;">Prepare state</button>
       </div>
 
       <div class="panel">
         <div class="panel-label">MEASUREMENT</div>
-        <p class="muted" style="font-size:0.92rem;">Measuring collapses each qubit to a definite 0 or 1. For a computational basis state (no superposition here), the result is certain — every run agrees.</p>
-
-        <button id="measure-btn" style="width:100%;" disabled>Measure both qubits</button>
-
+        <p class="muted" style="font-size:0.92rem;">No superposition here, so the result is certain — every run agrees.</p>
+        <button id="measure-btn" class="block" disabled>Measure both qubits</button>
         <div class="grid-3" style="grid-template-columns:1fr 1fr; margin-top:18px;">
           <div class="stat"><span class="num" id="q1-result">—</span><span class="label">Qubit 1</span></div>
           <div class="stat"><span class="num" id="q2-result">—</span><span class="label">Qubit 2</span></div>
         </div>
-
-        <div class="callout" style="margin-top:16px;">
+        <div class="callout blue" style="margin-top:16px;">
           Measured state → <span class="mono" id="measured-state" style="color:var(--text);">—</span>
         </div>
       </div>
-
     </div>
 
-    <hr class="hair">
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step2"> I prepared and measured at least 2 different states
+    </label>
+  </div>
+</div>
 
-    <section class="panel">
-      <div class="panel-label">BONUS · WHAT ENTANGLEMENT CHANGES</div>
-      <h2 style="margin-top:6px;">Correlated, not independent</h2>
-      <p class="muted">Minimum gates for a fixed basis state is one story. Here's the more interesting one: apply H to qubit 1, then CNOT from qubit 1 onto qubit 2. Neither qubit has a definite value on its own anymore — but measuring them is no longer independent, either.</p>
+<!-- ===================== STEP 3 — BONUS ENTANGLEMENT ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
+    <h3>Bonus: what entanglement changes</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Minimum gates for a fixed basis state is one story. Here's the more interesting one: apply H to qubit 1, then CNOT from qubit 1 onto qubit 2. Neither qubit has a definite value on its own anymore — but measuring them is no longer independent, either.</p>
 
-      <button id="bell-btn" class="small">Create Bell state: H(q1) → CNOT(q1→q2)</button>
-      <button id="bell-shots-btn" class="small" style="margin-left:8px;">Run 200 shots</button>
-
-      <div style="margin-top:20px; display:grid; grid-template-columns:repeat(4,1fr); gap:10px;">
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · BELL STATE</div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button id="bell-btn" class="small">Create Bell state: H(q1) → CNOT(q1→q2)</button>
+        <button id="bell-shots-btn" class="small">Run 200 shots</button>
+      </div>
+      <div class="grid-4" style="margin-top:20px;">
         <div class="stat"><span class="num" id="bell-00">—</span><span class="label">|00⟩</span></div>
         <div class="stat"><span class="num" id="bell-01">—</span><span class="label">|01⟩</span></div>
         <div class="stat"><span class="num" id="bell-10">—</span><span class="label">|10⟩</span></div>
         <div class="stat"><span class="num" id="bell-11">—</span><span class="label">|11⟩</span></div>
       </div>
       <p class="muted" style="font-size:0.86rem; margin-top:12px;">Notice what's missing: |01⟩ and |10⟩ stay near zero. The two qubits always agree with each other, even though each one is individually 50/50 — that agreement is what "entangled" actually means, concretely.</p>
-    </section>
+    </div>
 
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step3"> I ran the Bell state shots and saw |01⟩/|10⟩ disappear
+    </label>
   </div>
-</main>
+</div>
 
+{% endblock %}
+
+{% block scripts %}
 <script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
 <script src="{{ url_for('static', filename='js/twoqubit.js') }}"></script>
+<script src="{{ url_for('static', filename='js/stats.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
 <script>
   const tq = new TwoQubit();
   let selectedTarget = null;
@@ -105,6 +137,7 @@
     tq.reset();
     if (selectedTarget[0] === '1') tq.X1();
     if (selectedTarget[1] === '1') tq.X2();
+    qsStatsIncrement('gatesApplied', TwoQubit.minGatesFor(selectedTarget).length);
     document.getElementById('measure-btn').disabled = false;
     document.getElementById('q1-result').textContent = '—';
     document.getElementById('q2-result').textContent = '—';
@@ -118,9 +151,9 @@
     document.getElementById('measured-state').textContent = '|' + result + '⟩';
   });
 
-  // Bonus: Bell state
   document.getElementById('bell-btn').addEventListener('click', () => {
     tq.reset(); tq.H1(); tq.CNOT();
+    qsStatsIncrement('gatesApplied', 2);
     ['00','01','10','11'].forEach(k => document.getElementById('bell-'+k).textContent = '0%');
   });
   document.getElementById('bell-shots-btn').addEventListener('click', () => {
@@ -129,8 +162,9 @@
     ['00','01','10','11'].forEach(k => {
       document.getElementById('bell-'+k).textContent = ((counts[k]/total)*100).toFixed(0) + '%';
     });
+    qsStatsIncrement('shotsRun', 200);
   });
+
+  initLessonProgress('two-qubit');
 </script>
-<script src="{{ url_for('static', filename='js/chrome.js') }}"></script>
-</body>
-</html>
+{% endblock %}

@@ -1,28 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reality Check — Qubit Sandbox</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body data-page="reality">
+{% extends "base.html" %}
+{% block title %}Reality Check — Qubit Sandbox{% endblock %}
+{% block page_title %}Lesson 4 · Reality Check{% endblock %}
 
-<main>
-  <div class="shell">
+{% block content %}
 
-    <div class="hero">
-      <div class="eyebrow">PROBLEM 5 · DESIGN THE QUANTUM COMPUTER</div>
-      <h1>From 10 qubits to 100 — what actually gets harder.</h1>
-      <p class="lede">The physics of one qubit and the physics of a hundred are the same. The engineering isn't. Here's where today's real machines stand, and the specific bottleneck that shows up first when you scale.</p>
-    </div>
+<div class="pill" style="margin-bottom:14px;">HACKATHON PROBLEM 5 · DESIGN THE QUANTUM COMPUTER</div>
+<h1 style="margin-bottom:6px;">From 10 qubits to 100 — what actually gets harder.</h1>
+<p class="muted" style="font-size:1.05rem;">Four steps: today's real hardware, how the system architecture fits together, the actual scaling bottleneck, and one bonus idea for dodging it entirely.</p>
 
-    <section class="panel" style="margin-top:32px;">
-      <div class="panel-label">TODAY'S HARDWARE · APPROXIMATE, MOVES FAST</div>
+<div class="lesson-progress-row">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
+
+<!-- ===================== STEP 1 — TODAY'S HARDWARE ===================== -->
+<div class="lesson-step" data-step="step1">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">1</div>
+    <h3>Today's hardware, for real</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Qubit count alone is a poor proxy for a "better" computer once error rates enter the picture — but it's still worth knowing where things actually stand.</p>
+    <div class="panel" style="margin-top:14px;">
+      <div class="panel-label">APPROXIMATE, MOVES FAST</div>
       <table>
-        <thead>
-          <tr><th>System</th><th>Modality</th><th>Physical qubits</th><th>Notable for</th></tr>
-        </thead>
+        <thead><tr><th>System</th><th>Modality</th><th>Physical qubits</th><th>Notable for</th></tr></thead>
         <tbody>
           <tr><td>IBM Heron R2</td><td>Superconducting</td><td class="mono">156</td><td>Current flagship, ~99.5% 2-qubit gate fidelity</td></tr>
           <tr><td>IBM Nighthawk</td><td>Superconducting</td><td class="mono">120</td><td>Tunable couplers aimed at deeper circuits, not just more qubits</td></tr>
@@ -32,77 +34,104 @@
           <tr><td>Atom Computing</td><td>Neutral atom</td><td class="mono">~1,225</td><td>Optical tweezers arranging atoms in 3D — highest raw qubit count</td></tr>
         </tbody>
       </table>
-      <p class="muted" style="font-size:0.82rem; margin-top:14px;">These numbers are current as of writing and will be stale within months — that instability is itself part of the point: qubit count alone is a poor proxy for a "better" computer once error rates enter the picture.</p>
-    </section>
+      <p class="muted" style="font-size:0.82rem; margin-top:14px;">Current as of writing and will be stale within months — check before citing these in a live demo.</p>
+    </div>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step1"> I looked at the current numbers
+    </label>
+  </div>
+</div>
 
-    <hr class="hair">
-
-    <section class="grid-2">
+<!-- ===================== STEP 2 — ARCHITECTURE ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
+    <h3>How the pieces talk to each other</h3>
+  </div>
+  <div class="lesson-step-body">
+    <div class="grid-2" style="margin-top:6px;">
       <div class="panel">
         <div class="panel-label">SYSTEM ARCHITECTURE</div>
         <svg id="arch-svg" viewBox="0 0 320 380" style="width:100%; max-width:320px; display:block; margin:0 auto;"></svg>
       </div>
       <div>
-        <h3>How the pieces talk to each other</h3>
-        <p class="muted"><strong style="color:var(--text);">Classical computer → control system:</strong> a conventional server compiles your circuit (the same H/X/RY gates from the Single Qubit Lab) into a schedule of microwave pulses, and sends that schedule to room-temperature control electronics.</p>
-        <p class="muted"><strong style="color:var(--text);">Control → qubits:</strong> those pulses travel down coaxial lines into the dilution refrigerator, getting attenuated and filtered at each temperature stage, until they reach the chip and physically drive each qubit's rotation.</p>
-        <p class="muted"><strong style="color:var(--text);">Qubits → readout → classical computer:</strong> resonator signals travel back up through cryogenic amplifiers to room-temperature digitizers, which hand a stream of classical 0s and 1s back to the same server that compiled the circuit — closing the loop.</p>
-        <p class="muted"><strong style="color:var(--text);">Why cooling is required:</strong> superconductivity itself disappears above a critical temperature, and even below it, thermal energy comparable to the qubit's transition energy will randomly flip or dephase it. Cooling to ~10–15&nbsp;mK keeps both problems suppressed.</p>
+        <p class="muted"><strong style="color:var(--text);">Classical computer → control system:</strong> a conventional server compiles your circuit into a schedule of microwave pulses, and sends that schedule to room-temperature control electronics.</p>
+        <p class="muted"><strong style="color:var(--text);">Control → qubits:</strong> those pulses travel down coaxial lines into the dilution refrigerator, getting attenuated and filtered at each temperature stage, until they reach the chip.</p>
+        <p class="muted"><strong style="color:var(--text);">Qubits → readout → classical computer:</strong> resonator signals travel back up through cryogenic amplifiers to room-temperature digitizers, closing the loop.</p>
+        <p class="muted"><strong style="color:var(--text);">Why cooling is required:</strong> superconductivity disappears above a critical temperature, and even below it, thermal energy comparable to the qubit's transition energy will randomly flip or dephase it.</p>
       </div>
-    </section>
-
-    <hr class="hair">
-
-    <section class="panel">
-      <div class="panel-label">THE BOTTLENECK</div>
-      <h2 style="margin-top:6px;">Wiring, not physics</h2>
-      <p class="muted">Each physical qubit typically needs its own control line (sometimes more, for readout and tuning) running from room temperature down into the dilution refrigerator. At 10 qubits, that's a manageable bundle of coax cables. At 100, it's a real fan-out problem — and the fridge's limited cooling power at its coldest stage means you can't just keep adding wires.</p>
-
-      <div style="display:flex; align-items:flex-end; gap:40px; justify-content:center; margin:26px 0; flex-wrap:wrap;">
-        <div style="text-align:center;">
-          <svg width="90" height="140" viewBox="0 0 90 140" id="wires-10"></svg>
-          <div class="mono muted" style="margin-top:6px; font-size:0.82rem;">10 qubits<br>~10&ndash;20 lines</div>
-        </div>
-        <div style="text-align:center;">
-          <svg width="90" height="140" viewBox="0 0 90 140" id="wires-100"></svg>
-          <div class="mono muted" style="margin-top:6px; font-size:0.82rem;">100 qubits<br>hundreds of lines</div>
-        </div>
-      </div>
-
-      <p class="muted">The industry's answer is <strong style="color:var(--text);">cryo-CMOS control</strong> — putting some control electronics physically inside the fridge, closer to the chip, so a single cable can carry instructions for many qubits instead of one wire per qubit. It trades wiring complexity for a new problem: those control chips now have to work reliably at temperatures conventional electronics were never designed for.</p>
-    </section>
-
-    <hr class="hair">
-
-    <section class="panel">
-      <div class="panel-label">BONUS · ROOM-TEMPERATURE QUANTUM COMPUTING</div>
-      <h2 style="margin-top:6px;">Does it have to be this cold?</h2>
-      <p class="muted">Not always — a few approaches don't need a dilution refrigerator at all, though each pays for it elsewhere:</p>
-      <div class="grid-3" style="margin-top:16px;">
-        <div class="stat" style="text-align:left;">
-          <div style="color:var(--ice); font-weight:600; margin-bottom:6px;">NV centers in diamond</div>
-          <div class="muted" style="font-size:0.86rem;">A nitrogen atom next to a vacancy in diamond's crystal lattice traps an electron whose spin can encode a qubit and be read out optically, at room temperature. Diamond's rigid lattice naturally isolates the spin from thermal noise. Trade-off: individual qubits are easy, but linking many together into one coherent system is still an open problem.</div>
-        </div>
-        <div class="stat" style="text-align:left;">
-          <div style="color:var(--ice); font-weight:600; margin-bottom:6px;">Photonic qubits</div>
-          <div class="muted" style="font-size:0.86rem;">Information is carried by photons, which don't interact with heat the way charge-based circuits do, so they can travel through room-temperature waveguides and fiber without decohering the way a transmon would. Trade-off: making photons interact with <em>each other</em> for two-qubit gates is inherently hard, since photons mostly ignore one another.</div>
-        </div>
-        <div class="stat" style="text-align:left;">
-          <div style="color:var(--ice); font-weight:600; margin-bottom:6px;">Topological qubits</div>
-          <div class="muted" style="font-size:0.86rem;">A more speculative approach: encode information in the global topology of a system (e.g. theorized Majorana quasiparticles) rather than a fragile local state, so local thermal noise can't easily corrupt it. Still largely experimental — the underlying quasiparticles have been difficult to conclusively demonstrate.</div>
-        </div>
-      </div>
-      <p class="muted" style="margin-top:16px; font-size:0.9rem;">None of these are commercially practical replacements for superconducting qubits yet — but the point of the bonus question isn't a working design, it's showing you understand <em>why</em> cold matters, well enough to reason about how to route around it.</p>
-    </section>
-
+    </div>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step2"> I traced the full control → qubit → readout loop
+    </label>
   </div>
-</main>
+</div>
 
+<!-- ===================== STEP 3 — BOTTLENECK ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
+    <h3>The bottleneck: wiring, not physics</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Each physical qubit typically needs its own control line running from room temperature down into the dilution refrigerator. At 10 qubits, that's a manageable bundle. At 100, it's a real fan-out problem — and the fridge's limited cooling power at its coldest stage means you can't just keep adding wires.</p>
+
+    <div style="display:flex; align-items:flex-end; gap:40px; justify-content:center; margin:22px 0; flex-wrap:wrap;">
+      <div style="text-align:center;">
+        <svg width="90" height="140" viewBox="0 0 90 140" id="wires-10"></svg>
+        <div class="mono muted" style="margin-top:6px; font-size:0.82rem;">10 qubits<br>~10&ndash;20 lines</div>
+      </div>
+      <div style="text-align:center;">
+        <svg width="90" height="140" viewBox="0 0 90 140" id="wires-100"></svg>
+        <div class="mono muted" style="margin-top:6px; font-size:0.82rem;">100 qubits<br>hundreds of lines</div>
+      </div>
+    </div>
+
+    <p class="muted">The industry's answer is <strong style="color:var(--text);">cryo-CMOS control</strong> — putting some control electronics physically inside the fridge, closer to the chip, so a single cable can carry instructions for many qubits instead of one wire per qubit. It trades wiring complexity for a new problem: those control chips now have to work reliably at temperatures conventional electronics were never designed for.</p>
+
+    <label class="mark-done-check" style="margin-top:14px;">
+      <input type="checkbox" data-step-check="step3"> I can explain why it's wiring, not physics
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 4 — BONUS ROOM TEMP ===================== -->
+<div class="lesson-step" data-step="step4">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">4</div>
+    <h3>Bonus: does it have to be this cold?</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Not always — a few approaches don't need a dilution refrigerator at all, though each pays for it elsewhere:</p>
+    <div class="grid-3" style="margin-top:14px;">
+      <div class="stat" style="text-align:left;">
+        <div style="color:var(--primary); font-weight:600; margin-bottom:6px;">NV centers in diamond</div>
+        <div class="muted" style="font-size:0.86rem;">A nitrogen atom next to a vacancy in diamond's crystal lattice traps an electron whose spin can encode a qubit and be read out optically, at room temperature. Trade-off: linking many together into one coherent system is still an open problem.</div>
+      </div>
+      <div class="stat" style="text-align:left;">
+        <div style="color:var(--primary); font-weight:600; margin-bottom:6px;">Photonic qubits</div>
+        <div class="muted" style="font-size:0.86rem;">Photons don't interact with heat the way charge-based circuits do, so they travel through room-temperature waveguides without decohering. Trade-off: making photons interact with <em>each other</em> for two-qubit gates is inherently hard.</div>
+      </div>
+      <div class="stat" style="text-align:left;">
+        <div style="color:var(--primary); font-weight:600; margin-bottom:6px;">Topological qubits</div>
+        <div class="muted" style="font-size:0.86rem;">A more speculative approach: encode information in global topology (theorized Majorana quasiparticles) so local thermal noise can't easily corrupt it. Still largely experimental.</div>
+      </div>
+    </div>
+    <p class="muted" style="margin-top:14px; font-size:0.9rem;">None of these are commercially practical replacements for superconducting qubits yet — the point of the bonus question is showing you understand <em>why</em> cold matters, well enough to reason about how to route around it.</p>
+    <label class="mark-done-check" style="margin-top:12px;">
+      <input type="checkbox" data-step-check="step4"> I can name one alternative and its trade-off
+    </label>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
 <script>
   const ns = 'http://www.w3.org/2000/svg';
   function el(tag, attrs) { const e = document.createElementNS(ns, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; }
 
-  // simple architecture diagram: classical computer <-> control <-> QPU <-> readout <-> classical computer (loop)
   const arch = document.getElementById('arch-svg');
   const nodes = [
     { label: 'Classical Computer', y: 20 },
@@ -111,31 +140,29 @@
     { label: 'Readout System', y: 290 },
   ];
   nodes.forEach((n, i) => {
-    arch.appendChild(el('rect', { x: 40, y: n.y, width: 240, height: 60, rx: 3, fill: 'var(--surface-raised)', stroke: 'var(--line-bright)', 'stroke-width': 1.3 }));
+    arch.appendChild(el('rect', { x: 40, y: n.y, width: 240, height: 60, rx: 10, fill: 'var(--surface-alt)', stroke: 'var(--line-strong)', 'stroke-width': 1.3 }));
     const t = el('text', { x: 160, y: n.y + 35, 'text-anchor': 'middle', fill: 'var(--text)', 'font-family': 'var(--font-body)', 'font-weight': 600, 'font-size': 14 });
     t.textContent = n.label; arch.appendChild(t);
     if (i < nodes.length - 1) {
-      arch.appendChild(el('line', { x1: 160, y1: n.y + 60, x2: 160, y2: n.y + 90, stroke: 'var(--copper)', 'stroke-width': 2 }));
+      arch.appendChild(el('line', { x1: 160, y1: n.y + 60, x2: 160, y2: n.y + 90, stroke: 'var(--primary)', 'stroke-width': 2 }));
     }
   });
-  // feedback loop line from readout back to classical computer
-  arch.appendChild(el('path', { d: 'M 280 320 C 320 320, 320 40, 280 40', fill: 'none', stroke: 'var(--ice)', 'stroke-width': 1.6, 'stroke-dasharray': '4 4' }));
-  const loopLabel = el('text', { x: 296, y: 180, fill: 'var(--ice)', 'font-family': 'var(--font-mono)', 'font-size': 10, transform: 'rotate(90 296 180)' });
+  arch.appendChild(el('path', { d: 'M 280 320 C 320 320, 320 40, 280 40', fill: 'none', stroke: 'var(--amber)', 'stroke-width': 1.6, 'stroke-dasharray': '4 4' }));
+  const loopLabel = el('text', { x: 296, y: 180, fill: 'var(--amber-dim)', 'font-family': 'var(--font-mono)', 'font-size': 10, transform: 'rotate(90 296 180)' });
   loopLabel.textContent = 'measurement result'; arch.appendChild(loopLabel);
 
-  function drawWires(svgId, count, spread) {
+  function drawWires(svgId, count) {
     const s = document.getElementById(svgId);
-    s.appendChild(el('rect', { x: 15, y: 90, width: 60, height: 40, fill: 'var(--surface-raised)', stroke: 'var(--line-bright)', 'stroke-width': 1, rx: 2 }));
+    s.appendChild(el('rect', { x: 15, y: 90, width: 60, height: 40, fill: 'var(--surface-alt)', stroke: 'var(--line-strong)', 'stroke-width': 1, rx: 6 }));
     s.appendChild(Object.assign(el('text', { x: 45, y: 115, 'text-anchor': 'middle', fill: 'var(--text-faint)', 'font-family': 'var(--font-mono)', 'font-size': 9 }), { textContent: 'chip' }));
     for (let i = 0; i < count; i++) {
-      const x1 = 20 + (i % (count)) * (50/count) + 10;
       const topX = 5 + i * (80 / count);
-      s.appendChild(el('line', { x1: topX, y1: 0, x2: 45, y2: 90, stroke: 'var(--copper)', 'stroke-width': 0.7, opacity: 0.65 }));
+      s.appendChild(el('line', { x1: topX, y1: 0, x2: 45, y2: 90, stroke: 'var(--amber)', 'stroke-width': 0.7, opacity: 0.6 }));
     }
   }
   drawWires('wires-10', 14);
   drawWires('wires-100', 60);
+
+  initLessonProgress('reality-check');
 </script>
-<script src="{{ url_for('static', filename='js/chrome.js') }}"></script>
-</body>
-</html>
+{% endblock %}

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qubit Sandbox — learn quantum computing by running it</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<header class="marketing-nav">
+  <div class="marketing-shell" style="display:flex; align-items:center; justify-content:space-between; padding:0;">
+    <div class="brand">
+      <span class="logo-mark">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="3" fill="#fff" stroke="none"/><ellipse cx="12" cy="12" rx="10" ry="4.2"/><ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(120 12 12)"/></svg>
+      </span>
+      <span>Qubit Sandbox</span>
+    </div>
+    <a class="btn primary" href="{{ url_for('dashboard') }}">Enter the lab →</a>
+  </div>
+</header>
+
+<main class="marketing-shell">
+
+  <section class="hero-landing">
+    <div>
+      <div class="eyebrow">A HANDS-ON INTRO TO QUANTUM COMPUTING</div>
+      <h1>Quantum computing, run live in front of you.</h1>
+      <p class="lede">Not slides about qubits — an actual qubit. Flip a Hadamard gate and watch 1,000 real measurements land where quantum mechanics says they should. Prepare two entangled qubits. See how a physical qubit is built. See why 100 of them is a much harder problem than 10.</p>
+      <div class="cta-row">
+        <a class="btn primary" href="{{ url_for('dashboard') }}">Enter the lab →</a>
+        <a class="btn" href="{{ url_for('single_qubit') }}">Start with Lesson 1</a>
+      </div>
+    </div>
+
+    <div class="hero-illustration" style="display:flex; justify-content:center;">
+      <svg width="320" height="320" viewBox="0 0 320 320">
+        <circle cx="160" cy="160" r="130" fill="none" stroke="#e6e9f2" stroke-width="1.5" stroke-dasharray="3 5"/>
+        <g class="orbit-ring">
+          <ellipse cx="160" cy="160" rx="120" ry="46" fill="none" stroke="#3e5cf6" stroke-width="2.5" opacity="0.85"/>
+          <circle cx="280" cy="160" r="6" fill="#3e5cf6"/>
+        </g>
+        <g class="orbit-ring reverse">
+          <ellipse cx="160" cy="160" rx="120" ry="46" fill="none" stroke="#ee9c2b" stroke-width="2.5" opacity="0.85" transform="rotate(60 160 160)"/>
+          <circle cx="238.6" cy="269.2" r="6" fill="#ee9c2b" transform="rotate(60 160 160) translate(0,0)"/>
+        </g>
+        <g class="orbit-ring" style="animation-duration:26s;">
+          <ellipse cx="160" cy="160" rx="120" ry="46" fill="none" stroke="#1ea672" stroke-width="2.5" opacity="0.85" transform="rotate(120 160 160)"/>
+          <circle cx="41.4" cy="269.2" r="6" fill="#1ea672" transform="rotate(120 160 160)"/>
+        </g>
+        <circle cx="160" cy="160" r="15" fill="#1a1d29"/>
+        <circle cx="160" cy="160" r="15" fill="none" stroke="#fff" stroke-width="2"/>
+      </svg>
+    </div>
+  </section>
+
+  <div class="feature-row">
+    <div class="feature-card">
+      <div class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><ellipse cx="12" cy="12" rx="9" ry="4"/><ellipse cx="12" cy="12" rx="9" ry="4" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9" ry="4" transform="rotate(120 12 12)"/></svg></div>
+      <h3>Real math, not canned demos</h3>
+      <p>Every gate is a literal 2×2 complex matrix multiplying live amplitudes. Nothing is precomputed — refresh and the statistics genuinely change.</p>
+    </div>
+    <div class="feature-card">
+      <div class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
+      <h3>Lessons with progress</h3>
+      <p>Each topic is a short lesson with a sandbox built in — work through it at your own pace, and pick up where you left off.</p>
+    </div>
+    <div class="feature-card">
+      <div class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="6" width="12" height="12" rx="1.5"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg></div>
+      <h3>From qubit to hardware</h3>
+      <p>Go past the analogy — see the actual Josephson junction, transmon, and readout chain a real superconducting qubit is built from.</p>
+    </div>
+    <div class="feature-card">
+      <div class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M12 20V4M20 20v-7"/></svg></div>
+      <h3>Grounded in reality</h3>
+      <p>Real published qubit counts, real scaling bottlenecks (it's the wiring, not the physics) — no hand-waving about "quantum supremacy."</p>
+    </div>
+  </div>
+
+  <section class="panel" style="margin-bottom:60px;">
+    <div class="panel-label">WHY THIS EXISTS</div>
+    <h2 style="margin-top:6px;">Most explanations stop at the analogy</h2>
+    <p class="muted">"A qubit is like a coin that's both heads and tails" is where most explainers end. Qubit Sandbox is the next step down — the actual amplitudes, the actual matrices, the actual measurement statistics — so the analogy stops being necessary. Built for a quantum computing hackathon problem set, and kept running afterward as an open, self-contained learning tool.</p>
+  </section>
+
+</main>
+
+<footer class="marketing-footer">
+  <div class="marketing-shell" style="padding:0;">Qubit Sandbox — runs entirely client-side quantum math in your browser, served by a small Flask app.</div>
+</footer>
+
+</body>
+</html>

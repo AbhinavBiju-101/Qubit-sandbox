@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Challenge — Build the Coin Flip Demo Yourself</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div style="max-width:900px; margin:0 auto; padding:40px 24px 100px;">
+
+  <div class="pill blue" style="margin-bottom:14px;">YOUR TURN · PROBLEM 1, FROM SCRATCH</div>
+  <h1 style="margin-bottom:6px;">Build the coin-flip demo yourself.</h1>
+  <p class="muted" style="font-size:1.05rem;">This page is fully wired up — every button below already calls into <span class="mono">quantum-challenge.js</span>. Open that file: the gate matrices, probability formulas, and shot sampling are left as <span class="mono">TODO</span>s for you to fill in. Nothing will move until you do.</p>
+
+  <div class="callout" style="margin-top:20px;">
+    Read <span class="mono">CHALLENGE.md</span> in this folder for the full instructions and hints before you start. Don't peek at <span class="mono">../static/js/quantum.js</span> — that's the finished version.
+  </div>
+
+  <div class="grid-2" style="margin-top:28px;">
+    <div class="panel">
+      <div class="panel-label">BLOCH SPHERE</div>
+      <svg id="bloch" viewBox="0 0 300 300" style="width:100%; max-width:300px; display:block; margin:0 auto;"></svg>
+      <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:14px;">
+        <button data-gate="H">H</button>
+        <button data-gate="X">X</button>
+        <button data-gate="Y">Y</button>
+        <button data-gate="Z">Z</button>
+        <button id="reset-btn" class="small ghost">Reset to |0⟩</button>
+      </div>
+      <hr class="hair" style="margin:18px 0;">
+      <div class="mono" style="font-size:0.86rem; color: var(--text-muted);">
+        <div>Gates applied: <span id="gate-log" style="color:var(--primary);">—</span></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label">MEASUREMENT · 1000 SHOTS</div>
+      <p class="muted" style="font-size:0.92rem;">Won't do anything until <span class="mono">sampleShots()</span> is implemented.</p>
+      <button class="primary block" id="run-shots">Run 1000 shots</button>
+
+      <div style="margin-top:20px;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+          <div class="mono" style="width:20px; color:var(--primary);">0</div>
+          <div style="flex:1; background:var(--surface-alt); border:1px solid var(--line); border-radius:999px; height:22px; overflow:hidden;">
+            <div id="bar0" style="height:100%; width:50%; background:var(--primary); transition:width 0.5s ease;"></div>
+          </div>
+          <div class="mono" id="count0" style="width:64px; text-align:right;">—</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="mono" style="width:20px; color:var(--amber);">1</div>
+          <div style="flex:1; background:var(--surface-alt); border:1px solid var(--line); border-radius:999px; height:22px; overflow:hidden;">
+            <div id="bar1" style="height:100%; width:50%; background:var(--amber); transition:width 0.5s ease;"></div>
+          </div>
+          <div class="mono" id="count1" style="width:64px; text-align:right;">—</div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top:20px;">
+        <div class="stat"><span class="num" id="prob0">—</span><span class="label">P(measure 0)</span></div>
+        <div class="stat"><span class="num" id="prob1">—</span><span class="label">P(measure 1)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <section class="panel" style="margin-top:28px;">
+    <div class="panel-label">BONUS · 75% / 25%</div>
+    <h2 style="margin-top:6px;">Skew the coin with RY(θ)</h2>
+    <p class="muted">Once <span class="mono">RY()</span> and <span class="mono">prob0()</span> work, find the angle θ that gives P(0) ≈ 75%.</p>
+    <div style="max-width:520px; margin-top:14px;">
+      <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.85rem; margin-bottom:6px;">
+        <span class="muted">θ = <span id="theta-val">0°</span></span>
+      </div>
+      <input type="range" id="theta-slider" min="0" max="180" value="0" step="1">
+      <button id="bonus-apply" class="small" style="margin-top:14px;">Apply RY(θ) and run 1000 shots</button>
+    </div>
+  </section>
+
+</div>
+
+<script src="bloch.js"></script>
+<script src="quantum-challenge.js"></script>
+<script>
+  const q = new Qubit();
+  const widget = createBlochWidget(document.getElementById('bloch'));
+
+  function refresh() {
+    const b = q.bloch();
+    widget.set(b.theta, b.phi);
+    document.getElementById('gate-log').textContent = q.log.length ? q.log.join(' → ') : '—';
+    document.getElementById('prob0').textContent = (q.prob0()*100).toFixed(1) + '%';
+    document.getElementById('prob1').textContent = (q.prob1()*100).toFixed(1) + '%';
+  }
+
+  document.querySelectorAll('button[data-gate]').forEach(btn => {
+    btn.addEventListener('click', () => { q[btn.dataset.gate](); refresh(); });
+  });
+  document.getElementById('reset-btn').addEventListener('click', () => { q.reset(); refresh(); resetBars(); });
+
+  function resetBars(){
+    document.getElementById('bar0').style.width = '50%';
+    document.getElementById('bar1').style.width = '50%';
+    document.getElementById('count0').textContent = '—';
+    document.getElementById('count1').textContent = '—';
+  }
+
+  document.getElementById('run-shots').addEventListener('click', () => {
+    const { c0, c1 } = q.sampleShots(1000);
+    const total = c0 + c1;
+    document.getElementById('bar0').style.width = (c0/total*100) + '%';
+    document.getElementById('bar1').style.width = (c1/total*100) + '%';
+    document.getElementById('count0').textContent = c0 + ' (' + (c0/total*100).toFixed(1) + '%)';
+    document.getElementById('count1').textContent = c1 + ' (' + (c1/total*100).toFixed(1) + '%)';
+  });
+
+  refresh();
+
+  const slider = document.getElementById('theta-slider');
+  slider.addEventListener('input', () => {
+    document.getElementById('theta-val').textContent = slider.value + '°';
+  });
+
+  document.getElementById('bonus-apply').addEventListener('click', () => {
+    q.reset();
+    q.RY(+slider.value * Math.PI / 180);
+    refresh();
+    document.getElementById('run-shots').click();
+  });
+</script>
+</body>
+</html>

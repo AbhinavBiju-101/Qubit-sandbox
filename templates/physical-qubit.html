@@ -1,61 +1,86 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Physical Qubit — Qubit Sandbox</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body data-page="physical">
+{% extends "base.html" %}
+{% block title %}Physical Qubit — Qubit Sandbox{% endblock %}
+{% block page_title %}Lesson 3 · Physical Qubit{% endblock %}
 
-<main>
-  <div class="shell">
+{% block content %}
 
-    <div class="hero">
-      <div class="eyebrow">PROBLEM 3 · BUILD YOUR FIRST QUBIT</div>
-      <h1>What "|0⟩" actually is, physically.</h1>
-      <p class="lede">A superconducting qubit chain: Josephson junction → transmon → resonator → readout. Click a stage for what it does and why it's there.</p>
-    </div>
+<div class="pill amber" style="margin-bottom:14px;">HACKATHON PROBLEM 3 · BUILD YOUR FIRST QUBIT</div>
+<h1 style="margin-bottom:6px;">What "|0⟩" actually is, physically.</h1>
+<p class="muted" style="font-size:1.05rem;">Four steps: the hardware chain, how it's controlled, how it's measured, and why it has to be so cold.</p>
 
-    <div class="grid-2" style="margin-top:32px; align-items:stretch;">
+<div class="lesson-progress-row">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
 
+<!-- ===================== STEP 1 — HARDWARE CHAIN ===================== -->
+<div class="lesson-step" data-step="step1">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">1</div>
+    <h3>The hardware chain</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">A superconducting qubit isn't one component — it's a chain of four. Click each stage below for what it does and why it's there.</p>
+    <div class="grid-2" style="margin-top:16px; align-items:stretch;">
       <div class="panel">
-        <div class="panel-label">HARDWARE CHAIN</div>
+        <div class="panel-label">SANDBOX · CLICK A STAGE</div>
         <svg id="chain-svg" viewBox="0 0 320 460" style="width:100%; max-width:320px; display:block; margin:0 auto;"></svg>
       </div>
-
       <div class="panel" id="info-panel">
         <div class="panel-label">DETAIL</div>
         <h3 id="info-title">Josephson Junction</h3>
         <p id="info-body" class="muted"></p>
       </div>
-
     </div>
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step1"> I clicked through all four stages
+    </label>
+  </div>
+</div>
 
-    <hr class="hair">
+<!-- ===================== STEP 2 — CONTROL ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
+    <h3>How it's controlled</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Microwave pulses tuned to the transmon's transition frequency (typically 4–6&nbsp;GHz) are sent down a control line. The pulse's <em>length</em> and <em>phase</em> set the rotation angle and axis on the Bloch sphere — the same H / X / RY logic from the Single Qubit lesson, just implemented as a physical pulse instead of a button click.</p>
+    <label class="mark-done-check" style="margin-top:12px;">
+      <input type="checkbox" data-step-check="step2"> Makes sense — pulses are gates
+    </label>
+  </div>
+</div>
 
-    <div class="grid-2">
-      <div class="panel">
-        <div class="panel-label">HOW IT'S CONTROLLED</div>
-        <p class="muted">Microwave pulses tuned to the transmon's transition frequency (typically 4–6&nbsp;GHz) are sent down a control line. The pulse's <em>length</em> and <em>phase</em> set the rotation angle and axis on the Bloch sphere — this is literally the same H / X / RY logic from the Single Qubit Lab, just implemented as a physical pulse instead of a button click.</p>
-      </div>
-      <div class="panel">
-        <div class="panel-label">HOW IT'S MEASURED</div>
-        <p class="muted">A probe tone is sent into the coupled resonator. Its resonant frequency shifts slightly depending on whether the qubit is in |0⟩ or |1⟩ (dispersive readout). The reflected signal is amplified by a cryogenic amplifier, then digitized at room temperature to yield a 0 or 1.</p>
-      </div>
-    </div>
+<!-- ===================== STEP 3 — READOUT ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
+    <h3>How it's measured</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">A probe tone is sent into the coupled resonator. Its resonant frequency shifts slightly depending on whether the qubit is in |0⟩ or |1⟩ (dispersive readout). The reflected signal is amplified by a cryogenic amplifier, then digitized at room temperature to yield a 0 or 1.</p>
+    <label class="mark-done-check" style="margin-top:12px;">
+      <input type="checkbox" data-step-check="step3"> Makes sense — the resonator reports the state indirectly
+    </label>
+  </div>
+</div>
 
-    <hr class="hair">
+<!-- ===================== STEP 4 — DECOHERENCE / BONUS ===================== -->
+<div class="lesson-step" data-step="step4">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">4</div>
+    <h3>Bonus: why so cold</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Dilution refrigerators cool the chip to ~10–15&nbsp;mK — colder than deep space. Below, a qubit is prepared in an equal superposition and left alone. Watch what raising the temperature does to how long it stays coherent.</p>
 
-    <section class="panel">
-      <div class="panel-label">WHY SO COLD · LIVE DECOHERENCE DEMO</div>
-      <h2 style="margin-top:6px;">Turn up the temperature</h2>
-      <p class="muted">Dilution refrigerators cool the chip to ~10–15&nbsp;mK — colder than deep space. Below, a qubit is prepared in an equal superposition and left alone. Watch what raising the temperature does to how long it stays coherent.</p>
-
-      <div class="grid-2" style="margin-top:20px; align-items:center;">
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · TEMPERATURE</div>
+      <div class="grid-2" style="align-items:center;">
         <svg id="decoy-bloch" viewBox="0 0 260 260" style="width:100%; max-width:240px; display:block; margin:0 auto;"></svg>
         <div>
-          <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.85rem; margin-bottom:6px;">
+          <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.85rem; margin-bottom:8px;">
             <span class="muted">Temperature: <span id="temp-val" style="color:var(--text);">15 mK</span></span>
           </div>
           <input type="range" id="temp-slider" min="0" max="100" value="0" step="1">
@@ -63,27 +88,29 @@
             <span class="num" id="coherence-val">100%</span>
             <span class="label">coherence remaining, live</span>
           </div>
-          <div class="mono muted" style="margin-top:10px; font-size:0.82rem;">Estimated T1 at this temperature: <span id="t1-val" style="color:var(--ice);">~120 μs</span></div>
+          <div class="mono muted" style="margin-top:10px; font-size:0.82rem;">Estimated T1 at this temperature: <span id="t1-val" style="color:var(--primary);">~120 μs</span></div>
         </div>
       </div>
+    </div>
 
-      <div class="callout" style="margin-top:22px;">
-        <strong>Bonus — what happens if temperature rises significantly:</strong>
-        thermal energy starts randomly kicking the qubit between |0⟩ and |1⟩ (bit flips),
-        stray thermal photons fill the resonator and add noise to every readout, and if the
-        chip rises past the material's superconducting critical temperature the Josephson
-        junction stops being a junction at all — it's just a resistor, and there is no qubit
-        left to measure.
-      </div>
-    </section>
+    <div class="callout" style="margin-top:18px;">
+      <strong>What happens if temperature rises significantly:</strong>
+      thermal energy starts randomly kicking the qubit between |0⟩ and |1⟩ (bit flips), stray thermal photons fill the resonator and add noise to every readout, and if the chip rises past the material's superconducting critical temperature the Josephson junction stops being a junction at all — it's just a resistor, and there is no qubit left to measure.
+    </div>
 
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step4"> I dragged the slider to max and watched coherence collapse
+    </label>
   </div>
-</main>
+</div>
 
+{% endblock %}
+
+{% block scripts %}
 <script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
 <script src="{{ url_for('static', filename='js/bloch.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
 <script>
-  // ---- clickable hardware chain (SVG built by hand, not decorative) ----
   const STAGES = [
     { key: 'jj', label: 'Josephson Junction', y: 30,
       body: 'Two superconductors separated by a nanometer-thin insulating barrier. Cooper pairs tunnel across it, and — unlike a normal inductor — the junction\'s inductance is nonlinear. That nonlinearity is the whole trick: it makes the circuit\'s energy levels unevenly spaced, so the lowest two levels can be addressed on their own as |0⟩ and |1⟩ without accidentally driving the third, fourth, fifth level too.' },
@@ -101,49 +128,47 @@
 
   STAGES.forEach((s, i) => {
     const g = el('g', { class: 'stage-group', 'data-key': s.key, style: 'cursor:pointer;' });
-    const rect = el('rect', { x: 40, y: s.y, width: 240, height: 70, rx: 3, fill: 'var(--surface-raised)', stroke: 'var(--line-bright)', 'stroke-width': 1.4, class: 'stage-rect' });
+    const rect = el('rect', { x: 40, y: s.y, width: 240, height: 70, rx: 10, fill: 'var(--surface-alt)', stroke: 'var(--line-strong)', 'stroke-width': 1.4, class: 'stage-rect' });
     const text = el('text', { x: 160, y: s.y + 40, 'text-anchor': 'middle', fill: 'var(--text)', 'font-family': 'var(--font-body)', 'font-weight': 600, 'font-size': 15 });
     text.textContent = s.label;
     g.appendChild(rect); g.appendChild(text);
     svg.appendChild(g);
     if (i < STAGES.length - 1) {
-      const arrow = el('line', { x1: 160, y1: s.y + 70, x2: 160, y2: s.y + 100, stroke: 'var(--copper)', 'stroke-width': 2, 'marker-end': 'url(#arrowhead)' });
+      const arrow = el('line', { x1: 160, y1: s.y + 70, x2: 160, y2: s.y + 100, stroke: 'var(--primary)', 'stroke-width': 2, 'marker-end': 'url(#arrowhead)' });
       svg.appendChild(arrow);
     }
     g.addEventListener('click', () => selectStage(s.key));
   });
 
-  // arrowhead marker
   const defs = el('defs', {});
   const marker = el('marker', { id: 'arrowhead', markerWidth: 8, markerHeight: 8, refX: 4, refY: 4, orient: 'auto' });
-  const tri = el('path', { d: 'M0,0 L8,4 L0,8 Z', fill: 'var(--copper)' });
+  const tri = el('path', { d: 'M0,0 L8,4 L0,8 Z', fill: 'var(--primary)' });
   marker.appendChild(tri); defs.appendChild(marker); svg.insertBefore(defs, svg.firstChild);
 
+  const clickedStages = new Set();
   function selectStage(key) {
     const s = STAGES.find(x => x.key === key);
     document.getElementById('info-title').textContent = s.label;
     document.getElementById('info-body').textContent = s.body;
-    document.querySelectorAll('.stage-rect').forEach(r => r.setAttribute('stroke', 'var(--line-bright)'));
-    document.querySelector(`.stage-group[data-key="${key}"] .stage-rect`).setAttribute('stroke', 'var(--copper)');
+    document.querySelectorAll('.stage-rect').forEach(r => r.setAttribute('stroke', 'var(--line-strong)'));
+    document.querySelector(`.stage-group[data-key="${key}"] .stage-rect`).setAttribute('stroke', 'var(--primary)');
+    clickedStages.add(key);
   }
   selectStage('jj');
 
-  // ---- live decoherence demo ----
   const decoQ = new Qubit();
-  decoQ.H(); // start at equator: maximal superposition, most sensitive to decoherence
+  decoQ.H();
   const decoWidget = createBlochWidget(document.getElementById('decoy-bloch'));
 
   const tempSlider = document.getElementById('temp-slider');
   let magnitude = 1.0;
 
   function tempFromSlider(v) {
-    // 0 -> 15 mK, 100 -> 300 K (log-ish scale for drama)
     const mK = 15 * Math.pow(300000 / 15, v / 100);
-    return mK; // in mK
+    return mK;
   }
   function t1FromSlider(v) {
-    // purely illustrative mapping: T1 falls sharply as temperature rises
-    const maxT1 = 120; // microseconds at base temp
+    const maxT1 = 120;
     return Math.max(0.05, maxT1 * Math.exp(-v / 14));
   }
 
@@ -157,21 +182,16 @@
   tempSlider.addEventListener('input', updateTempLabel);
   updateTempLabel();
 
-  // animate: vector magnitude decays faster at higher slider value, then resets (models repeated experiment)
-  let angle = Math.PI / 2; // starts at equator (theta)
   setInterval(() => {
     const v = +tempSlider.value;
-    const decayRate = 0.01 + (v / 100) * 0.18; // higher temp -> faster decay
+    const decayRate = 0.01 + (v / 100) * 0.18;
     magnitude -= decayRate;
-    if (magnitude <= 0.03) magnitude = 1.0; // reset, like re-preparing the state each run
-    // shrinking magnitude = vector tips toward center (mixed state / lost coherence)
-    // as coherence is lost the state vector shrinks toward the center of the
-    // sphere (a pure state becoming mixed) instead of just sitting on the surface
+    if (magnitude <= 0.03) magnitude = 1.0;
     decoWidget.set(Math.PI/2, performance.now() / 400, magnitude);
     document.getElementById('coherence-val').textContent = Math.max(0, magnitude * 100).toFixed(0) + '%';
-    document.getElementById('coherence-val').style.color = magnitude > 0.5 ? 'var(--ice)' : (magnitude > 0.2 ? 'var(--amber-warn)' : 'var(--danger)');
+    document.getElementById('coherence-val').style.color = magnitude > 0.5 ? 'var(--primary)' : (magnitude > 0.2 ? 'var(--amber)' : 'var(--red)');
   }, 120);
+
+  initLessonProgress('physical-qubit');
 </script>
-<script src="{{ url_for('static', filename='js/chrome.js') }}"></script>
-</body>
-</html>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Hardware Lab — Qubit Sandbox{% endblock %}
+{% block page_title %}Hardware Lab{% endblock %}
+
+{% block content %}
+
+<div class="soon-badge" style="margin-bottom:14px;">Under construction</div>
+<h1 style="margin-bottom:6px;">Inside the hardware, one layer deeper.</h1>
+<p class="muted" style="font-size:1.05rem; max-width:70ch;">
+  The Physical Qubit lesson covers the JJ → transmon → resonator → readout
+  chain at a conceptual level. This page is reserved for the next layer
+  down — structural diagrams, not just block boxes.
+</p>
+
+<div class="panel" style="margin-top:28px;">
+  <div class="panel-label">PLANNED SECTIONS — fill these in</div>
+
+  <div class="lesson-step">
+    <div class="lesson-step-head">
+      <div class="lesson-step-num">A</div>
+      <h3>Transistor structure</h3>
+    </div>
+    <div class="lesson-step-body">
+      <p class="muted">TODO: cross-section diagram of a MOSFET (gate/source/drain/substrate) as the classical-computing baseline to contrast against superconducting qubits.</p>
+    </div>
+  </div>
+
+  <div class="lesson-step">
+    <div class="lesson-step-head">
+      <div class="lesson-step-num">B</div>
+      <h3>Superconducting circuit layout</h3>
+    </div>
+    <div class="lesson-step-body">
+      <p class="muted">TODO: an actual chip-layout-style diagram — capacitor pads, Josephson junction placement, coplanar waveguide routing — instead of the labeled-box version on the Physical Qubit page.</p>
+    </div>
+  </div>
+
+  <div class="lesson-step">
+    <div class="lesson-step-head">
+      <div class="lesson-step-num">C</div>
+      <h3>LC oscillation, zero resistance</h3>
+    </div>
+    <div class="lesson-step-body">
+      <p class="muted">TODO: the classical LC tank circuit as an analogy — an animated charge sloshing between capacitor and inductor forever (no resistance = no energy loss), then the jump to "what changes when the inductor is a Josephson junction instead."</p>
+    </div>
+  </div>
+
+  <div class="callout" style="margin-top:6px;">
+    See <span class="mono">futureplans.md</span> in the project root for the fuller list of what's planned here and elsewhere. This route and template are wired up and ready — routes, sidebar entry, and lesson-step styling all already work, so you can start dropping content straight into <span class="mono">templates/hardware-lab.html</span>.
+  </div>
+</div>
+
+{% endblock %}

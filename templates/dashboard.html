@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Qubit Sandbox{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<h2 style="margin-bottom:4px;">Welcome back</h2>
+<p class="muted">Pick up a lesson, or jump straight into a sandbox. Progress is saved in this browser.</p>
+
+<div class="grid-3" style="margin:24px 0 36px;">
+  <div class="stat">
+    <span class="num" id="stat-shots">0</span>
+    <span class="label">measurement shots run</span>
+  </div>
+  <div class="stat">
+    <span class="num" id="stat-gates">0</span>
+    <span class="label">gates applied</span>
+  </div>
+  <div class="stat">
+    <span class="num" id="stat-lessons">0/4</span>
+    <span class="label">lessons completed</span>
+  </div>
+</div>
+
+<div class="section-title"><h2>Lessons</h2></div>
+<p class="muted" style="margin-bottom:20px;">Short, hands-on, with a built-in sandbox for each idea.</p>
+
+<div class="grid-3" style="align-items:stretch;">
+
+  <a href="{{ url_for('single_qubit') }}" class="card-link">
+    <div class="lesson-card">
+      <div class="licon" style="background:var(--primary-soft); color:var(--primary);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><ellipse cx="12" cy="12" rx="9" ry="4"/><ellipse cx="12" cy="12" rx="9" ry="4" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9" ry="4" transform="rotate(120 12 12)"/></svg>
+      </div>
+      <span class="pill blue" style="margin-bottom:10px; width:fit-content;">Lesson 1 · Superposition</span>
+      <h3>Single Qubit</h3>
+      <p>Build a real qubit, apply gates, and run 1,000 measurements to see superposition collapse into statistics.</p>
+      <div class="lesson-progress-row">
+        <div class="lesson-progress-track"><div class="lesson-progress-fill" id="dash-single-fill"></div></div>
+        <span class="lesson-progress-pct" id="dash-single-pct">0%</span>
+      </div>
+    </div>
+  </a>
+
+  <a href="{{ url_for('two_qubit') }}" class="card-link">
+    <div class="lesson-card">
+      <div class="licon" style="background:var(--green-soft); color:var(--green);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="12" r="6.2"/><circle cx="15" cy="12" r="6.2"/></svg>
+      </div>
+      <span class="pill green" style="margin-bottom:10px; width:fit-content;">Lesson 2 · Measurement</span>
+      <h3>Two Qubits</h3>
+      <p>Prepare and identify any of the four basis states, then see what entanglement changes about measurement.</p>
+      <div class="lesson-progress-row">
+        <div class="lesson-progress-track"><div class="lesson-progress-fill" id="dash-two-fill"></div></div>
+        <span class="lesson-progress-pct" id="dash-two-pct">0%</span>
+      </div>
+    </div>
+  </a>
+
+  <a href="{{ url_for('physical_qubit') }}" class="card-link">
+    <div class="lesson-card">
+      <div class="licon" style="background:var(--amber-soft); color:var(--amber-dim);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="6" width="12" height="12" rx="1.5"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg>
+      </div>
+      <span class="pill amber" style="margin-bottom:10px; width:fit-content;">Lesson 3 · Hardware</span>
+      <h3>Physical Qubit</h3>
+      <p>Josephson junction → transmon → resonator → readout, plus a live temperature/decoherence demo.</p>
+      <div class="lesson-progress-row">
+        <div class="lesson-progress-track"><div class="lesson-progress-fill" id="dash-phys-fill"></div></div>
+        <span class="lesson-progress-pct" id="dash-phys-pct">0%</span>
+      </div>
+    </div>
+  </a>
+
+  <a href="{{ url_for('hardware_lab') }}" class="card-link">
+    <div class="lesson-card">
+      <div class="soon-badge">Coming soon</div>
+      <div class="licon" style="background:var(--surface-alt); color:var(--text-faint);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/></svg>
+      </div>
+      <h3>Hardware Lab</h3>
+      <p>A deeper look at transistor and superconducting circuit structure, plus the zero-resistance LC oscillation analogy.</p>
+      <div style="margin-top:auto; padding-top:14px;"><span class="pill">In progress →</span></div>
+    </div>
+  </a>
+
+  <a href="{{ url_for('reality_check') }}" class="card-link">
+    <div class="lesson-card">
+      <div class="licon" style="background:var(--primary-soft); color:var(--primary);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>
+      </div>
+      <span class="pill" style="margin-bottom:10px; width:fit-content;">Lesson 4 · Scaling</span>
+      <h3>Reality Check</h3>
+      <p>Real published qubit counts, a full system architecture, and the actual scaling bottleneck at 100 qubits.</p>
+      <div class="lesson-progress-row">
+        <div class="lesson-progress-track"><div class="lesson-progress-fill" id="dash-reality-fill"></div></div>
+        <span class="lesson-progress-pct" id="dash-reality-pct">0%</span>
+      </div>
+    </div>
+  </a>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/stats.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script>
+  const s = qsStatsGet();
+  document.getElementById('stat-shots').textContent = s.shotsRun.toLocaleString();
+  document.getElementById('stat-gates').textContent = s.gatesApplied.toLocaleString();
+
+  const LESSONS = [
+    { id: 'single-qubit', steps: 4, fill: 'dash-single-fill', pct: 'dash-single-pct' },
+    { id: 'two-qubit', steps: 3, fill: 'dash-two-fill', pct: 'dash-two-pct' },
+    { id: 'physical-qubit', steps: 4, fill: 'dash-phys-fill', pct: 'dash-phys-pct' },
+    { id: 'reality-check', steps: 4, fill: 'dash-reality-fill', pct: 'dash-reality-pct' },
+  ];
+  let completedCount = 0;
+  LESSONS.forEach(l => {
+    const p = getLessonProgress(l.id, l.steps);
+    document.getElementById(l.fill).style.width = p.pct + '%';
+    document.getElementById(l.pct).textContent = p.pct + '%';
+    if (p.pct === 100) completedCount++;
+  });
+  document.getElementById('stat-lessons').textContent = completedCount + '/' + LESSONS.length;
+</script>
+{% endblock %}

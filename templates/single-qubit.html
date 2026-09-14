@@ -1,101 +1,148 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Single Qubit Lab — Qubit Sandbox</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body data-page="single">
+{% extends "base.html" %}
+{% block title %}Single Qubit — Qubit Sandbox{% endblock %}
+{% block page_title %}Lesson 1 · Single Qubit{% endblock %}
 
-<main>
-  <div class="shell">
+{% block content %}
 
-    <div class="hero">
-      <div class="eyebrow">PROBLEM 1 · COIN FLIP, BUT QUANTUM</div>
-      <h1>One qubit, in superposition.</h1>
-      <p class="lede">Start at |0⟩. Apply gates. Every click below is a real 2×2 complex matrix multiplying the state — nothing is precomputed.</p>
-    </div>
+<div class="pill blue" style="margin-bottom:14px;">HACKATHON PROBLEM 1 · COIN FLIP, BUT QUANTUM</div>
+<h1 style="margin-bottom:6px;">One qubit, in superposition.</h1>
+<p class="lede muted" style="font-size:1.05rem;">Four short steps. Check each one off as you go — every gate click below is a real 2×2 complex matrix multiplying the state, nothing is precomputed.</p>
 
-    <div class="grid-2" style="margin-top:32px;">
+<div class="lesson-progress-row">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
 
+<!-- ===================== STEP 1 — THEORY ===================== -->
+<div class="lesson-step" data-step="step1">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">1</div>
+    <h3>What is a qubit, actually?</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">A classical bit is 0 or 1 — nothing in between. A qubit's state is a pair of complex numbers <span class="mono">(α, β)</span> called <strong>amplitudes</strong>, one for |0⟩ and one for |1⟩, with the rule <span class="mono">|α|² + |β|² = 1</span>.</p>
+    <p class="muted">You never see α and β directly. What you get on measurement is 0 with probability <span class="mono">|α|²</span>, or 1 with probability <span class="mono">|β|²</span> — that's <strong>Born's rule</strong>, and it's the only place randomness enters quantum mechanics.</p>
+    <div class="callout blue">A qubit starting at |0⟩ has α&nbsp;=&nbsp;1, β&nbsp;=&nbsp;0 — measuring it always gives 0. Nothing quantum has happened yet. The interesting part starts in Step 2, once a gate moves that pair of numbers somewhere else.</div>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step1"> I've got the idea — move on
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 2 — GATES / BLOCH SPHERE ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
+    <h3>Apply gates and watch the state move</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">The <strong>Bloch sphere</strong> is a way to draw a qubit's state as a point on a sphere: the north pole is |0⟩, the south pole is |1⟩, and everywhere else is a superposition. A gate is just a rotation of that point.</p>
+
+    <div class="grid-2" style="margin-top:18px;">
       <div class="panel">
-        <div class="panel-label">BLOCH SPHERE</div>
-        <svg id="bloch" viewBox="0 0 300 300" style="width:100%; max-width:320px; display:block; margin:0 auto;"></svg>
-
+        <div class="panel-label">SANDBOX · BLOCH SPHERE</div>
+        <svg id="bloch" viewBox="0 0 300 300" style="width:100%; max-width:300px; display:block; margin:0 auto;"></svg>
         <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:14px;">
           <button data-gate="H">H</button>
           <button data-gate="X">X</button>
           <button data-gate="Y">Y</button>
           <button data-gate="Z">Z</button>
-          <button id="reset-btn" class="small">Reset to |0⟩</button>
+          <button id="reset-btn" class="small ghost">Reset to |0⟩</button>
         </div>
-
-        <hr class="hair" style="margin:18px 0;">
-
-        <div class="mono" style="font-size:0.86rem; color: var(--text-muted);">
+      </div>
+      <div>
+        <p class="muted" style="font-size:0.92rem;"><strong style="color:var(--text);">H</strong> (Hadamard) rotates |0⟩ to the equator — an exactly 50/50 superposition. <strong style="color:var(--text);">X</strong> flips |0⟩⇄|1⟩ (the quantum NOT gate). <strong style="color:var(--text);">Y</strong> and <strong style="color:var(--text);">Z</strong> rotate around the other two axes.</p>
+        <div class="mono" style="font-size:0.86rem; color: var(--text-muted); background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-sm); padding:14px;">
           <div>State: <span id="state-readout" style="color:var(--text);">|0⟩</span></div>
-          <div style="margin-top:6px;">Gates applied: <span id="gate-log" style="color:var(--ice);">—</span></div>
+          <div style="margin-top:6px;">Gates applied: <span id="gate-log" style="color:var(--primary);">—</span></div>
         </div>
       </div>
-
-      <div class="panel">
-        <div class="panel-label">MEASUREMENT · 1000 SHOTS</div>
-        <p class="muted" style="font-size:0.92rem;">Each shot is an independent projective measurement — the qubit doesn't remember previous shots, so re-running gives slightly different counts. That's expected quantum statistics, not a bug.</p>
-
-        <button class="primary" id="run-shots" style="width:100%; margin-top:6px;">Run 1000 shots</button>
-
-        <div style="margin-top:20px;">
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-            <div class="mono" style="width:26px; color:var(--ice);">0</div>
-            <div style="flex:1; background:var(--surface-raised); border:1px solid var(--line); border-radius:2px; height:22px; overflow:hidden;">
-              <div id="bar0" style="height:100%; width:50%; background:var(--ice); transition:width 0.5s ease;"></div>
-            </div>
-            <div class="mono" id="count0" style="width:64px; text-align:right;">—</div>
-          </div>
-          <div style="display:flex; align-items:center; gap:10px;">
-            <div class="mono" style="width:26px; color:var(--copper);">1</div>
-            <div style="flex:1; background:var(--surface-raised); border:1px solid var(--line); border-radius:2px; height:22px; overflow:hidden;">
-              <div id="bar1" style="height:100%; width:50%; background:var(--copper); transition:width 0.5s ease;"></div>
-            </div>
-            <div class="mono" id="count1" style="width:64px; text-align:right;">—</div>
-          </div>
-        </div>
-
-        <div class="grid-3" style="margin-top:20px; grid-template-columns:1fr 1fr;">
-          <div class="stat"><span class="num" id="prob0">50.0%</span><span class="label">P(measure 0)</span></div>
-          <div class="stat"><span class="num" id="prob1">50.0%</span><span class="label">P(measure 1)</span></div>
-        </div>
-      </div>
-
     </div>
 
-    <hr class="hair">
-
-    <section class="panel">
-      <div class="panel-label">BONUS · TUNE FOR 75% / 25%</div>
-      <h2 style="margin-top:6px;">Skewing the coin</h2>
-      <p class="muted">A Hadamard always gives 50/50 because it rotates exactly to the equator of the Bloch sphere. To land anywhere else, rotate by a smaller angle instead — that's what <span class="mono" style="color:var(--ice);">RY(θ)</span> does. For P(0) ≈ 75%, solve cos²(θ/2) = 0.75, which gives θ ≈ 60°.</p>
-
-      <div style="max-width:520px; margin-top:18px;">
-        <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.85rem; margin-bottom:6px;">
-          <span class="muted">θ = <span id="theta-val" style="color:var(--text);">0°</span></span>
-          <span class="muted">target: 60° for 75/25</span>
-        </div>
-        <input type="range" id="theta-slider" min="0" max="180" value="0" step="1">
-        <div style="display:flex; justify-content:space-between; margin-top:14px;">
-          <div class="mono">P(0) = <span id="bonus-p0" style="color:var(--ice);">100.0%</span></div>
-          <div class="mono">P(1) = <span id="bonus-p1" style="color:var(--copper);">0.0%</span></div>
-        </div>
-        <button id="bonus-apply" class="small" style="margin-top:14px;">Apply RY(θ) to the qubit above and run 1000 shots</button>
-      </div>
-    </section>
-
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step2"> I tried at least 2 gates
+    </label>
   </div>
-</main>
+</div>
 
+<!-- ===================== STEP 3 — MEASUREMENT ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
+    <h3>Measure it — 1,000 shots</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Each shot is an independent measurement — the qubit doesn't remember previous shots, so re-running gives slightly different counts. That's expected statistical noise, not a bug. Try applying <span class="mono">H</span> in Step 2 first, then run shots here.</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · 1000 SHOTS</div>
+      <button class="primary" id="run-shots">Run 1000 shots</button>
+
+      <div style="margin-top:22px;">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+          <div class="mono" style="width:20px; color:var(--primary); font-weight:700;">0</div>
+          <div style="flex:1; background:var(--surface-alt); border:1px solid var(--line); border-radius:999px; height:24px; overflow:hidden;">
+            <div id="bar0" style="height:100%; width:50%; background:var(--primary); transition:width 0.5s ease; border-radius:999px;"></div>
+          </div>
+          <div class="mono" id="count0" style="width:90px; text-align:right;">—</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div class="mono" style="width:20px; color:var(--amber); font-weight:700;">1</div>
+          <div style="flex:1; background:var(--surface-alt); border:1px solid var(--line); border-radius:999px; height:24px; overflow:hidden;">
+            <div id="bar1" style="height:100%; width:50%; background:var(--amber); transition:width 0.5s ease; border-radius:999px;"></div>
+          </div>
+          <div class="mono" id="count1" style="width:90px; text-align:right;">—</div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top:20px;">
+        <div class="stat"><span class="num" id="prob0">50.0%</span><span class="label">P(measure 0), from current state</span></div>
+        <div class="stat"><span class="num" id="prob1">50.0%</span><span class="label">P(measure 1), from current state</span></div>
+      </div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step3"> I ran 1000 shots and looked at the split
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 4 — BONUS 75/25 ===================== -->
+<div class="lesson-step" data-step="step4">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">4</div>
+    <h3>Bonus: skew the coin to 75% / 25%</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">A Hadamard always gives 50/50 because it rotates exactly to the equator. To land anywhere else, rotate by a smaller angle instead — that's what <span class="mono">RY(θ)</span> does. For P(0)&nbsp;≈&nbsp;75%, solve <span class="mono">cos²(θ/2) = 0.75</span>, which gives θ&nbsp;≈&nbsp;60°.</p>
+
+    <div class="panel" style="margin-top:16px; max-width:560px;">
+      <div class="panel-label">SANDBOX · RY(θ)</div>
+      <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.85rem; margin-bottom:8px;">
+        <span class="muted">θ = <span id="theta-val" style="color:var(--text);">0°</span></span>
+        <span class="muted">target: 60° for 75/25</span>
+      </div>
+      <input type="range" id="theta-slider" min="0" max="180" value="0" step="1">
+      <div style="display:flex; justify-content:space-between; margin-top:16px;">
+        <div class="mono">P(0) = <span id="bonus-p0" style="color:var(--primary); font-weight:600;">100.0%</span></div>
+        <div class="mono">P(1) = <span id="bonus-p1" style="color:var(--amber); font-weight:600;">0.0%</span></div>
+      </div>
+      <button id="bonus-apply" class="small" style="margin-top:16px;">Apply to the qubit in Step 2 &amp; run 1000 shots</button>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step4"> I found the ~60° angle for 75/25
+    </label>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
 <script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
 <script src="{{ url_for('static', filename='js/bloch.js') }}"></script>
+<script src="{{ url_for('static', filename='js/stats.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
 <script>
   const q = new Qubit();
   const widget = createBlochWidget(document.getElementById('bloch'));
@@ -103,8 +150,7 @@
   function fmtState() {
     const zero = C.abs(q.a) < 1e-3 ? '' : `(${C.fmt(q.a,2)})|0⟩`;
     const one = C.abs(q.b) < 1e-3 ? '' : `${zero ? ' + ' : ''}(${C.fmt(q.b,2)})|1⟩`;
-    const s = (zero + one) || '0';
-    return s;
+    return (zero + one) || '0';
   }
 
   function refresh() {
@@ -112,13 +158,12 @@
     widget.set(b.theta, b.phi);
     document.getElementById('state-readout').textContent = fmtState();
     document.getElementById('gate-log').textContent = q.log.length ? q.log.join(' → ') : '—';
-    const p0 = q.prob0() * 100, p1 = q.prob1() * 100;
-    document.getElementById('prob0').textContent = p0.toFixed(1) + '%';
-    document.getElementById('prob1').textContent = p1.toFixed(1) + '%';
+    document.getElementById('prob0').textContent = (q.prob0()*100).toFixed(1) + '%';
+    document.getElementById('prob1').textContent = (q.prob1()*100).toFixed(1) + '%';
   }
 
   document.querySelectorAll('button[data-gate]').forEach(btn => {
-    btn.addEventListener('click', () => { q[btn.dataset.gate](); refresh(); });
+    btn.addEventListener('click', () => { q[btn.dataset.gate](); qsStatsIncrement('gatesApplied', 1); refresh(); });
   });
   document.getElementById('reset-btn').addEventListener('click', () => { q.reset(); refresh(); resetBars(); });
 
@@ -136,11 +181,11 @@
     document.getElementById('bar1').style.width = (c1/total*100) + '%';
     document.getElementById('count0').textContent = c0 + ' (' + (c0/total*100).toFixed(1) + '%)';
     document.getElementById('count1').textContent = c1 + ' (' + (c1/total*100).toFixed(1) + '%)';
+    qsStatsIncrement('shotsRun', 1000);
   });
 
   refresh();
 
-  // bonus slider
   const slider = document.getElementById('theta-slider');
   function bonusUpdate() {
     const deg = +slider.value;
@@ -156,10 +201,11 @@
   document.getElementById('bonus-apply').addEventListener('click', () => {
     q.reset();
     q.RY(+slider.value * Math.PI / 180);
+    qsStatsIncrement('gatesApplied', 1);
     refresh();
     document.getElementById('run-shots').click();
   });
+
+  initLessonProgress('single-qubit');
 </script>
-<script src="{{ url_for('static', filename='js/chrome.js') }}"></script>
-</body>
-</html>
+{% endblock %}
