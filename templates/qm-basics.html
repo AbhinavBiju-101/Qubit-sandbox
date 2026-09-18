@@ -1,0 +1,192 @@
+{% from "_lesson_nav.html" import lesson_nav %}
+{% extends "base.html" %}
+{% block title %}Lesson 0 · QM Basics — Qubit Sandbox{% endblock %}
+{% block page_title %}Lesson 0 · QM Basics{% endblock %}
+
+{% block content %}
+
+<div class="pill blue" style="margin-bottom:14px;">LESSON 0 · START HERE IF YOU'RE NEW</div>
+<h1 style="margin-bottom:6px;">The four numbers under everything else.</h1>
+<p class="lede muted" style="font-size:1.05rem;">The <a href="{{ url_for('single_qubit') }}">Single Qubit lesson</a> just asserts "a qubit's state is a pair of complex numbers." This lesson is where that comes from. Three steps, no code — the math is small enough to do with sliders.</p>
+
+<div class="lesson-progress-row">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+<!-- ===================== STEP 1 — STATE VECTORS ===================== -->
+<div class="lesson-step" data-step="step1">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">1</div>
+    <h3>A state is a list of numbers, not a "thing"</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">In quantum mechanics, everything you could possibly measure about a system is packed into a <strong>state vector</strong> — literally a short list of numbers, one per possible outcome. For a qubit, there are exactly two possible measurement outcomes, conventionally labeled 0 and 1, so the state vector has exactly two entries:</p>
+
+    <div class="panel" style="margin-top:14px; text-align:center;">
+      <div class="mono" style="font-size:1.3rem; letter-spacing:0.02em;">|ψ⟩ = α|0⟩ + β|1⟩</div>
+      <p class="muted" style="font-size:0.86rem; margin-top:10px; margin-bottom:0;">α and β are called <strong>probability amplitudes</strong>. |0⟩ and |1⟩ are just labels for "the outcome-0 slot" and "the outcome-1 slot" — not numbers themselves.</p>
+    </div>
+
+    <p class="muted" style="margin-top:16px;">This is why quantum computing scales the way it does. This "space of all possible states" is called a <strong>Hilbert space</strong>, and its size is <span class="mono">2ⁿ</span> for <span class="mono">n</span> qubits — 1 qubit needs 2 numbers, 2 qubits need 4 (see the <a href="{{ url_for('two_qubit') }}">Two Qubits lesson</a>), 300 qubits would need more numbers than there are atoms in the observable universe. Every qubit you add doubles the list, it doesn't just add one more entry.</p>
+
+    <div class="callout blue">The "wave function" you may have heard of is the same idea in the more general, continuous case (position, momentum) — a qubit is the finite, two-outcome special case, which is exactly why it's the easiest place to start.</div>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step1"> Got it — a state is just α and β
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 2 — AMPLITUDES & BORN'S RULE ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
+    <h3>Amplitudes aren't probabilities — you have to square them</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">This is the single most important rule in this lesson, known as <strong>Born's rule</strong>: the probability of measuring outcome 0 is <span class="mono">α²</span>, not <span class="mono">α</span>. (Real quantum mechanics uses complex α, β, and the rule is technically <span class="mono">|α|²</span> — squared magnitude — but restricting to real numbers here keeps the sliders honest without losing the point. Complex phase shows up starting in the Single Qubit lesson's Bloch sphere.)</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · DRAG α, WATCH THE PROBABILITIES</div>
+      <div style="display:flex; align-items:center; gap:16px; margin-top:6px;">
+        <span class="mono" style="width:20px;">α</span>
+        <input type="range" id="alpha-slider" min="0" max="100" value="71" style="flex:1;">
+        <span class="mono" id="alpha-val" style="width:56px; text-align:right;">0.71</span>
+      </div>
+      <p class="muted" style="font-size:0.82rem; margin-top:6px;">β is <em>not</em> a free choice — it's forced to <span class="mono">β = √(1 − α²)</span> so the state stays normalized (Step 3 shows why that matters). This slider is really choosing one point on a quarter-circle.</p>
+
+      <div class="grid-2" style="margin-top:20px;">
+        <div>
+          <div class="mono" style="font-size:0.72rem; color:var(--text-faint); margin-bottom:8px;">P(measure 0) = α²</div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="flex:1; background:var(--surface-alt); border:1px solid var(--line); border-radius:999px; height:20px; overflow:hidden;"><div id="p0-bar" style="height:100%; width:50%; background:var(--primary); border-radius:999px; transition:width 0.15s ease;"></div></div>
+            <div class="mono" id="p0-val" style="width:60px; text-align:right;">50.0%</div>
+          </div>
+        </div>
+        <div>
+          <div class="mono" style="font-size:0.72rem; color:var(--text-faint); margin-bottom:8px;">P(measure 1) = β²</div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="flex:1; background:var(--surface-alt); border:1px solid var(--line); border-radius:999px; height:20px; overflow:hidden;"><div id="p1-bar" style="height:100%; width:50%; background:var(--amber); border-radius:999px; transition:width 0.15s ease;"></div></div>
+            <div class="mono" id="p1-val" style="width:60px; text-align:right;">50.0%</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top:16px;">α² + β² = <span class="mono" id="sum-check">1.000</span> — always exactly 1, no matter where you drag the slider. That's not a coincidence, it's the constraint that made β dependent on α in the first place. Next step: what breaks if you don't enforce it.</div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step2"> I dragged α to at least 3 different values
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — NORMALIZATION ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
+    <h3>Why "normalized" isn't optional</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Probabilities have to add up to 100%, full stop — that's not a quantum thing, it's just what "probability" means. So α² + β² = 1 isn't a nice-to-have, it's a hard requirement on any valid state vector. Try feeding in a vector that violates it:</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · UNNORMALIZED VECTOR</div>
+      <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:flex-end;">
+        <div>
+          <div class="mono muted" style="font-size:0.8rem; margin-bottom:4px;">α</div>
+          <input type="number" id="raw-a" value="3" step="0.1" style="width:80px;">
+        </div>
+        <div>
+          <div class="mono muted" style="font-size:0.8rem; margin-bottom:4px;">β</div>
+          <input type="number" id="raw-b" value="4" step="0.1" style="width:80px;">
+        </div>
+        <button id="check-norm" class="small">Check normalization</button>
+        <button id="do-normalize" class="small primary">Normalize it</button>
+      </div>
+
+      <div class="callout" id="norm-result" style="margin-top:18px;">Enter values and click "Check normalization."</div>
+    </div>
+
+    <p class="muted" style="margin-top:14px;">Normalizing is nothing exotic — divide every entry by the vector's length (<span class="mono">√(α² + β²)</span>), same as turning any vector into a unit vector. Every gate in the Single Qubit lesson is built to preserve normalization automatically, so you'll never need to do this by hand there — but now you know why it has to.</p>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step3"> I normalized a vector and saw the probabilities sum to 100%
+    </label>
+  </div>
+</div>
+
+<div class="callout blue" style="margin-top:8px;">
+  That's the whole prerequisite: a state is two numbers, probabilities are those numbers squared, and the squares have to sum to 1. Everything in the <a href="{{ url_for('single_qubit') }}">Single Qubit lesson</a> — gates, the Bloch sphere, measurement — is built directly on these three facts, plus one addition: α and β are actually <em>complex</em>, which is what makes the Bloch sphere a sphere instead of a quarter-circle.
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/stats.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script>
+  const alphaSlider = document.getElementById('alpha-slider');
+  const alphaVal = document.getElementById('alpha-val');
+  const p0Bar = document.getElementById('p0-bar');
+  const p1Bar = document.getElementById('p1-bar');
+  const p0Val = document.getElementById('p0-val');
+  const p1Val = document.getElementById('p1-val');
+  const sumCheck = document.getElementById('sum-check');
+
+  function refreshAmplitudes() {
+    const alpha = alphaSlider.value / 100;
+    const beta = Math.sqrt(Math.max(0, 1 - alpha * alpha));
+    const p0 = alpha * alpha;
+    const p1 = beta * beta;
+    alphaVal.textContent = alpha.toFixed(2);
+    p0Bar.style.width = (p0 * 100) + '%';
+    p1Bar.style.width = (p1 * 100) + '%';
+    p0Val.textContent = (p0 * 100).toFixed(1) + '%';
+    p1Val.textContent = (p1 * 100).toFixed(1) + '%';
+    sumCheck.textContent = (p0 + p1).toFixed(3);
+  }
+  alphaSlider.addEventListener('input', refreshAmplitudes);
+  refreshAmplitudes();
+
+  document.getElementById('check-norm').addEventListener('click', () => {
+    const a = parseFloat(document.getElementById('raw-a').value) || 0;
+    const b = parseFloat(document.getElementById('raw-b').value) || 0;
+    const sumSquares = a * a + b * b;
+    const result = document.getElementById('norm-result');
+    if (Math.abs(sumSquares - 1) < 0.001) {
+      result.className = 'callout';
+      result.innerHTML = `α² + β² = <span class="mono">${sumSquares.toFixed(3)}</span> — already normalized. P(0) = ${(a*a*100).toFixed(1)}%, P(1) = ${(b*b*100).toFixed(1)}%.`;
+    } else {
+      result.className = 'callout amber';
+      result.innerHTML = `α² + β² = <span class="mono">${sumSquares.toFixed(3)}</span>, not 1 — <strong>this isn't a valid quantum state.</strong> Squaring these directly would "predict" a ${(a*a*100).toFixed(0)}% / ${(b*b*100).toFixed(0)}% split that adds up to ${(sumSquares*100).toFixed(0)}% of something, which isn't a meaningful probability. Click "Normalize it" to fix it.`;
+    }
+    qsStatsIncrement('gatesApplied', 1);
+  });
+
+  document.getElementById('do-normalize').addEventListener('click', () => {
+    const a = parseFloat(document.getElementById('raw-a').value) || 0;
+    const b = parseFloat(document.getElementById('raw-b').value) || 0;
+    const norm = Math.sqrt(a * a + b * b);
+    const result = document.getElementById('norm-result');
+    if (norm === 0) {
+      result.className = 'callout amber';
+      result.innerHTML = `Both values are 0 — there's no direction to normalize toward. Try a nonzero vector.`;
+      return;
+    }
+    const na = a / norm, nb = b / norm;
+    document.getElementById('raw-a').value = na.toFixed(3);
+    document.getElementById('raw-b').value = nb.toFixed(3);
+    result.className = 'callout';
+    result.innerHTML = `Divided both by √(α² + β²) = ${norm.toFixed(3)}. New vector: α = ${na.toFixed(3)}, β = ${nb.toFixed(3)} — and now α² + β² = <span class="mono">${(na*na + nb*nb).toFixed(3)}</span>. P(0) = ${(na*na*100).toFixed(1)}%, P(1) = ${(nb*nb*100).toFixed(1)}%.`;
+    qsStatsIncrement('gatesApplied', 1);
+  });
+
+  initLessonProgress('qm-basics');
+</script>
+{% endblock %}

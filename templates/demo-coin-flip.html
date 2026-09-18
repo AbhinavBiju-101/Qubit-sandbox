@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Demo 1 · Coin Flip Simulator — Qubit Sandbox{% endblock %}
+{% block page_title %}Demo 1 · Coin Flip Simulator{% endblock %}
+
+{% block content %}
+
+<div class="pill amber" style="margin-bottom:14px;">DEMO 1 · HACKATHON PROBLEM 1 — COIN FLIP, BUT QUANTUM</div>
+<h1 style="margin-bottom:6px;">Flip a quantum coin.</h1>
+<p class="lede muted" style="font-size:1.05rem;">A Hadamard gate puts a qubit in an exact 50/50 superposition of |0⟩ and |1⟩ — call them Heads and Tails. Measuring it is the "flip": genuinely random, not pseudo-random, governed by Born's rule. Everything below is live and shares the same quantum engine as the <a href="{{ url_for('single_qubit') }}">Single Qubit lesson</a>.</p>
+
+<div class="grid-2" style="margin-top:24px; align-items:start;">
+
+  <div class="panel">
+    <div class="panel-label">THE QUANTUM COIN · BLOCH SPHERE</div>
+    <svg id="coin-bloch" viewBox="0 0 300 300" style="width:100%; max-width:280px; display:block; margin:0 auto;"></svg>
+    <p class="muted" id="coin-state-readout" style="text-align:center; font-family:var(--font-mono); font-size:0.85rem; margin:14px 0 0;">Not flipped yet — north pole is Heads, south pole is Tails.</p>
+  </div>
+
+  <div class="panel">
+    <div class="panel-label">FLIP IT</div>
+    <div style="display:flex; flex-direction:column; align-items:center; gap:18px; padding:8px 0;">
+      <div id="coin-face" class="mono" style="width:88px; height:88px; border-radius:50%; background:var(--surface-alt); border:2px solid var(--line-strong); display:flex; align-items:center; justify-content:center; font-size:1.8rem; font-weight:700; color:var(--text-faint); transition:transform 0.25s ease;">?</div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+        <button class="primary" id="flip-once">Flip once</button>
+        <button id="flip-1000">Flip 1,000 times</button>
+        <button class="small ghost" id="flip-reset">Reset tally</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="panel" style="margin-top:20px;">
+  <div class="panel-label">RUNNING TALLY</div>
+  <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+    <div style="width:56px; font-family:var(--font-mono); font-weight:700; color:var(--amber-dim);">Heads</div>
+    <div style="flex:1; background:var(--surface-alt); border:1px solid var(--line); border-radius:999px; height:24px; overflow:hidden;">
+      <div id="heads-bar" style="height:100%; width:0%; background:var(--amber); transition:width 0.5s ease; border-radius:999px;"></div>
+    </div>
+    <div class="mono" id="heads-count" style="width:70px; text-align:right;">0</div>
+    <div class="mono" id="heads-pct" style="width:60px; text-align:right; color:var(--text-muted);">0.0%</div>
+  </div>
+  <div style="display:flex; align-items:center; gap:12px;">
+    <div style="width:56px; font-family:var(--font-mono); font-weight:700; color:var(--primary);">Tails</div>
+    <div style="flex:1; background:var(--surface-alt); border:1px solid var(--line); border-radius:999px; height:24px; overflow:hidden;">
+      <div id="tails-bar" style="height:100%; width:0%; background:var(--primary); transition:width 0.5s ease; border-radius:999px;"></div>
+    </div>
+    <div class="mono" id="tails-count" style="width:70px; text-align:right;">0</div>
+    <div class="mono" id="tails-pct" style="width:60px; text-align:right; color:var(--text-muted);">0.0%</div>
+  </div>
+</div>
+
+<div class="callout" style="margin-top:24px; border-style:dashed; border-width:2px; border-left-width:4px; background:var(--surface-alt);">
+  <strong>🚧 Scaffold, not the finished demo.</strong> The Bloch sphere and flip/histogram widgets above are fully live (real <span class="mono">Qubit</span>/<span class="mono">sampleShots()</span> calls from <span class="mono">quantum.js</span> — nothing canned). This block, and everything below it, is where the rest of Demo 1's own visuals, narrative, and histogram styling go — intentionally left for hand-building rather than guessed at.
+</div>
+
+<div class="callout" style="margin-top:16px;">
+  <strong>Want this on your own site?</strong> This widget is also available as a standalone, chrome-less page built for embedding — same live <span class="mono">quantum.js</span> engine, no lesson text, no navigation. <a href="{{ url_for('embed_coin_flip') }}" target="_blank" rel="noopener">Open the embeddable version →</a>
+  <details style="margin-top:10px;">
+    <summary style="cursor:pointer; font-size:0.85rem; color:var(--text-muted);">Get the embed code</summary>
+    <pre class="mono" style="background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-sm); padding:12px; font-size:0.78rem; overflow-x:auto; margin-top:10px;">&lt;iframe src="{{ request.url_root.rstrip('/') }}{{ url_for('embed_coin_flip') }}"
+        width="760" height="480" style="border:1px solid #e1e7ee; border-radius:12px;"
+        loading="lazy"&gt;&lt;/iframe&gt;</pre>
+  </details>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bloch.js') }}"></script>
+<script src="{{ url_for('static', filename='js/stats.js') }}"></script>
+<script>
+  const q = new Qubit();
+  const widget = createBlochWidget(document.getElementById('coin-bloch'));
+  let heads = 0, tails = 0;
+
+  function refreshBloch() {
+    const b = q.bloch();
+    widget.set(b.theta, b.phi);
+  }
+
+  function prepareSuperposition() {
+    q.reset();
+    q.H();
+    refreshBloch();
+    document.getElementById('coin-state-readout').textContent = 'In superposition — 50/50 until measured.';
+  }
+
+  function showFace(result) {
+    const face = document.getElementById('coin-face');
+    face.style.transform = 'scale(0.6)';
+    setTimeout(() => {
+      face.textContent = result === 0 ? 'H' : 'T';
+      face.style.color = result === 0 ? 'var(--amber-dim)' : 'var(--primary-dim)';
+      face.style.borderColor = result === 0 ? 'var(--amber)' : 'var(--primary)';
+      face.style.transform = 'scale(1)';
+    }, 120);
+  }
+
+  function updateTally() {
+    const total = (heads + tails) || 1;
+    document.getElementById('heads-count').textContent = heads.toLocaleString();
+    document.getElementById('tails-count').textContent = tails.toLocaleString();
+    document.getElementById('heads-bar').style.width = (heads / total * 100) + '%';
+    document.getElementById('tails-bar').style.width = (tails / total * 100) + '%';
+    document.getElementById('heads-pct').textContent = (heads / total * 100).toFixed(1) + '%';
+    document.getElementById('tails-pct').textContent = (tails / total * 100).toFixed(1) + '%';
+  }
+
+  document.getElementById('flip-once').addEventListener('click', () => {
+    prepareSuperposition();
+    const result = q.measure(); // collapses q — Bloch sphere below will snap to a pole
+    refreshBloch();
+    document.getElementById('coin-state-readout').textContent = result === 0 ? 'Measured: Heads (|0⟩)' : 'Measured: Tails (|1⟩)';
+    showFace(result);
+    if (result === 0) heads++; else tails++;
+    updateTally();
+    qsStatsIncrement('shotsRun', 1);
+    qsStatsIncrement('gatesApplied', 1);
+  });
+
+  document.getElementById('flip-1000').addEventListener('click', () => {
+    prepareSuperposition();
+    const { c0, c1 } = q.sampleShots(1000);
+    heads += c0; tails += c1;
+    updateTally();
+    document.getElementById('coin-state-readout').textContent = 'Ran 1,000 independent shots from the superposition above.';
+    qsStatsIncrement('shotsRun', 1000);
+    qsStatsIncrement('gatesApplied', 1);
+  });
+
+  document.getElementById('flip-reset').addEventListener('click', () => {
+    heads = 0; tails = 0;
+    updateTally();
+    q.reset();
+    refreshBloch();
+    document.getElementById('coin-face').textContent = '?';
+    document.getElementById('coin-face').style.color = 'var(--text-faint)';
+    document.getElementById('coin-face').style.borderColor = 'var(--line-strong)';
+    document.getElementById('coin-state-readout').textContent = 'Not flipped yet — north pole is Heads, south pole is Tails.';
+  });
+
+  refreshBloch();
+</script>
+{% endblock %}

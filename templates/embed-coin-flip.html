@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quantum Coin Flip — embeddable widget</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<style>
+  /* Deliberately minimal — no sidebar, topbar, or footer. This page is
+     meant to be dropped into an <iframe> on someone else's site, so it
+     should look complete on its own with as little surrounding chrome
+     as possible. */
+  body{ background: var(--surface); padding: 18px; }
+  .embed-wrap{ max-width: 720px; margin: 0 auto; }
+  .embed-credit{ text-align: center; margin-top: 14px; font-size: 0.78rem; }
+  .embed-credit a{ color: var(--text-faint); }
+</style>
+</head>
+<body>
+
+<div class="embed-wrap">
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-label">BLOCH SPHERE</div>
+      <svg id="bloch" viewBox="0 0 280 280" style="width:100%; max-width:260px; display:block; margin:0 auto;"></svg>
+      <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:14px;">
+        <button class="primary" data-gate="H">H</button>
+        <button data-gate="X">X</button>
+        <button id="reset-btn" class="small ghost">Reset</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-label">1000 SHOTS</div>
+      <button class="primary block" id="run-shots">Run 1000 shots</button>
+      <div style="margin-top:18px;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+          <div class="mono" style="width:14px; color:var(--primary); font-weight:700;">0</div>
+          <div style="flex:1; background:var(--surface-alt); border:1px solid var(--line); border-radius:999px; height:18px; overflow:hidden;"><div id="bar0" style="height:100%; width:50%; background:var(--primary); border-radius:999px; transition:width 0.4s ease;"></div></div>
+          <div class="mono" id="count0" style="width:56px; text-align:right; font-size:0.8rem;">—</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="mono" style="width:14px; color:var(--amber); font-weight:700;">1</div>
+          <div style="flex:1; background:var(--surface-alt); border:1px solid var(--line); border-radius:999px; height:18px; overflow:hidden;"><div id="bar1" style="height:100%; width:50%; background:var(--amber); border-radius:999px; transition:width 0.4s ease;"></div></div>
+          <div class="mono" id="count1" style="width:56px; text-align:right; font-size:0.8rem;">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="embed-credit">
+    <a href="{{ url_for('demo_coin_flip') }}" target="_blank" rel="noopener">Qubit Sandbox — open the full demo →</a>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bloch.js') }}"></script>
+<script>
+  const q = new Qubit();
+  const widget = createBlochWidget(document.getElementById('bloch'));
+  function refresh() {
+    const b = q.bloch();
+    widget.set(b.theta, b.phi);
+  }
+  document.querySelectorAll('button[data-gate]').forEach(btn => {
+    btn.addEventListener('click', () => { q[btn.dataset.gate](); refresh(); });
+  });
+  document.getElementById('reset-btn').addEventListener('click', () => { q.reset(); refresh(); });
+  document.getElementById('run-shots').addEventListener('click', () => {
+    const { c0, c1 } = q.sampleShots(1000);
+    const total = c0 + c1;
+    document.getElementById('bar0').style.width = (c0/total*100) + '%';
+    document.getElementById('bar1').style.width = (c1/total*100) + '%';
+    document.getElementById('count0').textContent = c0;
+    document.getElementById('count1').textContent = c1;
+  });
+  refresh();
+</script>
+</body>
+</html>

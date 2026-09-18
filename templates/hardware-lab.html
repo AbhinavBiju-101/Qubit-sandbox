@@ -1,53 +1,264 @@
+{% from "_lesson_nav.html" import lesson_nav %}
 {% extends "base.html" %}
-{% block title %}Hardware Lab — Qubit Sandbox{% endblock %}
-{% block page_title %}Hardware Lab{% endblock %}
+{% block title %}Lesson 4 · Hardware Lab — Qubit Sandbox{% endblock %}
+{% block page_title %}Lesson 4 · Hardware Lab{% endblock %}
 
 {% block content %}
 
-<div class="soon-badge" style="margin-bottom:14px;">Under construction</div>
+<div class="pill" style="margin-bottom:14px;">ONE LAYER DEEPER THAN PHYSICAL QUBIT</div>
 <h1 style="margin-bottom:6px;">Inside the hardware, one layer deeper.</h1>
-<p class="muted" style="font-size:1.05rem; max-width:70ch;">
-  The Physical Qubit lesson covers the JJ → transmon → resonator → readout
-  chain at a conceptual level. This page is reserved for the next layer
-  down — structural diagrams, not just block boxes.
-</p>
+<p class="muted" style="font-size:1.05rem;">Three steps: the classical baseline you're used to, the zero-resistance trick that makes a qubit possible, and an actual chip-layout view instead of labeled boxes.</p>
 
-<div class="panel" style="margin-top:28px;">
-  <div class="panel-label">PLANNED SECTIONS — fill these in</div>
+<div class="lesson-progress-row">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
 
-  <div class="lesson-step">
-    <div class="lesson-step-head">
-      <div class="lesson-step-num">A</div>
-      <h3>Transistor structure</h3>
-    </div>
-    <div class="lesson-step-body">
-      <p class="muted">TODO: cross-section diagram of a MOSFET (gate/source/drain/substrate) as the classical-computing baseline to contrast against superconducting qubits.</p>
-    </div>
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+<!-- ===================== STEP 1 — TRANSISTOR STRUCTURE ===================== -->
+<div class="lesson-step" data-step="step1">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">1</div>
+    <h3>The classical baseline: a transistor</h3>
   </div>
+  <div class="lesson-step-body">
+    <p class="muted">Every classical bit in your laptop ultimately comes down to this structure — a MOSFET (metal-oxide-semiconductor field-effect transistor). It's worth seeing once, concretely, before asking what a qubit has to do differently.</p>
 
-  <div class="lesson-step">
-    <div class="lesson-step-head">
-      <div class="lesson-step-num">B</div>
-      <h3>Superconducting circuit layout</h3>
-    </div>
-    <div class="lesson-step-body">
-      <p class="muted">TODO: an actual chip-layout-style diagram — capacitor pads, Josephson junction placement, coplanar waveguide routing — instead of the labeled-box version on the Physical Qubit page.</p>
-    </div>
-  </div>
+    <div class="grid-2" style="margin-top:16px; align-items:center;">
+      <div class="panel">
+        <div class="panel-label">CROSS-SECTION</div>
+        <svg viewBox="0 0 400 260" style="width:100%; display:block;">
+          <rect x="20" y="120" width="360" height="110" rx="4" fill="var(--surface-alt)" stroke="var(--line-strong)" stroke-width="1.4"/>
+          <text x="200" y="220" text-anchor="middle" font-family="var(--font-mono)" font-size="12" fill="var(--text-faint)">P-TYPE SILICON SUBSTRATE</text>
 
-  <div class="lesson-step">
-    <div class="lesson-step-head">
-      <div class="lesson-step-num">C</div>
-      <h3>LC oscillation, zero resistance</h3>
-    </div>
-    <div class="lesson-step-body">
-      <p class="muted">TODO: the classical LC tank circuit as an analogy — an animated charge sloshing between capacitor and inductor forever (no resistance = no energy loss), then the jump to "what changes when the inductor is a Josephson junction instead."</p>
-    </div>
-  </div>
+          <rect x="55" y="120" width="80" height="45" rx="3" fill="var(--primary-soft)" stroke="var(--primary)" stroke-width="1.4"/>
+          <text x="95" y="147" text-anchor="middle" font-family="var(--font-body)" font-weight="600" font-size="13" fill="var(--primary-dim)">Source</text>
 
-  <div class="callout" style="margin-top:6px;">
-    See <span class="mono">futureplans.md</span> in the project root for the fuller list of what's planned here and elsewhere. This route and template are wired up and ready — routes, sidebar entry, and lesson-step styling all already work, so you can start dropping content straight into <span class="mono">templates/hardware-lab.html</span>.
+          <rect x="265" y="120" width="80" height="45" rx="3" fill="var(--primary-soft)" stroke="var(--primary)" stroke-width="1.4"/>
+          <text x="305" y="147" text-anchor="middle" font-family="var(--font-body)" font-weight="600" font-size="13" fill="var(--primary-dim)">Drain</text>
+
+          <line x1="135" y1="118" x2="265" y2="118" stroke="var(--text-faint)" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <text x="200" y="112" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="var(--text-faint)">channel (n-type, when "on")</text>
+
+          <rect x="135" y="100" width="130" height="10" fill="var(--amber-soft)" stroke="var(--amber-dim)" stroke-width="1"/>
+          <text x="200" y="94" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="var(--amber-dim)">gate oxide (insulator)</text>
+
+          <rect x="150" y="65" width="100" height="30" rx="3" fill="var(--green-soft)" stroke="var(--green)" stroke-width="1.4"/>
+          <text x="200" y="85" text-anchor="middle" font-family="var(--font-body)" font-weight="600" font-size="13" fill="var(--green)">Gate</text>
+
+          <line x1="95" y1="120" x2="95" y2="40" stroke="var(--text-muted)" stroke-width="1.4"/>
+          <circle cx="95" cy="35" r="4" fill="var(--text-muted)"/>
+          <line x1="200" y1="65" x2="200" y2="40" stroke="var(--text-muted)" stroke-width="1.4"/>
+          <circle cx="200" cy="35" r="4" fill="var(--text-muted)"/>
+          <line x1="305" y1="120" x2="305" y2="40" stroke="var(--text-muted)" stroke-width="1.4"/>
+          <circle cx="305" cy="35" r="4" fill="var(--text-muted)"/>
+        </svg>
+      </div>
+      <div>
+        <p class="muted" style="margin-bottom:12px;">A voltage on the <strong>gate</strong> attracts charge carriers into the region just beneath the oxide, opening a conductive <strong>channel</strong> between source and drain. Gate on → current flows → that's a "1". Gate off → no channel → "0". The bit is stored as <em>whether current is flowing</em>, and reading it is destructive to nothing — you can check it a billion times without disturbing the transistor's state.</p>
+        <div class="callout">
+          A qubit can't work this way. "Whether current is flowing" is a classical, always-well-defined fact — exactly the kind of information a transistor is built to preserve under measurement. A qubit needs a state that <em>doesn't</em> collapse to a definite value until you look — which rules out charge-in-a-channel as the storage mechanism entirely.
+        </div>
+      </div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step1"> I can point to the gate, source, drain, and channel
+    </label>
   </div>
 </div>
 
+<!-- ===================== STEP 2 — LC OSCILLATOR / ZERO RESISTANCE ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
+    <h3>The trick: zero resistance</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Start classical again, but with a different circuit — an inductor (L) and a capacitor (C) wired in a loop. Charge one up, connect them, and watch what happens with real (non-zero) resistance versus none.</p>
+
+    <div class="grid-2" style="margin-top:16px; align-items:center;">
+      <div class="panel">
+        <div class="panel-label">LC LOOP</div>
+        <svg viewBox="0 0 260 180" style="width:100%; max-width:260px; display:block; margin:0 auto;">
+          <line x1="40" y1="30" x2="220" y2="30" stroke="var(--text-muted)" stroke-width="1.6"/>
+          <line x1="40" y1="150" x2="220" y2="150" stroke="var(--text-muted)" stroke-width="1.6"/>
+          <line x1="40" y1="30" x2="40" y2="65" stroke="var(--text-muted)" stroke-width="1.6"/>
+          <line x1="40" y1="115" x2="40" y2="150" stroke="var(--text-muted)" stroke-width="1.6"/>
+          <line x1="220" y1="30" x2="220" y2="150" stroke="var(--text-muted)" stroke-width="1.6"/>
+          <rect x="25" y="65" width="30" height="10" id="cap-plate-top" fill="var(--primary)"/>
+          <rect x="25" y="105" width="30" height="10" id="cap-plate-bot" fill="var(--primary)"/>
+          <text x="40" y="98" text-anchor="middle" font-family="var(--font-mono)" font-size="9" fill="var(--text-faint)" transform="rotate(-90 15 90)">C</text>
+          <path d="M110,30 q10,-16 20,0 q10,-16 20,0 q10,-16 20,0 q10,-16 20,0" fill="none" stroke="var(--amber-dim)" stroke-width="2"/>
+          <text x="150" y="14" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="var(--amber-dim)">L (inductor)</text>
+          <circle id="current-dot" cx="40" cy="30" r="5" fill="var(--green)"/>
+        </svg>
+      </div>
+      <div>
+        <p class="muted" style="margin-bottom:10px;">With ordinary resistance in the loop, energy bleeds off as heat every cycle — the oscillation rings down and stops. Drag resistance to zero below and it doesn't: charge sloshes between capacitor and inductor <strong>forever</strong>, in principle.</p>
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+          <label class="mono muted" style="font-size:0.8rem; white-space:nowrap;">Resistance</label>
+          <input type="range" id="resistance-slider" min="0" max="100" value="60" style="flex:1;">
+          <span class="mono" id="resistance-val" style="font-size:0.8rem; width:38px; text-align:right;">60%</span>
+        </div>
+        <div class="stat" style="margin-top:10px;">
+          <span class="num" id="energy-val">100%</span>
+          <span class="label">energy remaining, live</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:18px;">
+      <strong>This is exactly the mechanism a superconducting qubit uses.</strong> Below its critical temperature, the material's electrical resistance is not just low — it's zero. An LC loop made of superconductor really does oscillate losslessly. The one thing missing to make it a <em>qubit</em>: a plain LC loop's energy levels are evenly spaced, so you can't address "the lowest two levels only" — that's what the Josephson junction fixes (see the <a href="{{ url_for('physical_qubit') }}">Physical Qubit</a> lesson), by acting as a nonlinear inductor.
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step2"> I dragged resistance to zero and watched it stop decaying
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — CHIP LAYOUT ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
+    <h3>What it actually looks like on a chip</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">The Physical Qubit lesson used four labeled boxes for JJ → transmon → resonator → readout. Here's roughly what those boxes correspond to on the actual chip surface — a top-down layout, not a cross-section. Click a part for what it is.</p>
+
+    <div class="grid-2" style="margin-top:16px; align-items:stretch;">
+      <div class="panel">
+        <div class="panel-label">CHIP LAYOUT · CLICK A PART</div>
+        <svg id="chip-svg" viewBox="0 0 380 260" style="width:100%; display:block;"></svg>
+      </div>
+      <div class="panel" id="chip-info-panel">
+        <div class="panel-label">DETAIL</div>
+        <h3 id="chip-info-title">Capacitor pads</h3>
+        <p id="chip-info-body" class="muted"></p>
+      </div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step3"> I clicked through all four chip parts
+    </label>
+  </div>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script>
+  // ---- Step 2: LC loop energy decay ----
+  const resistanceSlider = document.getElementById('resistance-slider');
+  const resistanceVal = document.getElementById('resistance-val');
+  const energyVal = document.getElementById('energy-val');
+  const capTop = document.getElementById('cap-plate-top');
+  const capBot = document.getElementById('cap-plate-bot');
+  const currentDot = document.getElementById('current-dot');
+
+  let energy = 1.0;
+  let t = 0;
+  const dotPath = [
+    [40, 30], [220, 30], [220, 150], [40, 150],
+  ];
+
+  resistanceSlider.addEventListener('input', () => {
+    resistanceVal.textContent = resistanceSlider.value + '%';
+  });
+
+  setInterval(() => {
+    const r = +resistanceSlider.value / 100;
+    const decayRate = r * 0.012;
+    energy = r === 0 ? energy : Math.max(0, energy - decayRate);
+    if (energy <= 0.02) energy = 1.0;
+
+    const amplitude = energy;
+    const phase = Math.sin(t / 6) * amplitude;
+    capTop.setAttribute('opacity', 0.4 + 0.6 * Math.max(0, phase));
+    capBot.setAttribute('opacity', 0.4 + 0.6 * Math.max(0, -phase));
+
+    // Move the current dot around the loop, slowing as energy runs out.
+    const speed = 0.15 * (0.3 + energy);
+    t += 1;
+    const perim = 2 * (180 + 120);
+    const pos = (t * speed) % perim;
+    let x, y;
+    if (pos < 180) { x = 40 + pos; y = 30; }
+    else if (pos < 180 + 120) { x = 220; y = 30 + (pos - 180); }
+    else if (pos < 360 + 120) { x = 220 - (pos - 300); y = 150; }
+    else { x = 40; y = 150 - (pos - 420); }
+    currentDot.setAttribute('cx', x);
+    currentDot.setAttribute('cy', y);
+    currentDot.setAttribute('opacity', 0.3 + 0.7 * energy);
+
+    energyVal.textContent = Math.round(energy * 100) + '%';
+    energyVal.style.color = energy > 0.5 ? 'var(--primary)' : (energy > 0.2 ? 'var(--amber)' : 'var(--red)');
+  }, 60);
+
+  // ---- Step 3: chip layout diagram ----
+  const CHIP_PARTS = [
+    { key: 'pads', label: 'Capacitor pads', x: 30, y: 30, w: 100, h: 70,
+      body: 'The large paddle-shaped metal pads. Their shape and separation set the capacitance that shunts the Josephson junction — this is the "C" half of the transmon\'s effective LC circuit, sized specifically to reduce sensitivity to charge noise (see Step 2\'s LC loop, and the Physical Qubit lesson\'s "transmon" stage).' },
+    { key: 'jj', label: 'Josephson junction', x: 160, y: 55, w: 40, h: 20,
+      body: 'A tiny gap between two superconducting pads — barely visible at this scale, often just a couple hundred nanometers. This is the nonlinear inductor from Step 2 that makes the two lowest energy levels individually addressable as |0⟩ and |1⟩.' },
+    { key: 'resonator', label: 'Readout resonator', x: 230, y: 20, w: 130, h: 90,
+      body: 'The meandering line — a coplanar waveguide folded back on itself to fit a specific resonant length into a small chip area. Capacitively coupled to the transmon, its resonant frequency shifts depending on the qubit\'s state, which is what dispersive readout measures.' },
+    { key: 'feedline', label: 'Feedline / readout line', x: 30, y: 190, w: 330, h: 30,
+      body: 'The line running along the bottom, coupled to every resonator on the chip. A single probe tone sent down this line, at each qubit\'s distinct resonator frequency, can read out many qubits at once without a dedicated line per qubit.' },
+  ];
+
+  const ns = 'http://www.w3.org/2000/svg';
+  const chipSvg = document.getElementById('chip-svg');
+  function el(tag, attrs) { const e = document.createElementNS(ns, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; }
+
+  const chipBg = el('rect', { x: 10, y: 10, width: 360, height: 240, rx: 8, fill: 'var(--surface-alt)', stroke: 'var(--line-strong)', 'stroke-width': 1.2 });
+  chipSvg.appendChild(chipBg);
+
+  // Capacitor pads (two facing paddles)
+  const padsGroup = el('g', { class: 'chip-part', 'data-key': 'pads', style: 'cursor:pointer;' });
+  padsGroup.appendChild(el('rect', { x: 30, y: 40, width: 55, height: 50, rx: 6, fill: 'var(--primary-soft)', stroke: 'var(--primary)', 'stroke-width': 1.4, class: 'chip-shape' }));
+  padsGroup.appendChild(el('rect', { x: 90, y: 40, width: 40, height: 50, rx: 6, fill: 'var(--primary-soft)', stroke: 'var(--primary)', 'stroke-width': 1.4, class: 'chip-shape' }));
+  chipSvg.appendChild(padsGroup);
+
+  // Josephson junction (small gap/X between pads)
+  const jjGroup = el('g', { class: 'chip-part', 'data-key': 'jj', style: 'cursor:pointer;' });
+  jjGroup.appendChild(el('rect', { x: 128, y: 58, width: 14, height: 14, fill: 'var(--amber-soft)', stroke: 'var(--amber-dim)', 'stroke-width': 1.6, class: 'chip-shape' }));
+  chipSvg.appendChild(jjGroup);
+
+  // Resonator (meandering line)
+  const resGroup = el('g', { class: 'chip-part', 'data-key': 'resonator', style: 'cursor:pointer;' });
+  resGroup.appendChild(el('path', {
+    d: 'M150,65 L200,65 L200,30 L230,30 L230,100 L260,100 L260,30 L290,30 L290,100 L320,100 L320,65 L350,65',
+    fill: 'none', stroke: 'var(--green)', 'stroke-width': 2.4, class: 'chip-shape'
+  }));
+  chipSvg.appendChild(resGroup);
+
+  // Feedline
+  const feedGroup = el('g', { class: 'chip-part', 'data-key': 'feedline', style: 'cursor:pointer;' });
+  feedGroup.appendChild(el('rect', { x: 30, y: 200, width: 330, height: 14, rx: 4, fill: 'var(--surface)', stroke: 'var(--text-muted)', 'stroke-width': 1.4, class: 'chip-shape' }));
+  chipSvg.appendChild(feedGroup);
+
+  const clickedChipParts = new Set();
+  function selectChipPart(key) {
+    const p = CHIP_PARTS.find(x => x.key === key);
+    document.getElementById('chip-info-title').textContent = p.label;
+    document.getElementById('chip-info-body').textContent = p.body;
+    document.querySelectorAll('.chip-shape').forEach(s => s.setAttribute('stroke-width', s.getAttribute('stroke-width') === '2.4' ? '2.4' : '1.4'));
+    document.querySelectorAll(`.chip-part[data-key="${key}"] .chip-shape`).forEach(s => {
+      s.setAttribute('stroke', 'var(--text)');
+    });
+    clickedChipParts.add(key);
+  }
+  document.querySelectorAll('.chip-part').forEach(g => {
+    g.addEventListener('click', () => selectChipPart(g.dataset.key));
+  });
+  selectChipPart('pads');
+
+  initLessonProgress('hardware-lab');
+</script>
 {% endblock %}

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Two-Qubit Entanglement — embeddable widget</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<style>
+  /* Same deliberate minimalism as embed-coin-flip.html — no sidebar,
+     topbar, or footer, meant to look complete inside an <iframe>. */
+  body{ background: var(--surface); padding: 18px; }
+  .embed-wrap{ max-width: 640px; margin: 0 auto; }
+  .embed-credit{ text-align: center; margin-top: 14px; font-size: 0.78rem; }
+  .embed-credit a{ color: var(--text-faint); }
+</style>
+</head>
+<body>
+
+<div class="embed-wrap">
+  <div class="panel">
+    <div class="panel-label">TWO QUBITS · BELL STATE</div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
+      <button class="primary" id="bell-btn">Create Bell state: H(q1) → CNOT(q1→q2)</button>
+      <button id="bell-shots-btn">Run 200 shots</button>
+      <button class="small ghost" id="bell-reset">Reset</button>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px;">
+      <div class="stat"><span class="num" id="bell-00">—</span><span class="label">|00⟩</span></div>
+      <div class="stat"><span class="num" id="bell-01">—</span><span class="label">|01⟩</span></div>
+      <div class="stat"><span class="num" id="bell-10">—</span><span class="label">|10⟩</span></div>
+      <div class="stat"><span class="num" id="bell-11">—</span><span class="label">|11⟩</span></div>
+    </div>
+    <p class="muted" style="font-size:0.82rem; margin-top:14px;">Notice what's missing: |01⟩ and |10⟩ stay near zero. The two qubits always agree, even though each is individually 50/50 on its own — that's what "entangled" means.</p>
+  </div>
+  <div class="embed-credit">
+    <a href="{{ url_for('two_qubit') }}" target="_blank" rel="noopener">Qubit Sandbox — open the full Two Qubits lesson →</a>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
+<script src="{{ url_for('static', filename='js/twoqubit.js') }}"></script>
+<script>
+  const tq = new TwoQubit();
+  let prepared = false;
+
+  document.getElementById('bell-btn').addEventListener('click', () => {
+    tq.reset(); tq.H1(); tq.CNOT();
+    prepared = true;
+    ['00','01','10','11'].forEach(k => document.getElementById('bell-'+k).textContent = '—');
+  });
+
+  document.getElementById('bell-shots-btn').addEventListener('click', () => {
+    if (!prepared) { tq.reset(); tq.H1(); tq.CNOT(); prepared = true; }
+    const counts = tq.sampleShots(200);
+    ['00','01','10','11'].forEach(k => {
+      document.getElementById('bell-'+k).textContent = ((counts[k]/200)*100).toFixed(0) + '%';
+    });
+  });
+
+  document.getElementById('bell-reset').addEventListener('click', () => {
+    tq.reset();
+    prepared = false;
+    ['00','01','10','11'].forEach(k => document.getElementById('bell-'+k).textContent = '—');
+  });
+</script>
+</body>
+</html>

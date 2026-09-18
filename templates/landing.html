@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Qubit Sandbox — learn quantum computing by running it</title>
+<link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/logo.svg') }}">
+<link rel="alternate icon" href="{{ url_for('static', filename='favicon.ico') }}">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='images/apple-touch-icon.png') }}">
+<link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+<meta name="theme-color" content="#3e5cf6">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
@@ -88,6 +93,12 @@
 <footer class="marketing-footer">
   <div class="marketing-shell" style="padding:0;">Qubit Sandbox — runs entirely client-side quantum math in your browser, served by a small Flask app.</div>
 </footer>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+  }
+</script>
 
 </body>
 </html>

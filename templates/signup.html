@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create account — Qubit Sandbox</title>
+<link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/logo.svg') }}">
+<link rel="alternate icon" href="{{ url_for('static', filename='favicon.ico') }}">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='images/apple-touch-icon.png') }}">
+<link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+<meta name="theme-color" content="#3e5cf6">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<header class="marketing-nav">
+  <div class="marketing-shell" style="display:flex; align-items:center; justify-content:space-between; padding:0;">
+    <a class="brand" href="{{ url_for('landing') }}" style="text-decoration:none;">
+      <span class="logo-mark">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="3" fill="#fff" stroke="none"/><ellipse cx="12" cy="12" rx="10" ry="4.2"/><ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(120 12 12)"/></svg>
+      </span>
+      <span>Qubit Sandbox</span>
+    </a>
+    <a class="btn" href="{{ url_for('login', next=request.args.get('next')) }}">Already have an account? Sign in →</a>
+  </div>
+</header>
+
+<main class="marketing-shell" style="max-width:480px; padding-top:64px; padding-bottom:80px;">
+  <section class="panel" style="text-align:center;">
+    <div class="panel-label">CREATE ACCOUNT</div>
+    <h1 style="font-size:1.7rem; margin-top:6px;">What are you here to do?</h1>
+    <p class="muted" style="margin:0 auto 22px;">Pick the closest fit — you can request a different type later from your <a href="#" style="pointer-events:none; text-decoration:none; color:inherit;">Account</a> page.</p>
+
+    <div class="type-card-list" style="margin-bottom:24px;">
+      <label class="type-card selected" data-type="student">
+        <input type="radio" name="account_type" value="student" checked>
+        <div>
+          <div class="tc-title">Student</div>
+          <div class="tc-desc">Take lessons, track your progress. The default — instant, no approval needed.</div>
+        </div>
+      </label>
+      <label class="type-card" data-type="educator">
+        <input type="radio" name="account_type" value="educator">
+        <div>
+          <div class="tc-title">Educator</div>
+          <div class="tc-desc">Same as Student today, plus the label on your profile. Instant, no approval needed.</div>
+        </div>
+      </label>
+      <label class="type-card" data-type="creator">
+        <input type="radio" name="account_type" value="creator">
+        <div>
+          <div class="tc-title">Creator</div>
+          <div class="tc-desc">Write and publish lessons with the Lesson Creator. Needs verification first — instant if your email is pre-approved, otherwise an admin reviews your request.</div>
+        </div>
+      </label>
+    </div>
+
+    {% if google_oauth_configured %}
+    <a class="btn block" id="signup-google-btn" href="{{ url_for('google_login', next=request.args.get('next'), type='student') }}" style="justify-content:center; margin-bottom:10px;">
+      <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.64h6.46a5.53 5.53 0 0 1-2.4 3.63v3h3.88c2.27-2.09 3.58-5.17 3.58-8.82z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.07 7.94-2.91l-3.88-3c-1.08.72-2.45 1.15-4.06 1.15-3.12 0-5.77-2.11-6.71-4.94H1.28v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.29 14.3A7.2 7.2 0 0 1 4.91 12c0-.8.14-1.57.38-2.3v-3.1H1.28A12 12 0 0 0 0 12c0 1.94.46 3.77 1.28 5.4l4.01-3.1z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.44-3.44C17.94 1.19 15.24 0 12 0A12 12 0 0 0 1.28 6.6l4.01 3.1C6.23 6.86 8.88 4.75 12 4.75z"/></svg>
+      Continue with Google
+    </a>
+    {% else %}
+    <button class="btn block" disabled title="GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET aren't set — see .env.example" style="justify-content:center; margin-bottom:10px; opacity:0.55; cursor:not-allowed;">
+      <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.64h6.46a5.53 5.53 0 0 1-2.4 3.63v3h3.88c2.27-2.09 3.58-5.17 3.58-8.82z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.07 7.94-2.91l-3.88-3c-1.08.72-2.45 1.15-4.06 1.15-3.12 0-5.77-2.11-6.71-4.94H1.28v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.29 14.3A7.2 7.2 0 0 1 4.91 12c0-.8.14-1.57.38-2.3v-3.1H1.28A12 12 0 0 0 0 12c0 1.94.46 3.77 1.28 5.4l4.01-3.1z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.44-3.44C17.94 1.19 15.24 0 12 0A12 12 0 0 0 1.28 6.6l4.01 3.1C6.23 6.86 8.88 4.75 12 4.75z"/></svg>
+      Continue with Google — not configured
+    </button>
+    {% endif %}
+
+    <a class="btn primary block" id="signup-guest-btn" style="justify-content:center;" href="{{ url_for('demo_login', next=request.args.get('next'), type='student') }}">Continue as Demo Guest</a>
+
+    <p class="muted" style="font-size:0.8rem; margin-top:18px; margin-bottom:0;">Creator status is only ever auto-verified through real Google sign-in — Demo Guest can request Creator to see what the pending state looks like, but can't get verified (there's no real email to check).</p>
+  </section>
+</main>
+
+<footer class="marketing-footer">
+  <div class="marketing-shell" style="padding:0;">Qubit Sandbox — runs entirely client-side quantum math in your browser, served by a small Flask app.</div>
+</footer>
+
+<script>
+  const cards = document.querySelectorAll('.type-card');
+  const googleBtn = document.getElementById('signup-google-btn');
+  const guestBtn = document.getElementById('signup-guest-btn');
+
+  function setType(type) {
+    cards.forEach(c => c.classList.toggle('selected', c.dataset.type === type));
+    [googleBtn, guestBtn].forEach(btn => {
+      if (!btn) return;
+      const url = new URL(btn.href, window.location.origin);
+      url.searchParams.set('type', type);
+      btn.href = url.pathname + url.search;
+    });
+  }
+
+  cards.forEach(card => {
+    card.addEventListener('click', () => {
+      card.querySelector('input[type="radio"]').checked = true;
+      setType(card.dataset.type);
+    });
+  });
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+  }
+</script>
+</body>
+</html>

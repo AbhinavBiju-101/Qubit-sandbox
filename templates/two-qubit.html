@@ -1,3 +1,4 @@
+{% from "_lesson_nav.html" import lesson_nav %}
 {% extends "base.html" %}
 {% block title %}Two Qubits — Qubit Sandbox{% endblock %}
 {% block page_title %}Lesson 2 · Two Qubits{% endblock %}
@@ -12,6 +13,8 @@
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
   <span class="lesson-progress-pct" id="lp-pct">0%</span>
 </div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
 
 <!-- ===================== STEP 1 — THEORY ===================== -->
 <div class="lesson-step" data-step="step1">
@@ -41,6 +44,7 @@
     <div class="grid-2" style="margin-top:18px;">
       <div class="panel">
         <div class="panel-label">SANDBOX · TARGET STATE</div>
+        <div style="text-align:right; margin-bottom:-6px;"><a href="{{ url_for('sandbox') }}?topic=two" style="font-size:0.78rem;">Open full-screen →</a></div>
         <div class="tag-list" id="target-buttons">
           <div class="tag" data-target="00">|00⟩</div>
           <div class="tag" data-target="01">|01⟩</div>
@@ -87,6 +91,7 @@
 
     <div class="panel" style="margin-top:16px;">
       <div class="panel-label">SANDBOX · BELL STATE</div>
+      <div style="text-align:right; margin-bottom:-6px;"><a href="{{ url_for('embed_two_qubit') }}" target="_blank" rel="noopener" style="font-size:0.78rem;">Embeddable version →</a></div>
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
         <button id="bell-btn" class="small">Create Bell state: H(q1) → CNOT(q1→q2)</button>
         <button id="bell-shots-btn" class="small">Run 200 shots</button>
@@ -105,6 +110,8 @@
     </label>
   </div>
 </div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
 
 {% endblock %}
 

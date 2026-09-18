@@ -1,0 +1,15 @@
+{
+  "name": "Qubit Sandbox",
+  "short_name": "Qubit Sandbox",
+  "description": "A hands-on, lesson-based introduction to quantum computing — real complex-number math running in your browser, plus a live check against real IBM Qiskit.",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f8fc",
+  "theme_color": "#3e5cf6",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/static/images/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/static/images/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

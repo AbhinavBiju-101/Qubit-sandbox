@@ -1,2 +1,17 @@
 Flask==3.0.3
 gunicorn==22.0.0
+
+# Real accounts (futureplans.md #10) — server sessions + Google OAuth.
+Flask-Login==0.6.3
+Authlib==1.3.2
+requests==2.33.1
+python-dotenv==1.0.1
+
+# For /api/compare-shots — see futureplans.md ("Recently shipped").
+# Sizeable deps (a few hundred MB combined, mostly qiskit-aer's compiled
+# simulator backends); app.py imports them lazily so local dev / the
+# rest of the app still works if these aren't installed yet. Check
+# Docker image size after adding these if that matters for your deploy
+# target.
+qiskit==1.2.4
+qiskit-aer==0.15.1

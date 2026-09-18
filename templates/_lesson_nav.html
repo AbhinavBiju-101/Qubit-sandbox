@@ -1,0 +1,20 @@
+{% macro lesson_nav(prev_lesson, next_lesson) %}
+<div class="lesson-nav-row">
+  {% if prev_lesson %}
+  <a href="{{ prev_lesson.href }}" class="lesson-nav-link prev">
+    <span class="lesson-nav-arrow">&larr;</span>
+    <span><span class="lesson-nav-label">Previous</span><span class="lesson-nav-title">{{ prev_lesson.title }}</span></span>
+  </a>
+  {% else %}
+  <span></span>
+  {% endif %}
+  {% if next_lesson %}
+  <a href="{{ next_lesson.href }}" class="lesson-nav-link next">
+    <span><span class="lesson-nav-label">Next</span><span class="lesson-nav-title">{{ next_lesson.title }}</span></span>
+    <span class="lesson-nav-arrow">&rarr;</span>
+  </a>
+  {% else %}
+  <span></span>
+  {% endif %}
+</div>
+{% endmacro %}

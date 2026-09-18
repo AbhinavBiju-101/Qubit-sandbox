@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}Account — Qubit Sandbox{% endblock %}
+{% block page_title %}Account{% endblock %}
+
+{% block content %}
+
+<div class="panel" style="display:flex; align-items:center; gap:18px; margin-bottom:24px;">
+  <div style="width:56px; height:56px; border-radius:50%; background:var(--primary-soft); color:var(--primary); display:flex; align-items:center; justify-content:center; font-size:1.4rem; font-weight:700; flex-shrink:0; overflow:hidden;">
+    {% if current_user.avatar_url %}
+      <img src="{{ current_user.avatar_url }}" alt="" style="width:100%; height:100%; object-fit:cover;">
+    {% else %}
+      {{ (current_user.name or '?')[0]|upper }}
+    {% endif %}
+  </div>
+  <div style="flex:1; min-width:0;">
+    <h2 style="margin-bottom:2px;">{{ current_user.name }}</h2>
+    <p class="muted mono" style="font-size:0.85rem; margin:0;">{{ current_user.email }} &middot; {{ current_user.provider }}{% if current_user.provider != 'google' %} (not Google-verified){% endif %} &middot; {{ current_user.account_type }}</p>
+  </div>
+  <a class="btn small" href="{{ url_for('logout') }}">Sign out</a>
+</div>
+
+<p class="muted" style="font-size:0.82rem; margin-bottom:28px;">
+  This is a real account — a row in a small SQLite database (<span class="mono">db.py</span>), with a real server session, not a browser-only mock. {% if current_user.provider != 'google' %}It wasn't verified through Google (you signed in as a Demo Guest), so treat it as disposable — nothing here is tied to a real identity.{% else %}Signed in through Google OAuth.{% endif %} Signing out ends the session; your progress stays saved for next time you sign in the same way.
+</p>
+
+{% if current_user.account_type == 'creator' %}
+  {% if current_user.creator_status == 'verified' %}
+<div class="callout green" style="margin-bottom:28px;">
+  <strong>Verified creator account.</strong> You can write and publish lessons with the <a href="{{ url_for('lesson_creator') }}">Lesson Creator</a>.
+</div>
+  {% elif current_user.creator_status == 'pending' %}
+<div class="callout" style="margin-bottom:28px;">
+  <strong>Creator request pending.</strong> Your account is waiting on approval before you can publish lessons — see <a href="{{ url_for('lesson_creator') }}">Lesson Creator</a> for details.
+</div>
+  {% elif current_user.creator_status == 'rejected' %}
+<div class="callout" style="margin-bottom:28px; border-left-color:var(--red, #e0523f); background:var(--red-soft, #fdece9);">
+  <strong>Creator request not approved.</strong> See <a href="{{ url_for('lesson_creator') }}">Lesson Creator</a> for details.
+</div>
+  {% endif %}
+{% elif current_user.account_type == 'educator' %}
+<div class="callout" style="margin-bottom:28px;">
+  <strong>Educator account.</strong> A label for now — no extra permissions beyond a student account yet. Want to publish lessons? That's the separate "Creator" account type — see <a href="{{ url_for('lesson_creator') }}">Lesson Creator</a>.
+</div>
+{% endif %}
+{% if current_user.is_admin %}
+<div class="callout blue" style="margin-bottom:28px;">
+  <strong>Admin.</strong> You can review pending creator requests at <a href="{{ url_for('admin_creators') }}">/admin/creators</a>.
+</div>
+{% endif %}
+
+<div class="grid-3" style="margin-bottom:36px;">
+  <div class="stat">
+    <span class="num" id="stat-shots">0</span>
+    <span class="label">measurement shots run (this browser)</span>
+  </div>
+  <div class="stat">
+    <span class="num" id="stat-gates">0</span>
+    <span class="label">gates applied (this browser)</span>
+  </div>
+  <div class="stat">
+    <span class="num" id="stat-lessons">0/5</span>
+    <span class="label">lessons completed</span>
+  </div>
+</div>
+
+<div class="section-title"><h2>Lesson progress</h2></div>
+<div class="panel" style="margin-top:14px;">
+  <div id="account-lesson-list"></div>
+</div>
+
+<div class="section-title" style="margin-top:32px;"><h2>Danger zone</h2></div>
+<div class="panel" style="margin-top:14px; border-color:var(--red, #e0554a);">
+  <p class="muted" style="margin-bottom:14px;">Permanently deletes this account: your profile, all lesson progress, and (if you're an educator) any lessons you've published. Cannot be undone. {% if current_user.provider != 'google' %}Since this is a Demo Guest account, you can just make a new one instead if you'd rather.{% endif %}</p>
+  <button class="small" id="account-delete-btn" style="border-color:var(--red, #e0554a); color:var(--red, #e0554a);">Delete my account</button>
+  <span class="mono muted" id="account-delete-status" style="font-size:0.82rem; margin-left:10px;"></span>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/stats.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lessons-data.js') }}"></script>
+<script>
+  // Usage stats (shots/gates) are still local-per-browser (stats.js) —
+  // a deliberate scope cut, see futureplans.md #10. Lesson progress
+  // below is real, server-side, per-account data.
+  const s = qsStatsGet();
+  document.getElementById('stat-shots').textContent = s.shotsRun.toLocaleString();
+  document.getElementById('stat-gates').textContent = s.gatesApplied.toLocaleString();
+
+  (async () => {
+    const all = await qsFetchAllProgress(); // { lesson_id: { done, last_visited } }
+    let completedCount = 0;
+    const listEl = document.getElementById('account-lesson-list');
+    QS_LESSON_DEFS.forEach((def, i) => {
+      const entry = all[def.id] || { done: [], last_visited: null };
+      const pct = qsComputePct(entry.done, def.steps);
+      if (pct === 100) completedCount++;
+      const row = document.createElement('div');
+      row.className = 'lesson-step';
+      row.innerHTML = `
+        <div class="lesson-step-head">
+          <div class="lesson-step-num">${pct === 100 ? '✓' : i}</div>
+          <h3 style="flex:1;">${def.title}</h3>
+          <span class="mono" style="font-size:0.85rem; color:var(--text-muted);">${pct}%</span>
+        </div>
+        <div class="lesson-step-body">
+          <div class="lesson-progress-track"><div class="lesson-progress-fill" style="width:${pct}%;"></div></div>
+          <p class="muted" style="font-size:0.78rem; margin-top:8px;">
+            ${entry.last_visited ? 'Last opened ' + new Date(entry.last_visited * 1000).toLocaleDateString() : 'Not opened yet'}
+            &middot; <a href="${def.href}">${pct > 0 && pct < 100 ? 'Continue' : 'Open'} &rarr;</a>
+          </p>
+        </div>
+      `;
+      listEl.appendChild(row);
+    });
+    document.getElementById('stat-lessons').textContent = completedCount + '/' + QS_LESSON_DEFS.length;
+  })();
+
+  document.getElementById('account-delete-btn').addEventListener('click', async () => {
+    const statusEl = document.getElementById('account-delete-status');
+    if (!confirm('Delete your account permanently? This removes your profile, all lesson progress, and any lessons you\'ve published. This cannot be undone.')) {
+      return;
+    }
+    const btn = document.getElementById('account-delete-btn');
+    btn.disabled = true;
+    statusEl.textContent = 'Deleting…';
+    try {
+      const res = await fetch('{{ url_for("account_delete") }}', {
+        method: 'POST',
+        headers: { 'X-CSRF-Token': window.QS_CSRF_TOKEN }
+      });
+      if (res.ok) {
+        // The server redirected us to the landing page; fetch() follows
+        // redirects by default, so res.url is already that final page.
+        window.location.href = res.url;
+      } else {
+        statusEl.textContent = 'Could not delete account (server said ' + res.status + ').';
+        btn.disabled = false;
+      }
+    } catch (e) {
+      statusEl.textContent = 'Could not reach the server — is app.py running?';
+      btn.disabled = false;
+    }
+  });
+</script>
+{% endblock %}

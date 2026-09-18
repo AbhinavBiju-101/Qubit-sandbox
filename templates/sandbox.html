@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+{% block title %}Sandbox — Qubit Sandbox{% endblock %}
+{% block page_title %}Sandbox{% endblock %}
+
+{% block content %}
+
+<h1 style="margin-bottom:6px;">Just the demo, no lesson around it.</h1>
+<p class="muted" style="font-size:1.05rem;">Pick a topic. Same engines as the lessons — just full-width, with nothing to read first. Open to everyone, same as Demos — nothing here is gated.</p>
+
+<div class="tag-list" id="topic-tabs" style="margin:20px 0 28px;">
+  <div class="tag" data-topic="single">Single Qubit</div>
+  <div class="tag" data-topic="two">Two Qubits</div>
+  <div class="tag" data-topic="physical">Physical Qubit</div>
+</div>
+
+<!-- ===================== SINGLE QUBIT SANDBOX ===================== -->
+<div class="sandbox-panel" id="panel-single">
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-label">BLOCH SPHERE</div>
+      <svg id="sb-bloch" viewBox="0 0 300 300" style="width:100%; max-width:300px; display:block; margin:0 auto;"></svg>
+      <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:14px;">
+        <button data-gate="H">H</button>
+        <button data-gate="X">X</button>
+        <button data-gate="Y">Y</button>
+        <button data-gate="Z">Z</button>
+        <button id="sb-reset" class="small ghost">Reset to |0⟩</button>
+      </div>
+      <hr class="hair" style="margin:18px 0;">
+      <div class="mono" style="font-size:0.86rem; color: var(--text-muted);">
+        <div>State: <span id="sb-state-readout" style="color:var(--text);">|0⟩</span></div>
+        <div style="margin-top:6px;">Gates applied: <span id="sb-gate-log" style="color:var(--primary);">—</span></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label">MEASUREMENT · 1000 SHOTS</div>
+      <button class="primary block" id="sb-run-shots">Run 1000 shots</button>
+      <div style="margin-top:20px;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+          <div class="mono" style="width:20px; color:var(--primary);">0</div>
+          <div style="flex:1; background:var(--surface-alt); border:1px solid var(--line); border-radius:999px; height:22px; overflow:hidden;">
+            <div id="sb-bar0" style="height:100%; width:50%; background:var(--primary); transition:width 0.5s ease;"></div>
+          </div>
+          <div class="mono" id="sb-count0" style="width:64px; text-align:right;">—</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="mono" style="width:20px; color:var(--amber);">1</div>
+          <div style="flex:1; background:var(--surface-alt); border:1px solid var(--line); border-radius:999px; height:22px; overflow:hidden;">
+            <div id="sb-bar1" style="height:100%; width:50%; background:var(--amber); transition:width 0.5s ease;"></div>
+          </div>
+          <div class="mono" id="sb-count1" style="width:64px; text-align:right;">—</div>
+        </div>
+      </div>
+      <div class="grid-2" style="margin-top:20px;">
+        <div class="stat"><span class="num" id="sb-prob0">50.0%</span><span class="label">P(0)</span></div>
+        <div class="stat"><span class="num" id="sb-prob1">50.0%</span><span class="label">P(1)</span></div>
+      </div>
+    </div>
+  </div>
+  <div style="text-align:right; margin-top:14px;">
+    <a href="{{ url_for('single_qubit') }}">Want the walkthrough? Open Lesson 1 →</a>
+  </div>
+</div>
+
+<!-- ===================== TWO QUBIT SANDBOX ===================== -->
+<div class="sandbox-panel" id="panel-two" style="display:none;">
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-label">TARGET STATE</div>
+      <div class="tag-list" id="sb-target-buttons">
+        <div class="tag" data-target="00">|00⟩</div>
+        <div class="tag" data-target="01">|01⟩</div>
+        <div class="tag" data-target="10">|10⟩</div>
+        <div class="tag" data-target="11">|11⟩</div>
+      </div>
+      <hr class="hair">
+      <div class="mono" style="font-size:0.9rem;">
+        <div class="muted">Gate recipe from |00⟩:</div>
+        <div id="sb-recipe" style="color:var(--primary); margin-top:4px;">— select a target —</div>
+      </div>
+      <button id="sb-prepare-btn" class="primary block" style="margin-top:16px;">Prepare state</button>
+    </div>
+    <div class="panel">
+      <div class="panel-label">MEASUREMENT</div>
+      <button id="sb-measure-btn" class="block" disabled>Measure both qubits</button>
+      <div class="grid-3" style="grid-template-columns:1fr 1fr; margin-top:18px;">
+        <div class="stat"><span class="num" id="sb-q1-result">—</span><span class="label">Qubit 1</span></div>
+        <div class="stat"><span class="num" id="sb-q2-result">—</span><span class="label">Qubit 2</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:18px;">
+    <div class="panel-label">BELL STATE</div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button id="sb-bell-btn" class="small">Create Bell state: H(q1) → CNOT(q1→q2)</button>
+      <button id="sb-bell-shots-btn" class="small">Run 200 shots</button>
+    </div>
+    <div class="grid-4" style="margin-top:18px;">
+      <div class="stat"><span class="num" id="sb-bell-00">—</span><span class="label">|00⟩</span></div>
+      <div class="stat"><span class="num" id="sb-bell-01">—</span><span class="label">|01⟩</span></div>
+      <div class="stat"><span class="num" id="sb-bell-10">—</span><span class="label">|10⟩</span></div>
+      <div class="stat"><span class="num" id="sb-bell-11">—</span><span class="label">|11⟩</span></div>
+    </div>
+  </div>
+  <div style="text-align:right; margin-top:14px;">
+    <a href="{{ url_for('two_qubit') }}">Want the walkthrough? Open Lesson 2 →</a>
+  </div>
+</div>
+
+<!-- ===================== PHYSICAL QUBIT SANDBOX ===================== -->
+<div class="sandbox-panel" id="panel-physical" style="display:none;">
+  <div class="panel">
+    <div class="panel-label">TEMPERATURE · DECOHERENCE</div>
+    <div class="grid-2" style="align-items:center;">
+      <svg id="sb-decoy-bloch" viewBox="0 0 260 260" style="width:100%; max-width:240px; display:block; margin:0 auto;"></svg>
+      <div>
+        <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.85rem; margin-bottom:8px;">
+          <span class="muted">Temperature: <span id="sb-temp-val" style="color:var(--text);">15 mK</span></span>
+        </div>
+        <input type="range" id="sb-temp-slider" min="0" max="100" value="0" step="1">
+        <div class="stat" style="margin-top:18px;">
+          <span class="num" id="sb-coherence-val">100%</span>
+          <span class="label">coherence remaining, live</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="text-align:right; margin-top:14px;">
+    <a href="{{ url_for('physical_qubit') }}">Want the walkthrough? Open Lesson 3 →</a>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
+<script src="{{ url_for('static', filename='js/twoqubit.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bloch.js') }}"></script>
+<script>
+  const panels = { single: 'panel-single', two: 'panel-two', physical: 'panel-physical' };
+  function showTopic(topic) {
+    Object.keys(panels).forEach(k => {
+      document.getElementById(panels[k]).style.display = (k === topic) ? '' : 'none';
+    });
+    document.querySelectorAll('#topic-tabs .tag').forEach(t => t.classList.toggle('active', t.dataset.topic === topic));
+  }
+  document.querySelectorAll('#topic-tabs .tag').forEach(tag => {
+    tag.addEventListener('click', () => showTopic(tag.dataset.topic));
+  });
+
+  // Keep the hash in sync when switching tabs by click too, so the
+  // current tab is always a shareable/bookmarkable URL.
+  document.querySelectorAll('#topic-tabs .tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+      history.replaceState(null, '', '#' + tag.dataset.topic);
+    });
+  });
+
+  const params = new URLSearchParams(window.location.search);
+  // Support both ?topic=single|two|physical (existing) and a hash-based
+  // deep link like #bloch / #two / #physical (futureplans.md #2 — a way
+  // to link to one specific widget). Hash wins if both are present,
+  // since a hash is what someone would paste as a direct link to a
+  // specific widget from outside this page.
+  const HASH_TO_TOPIC = { bloch: 'single', single: 'single', two: 'two', physical: 'physical' };
+  const hashTopic = HASH_TO_TOPIC[window.location.hash.replace('#', '')];
+  const queryTopic = panels[params.get('topic')] ? params.get('topic') : null;
+  const initialTopic = hashTopic || queryTopic || 'single';
+  showTopic(initialTopic);
+
+  const sbq = new Qubit();
+  const sbWidget = createBlochWidget(document.getElementById('sb-bloch'));
+  function sbRefresh() {
+    const b = sbq.bloch();
+    sbWidget.set(b.theta, b.phi);
+    document.getElementById('sb-state-readout').textContent = sbq.log.length ? `α=${C.fmt(sbq.a,2)}, β=${C.fmt(sbq.b,2)}` : '|0⟩';
+    document.getElementById('sb-gate-log').textContent = sbq.log.length ? sbq.log.join(' → ') : '—';
+    document.getElementById('sb-prob0').textContent = (sbq.prob0()*100).toFixed(1) + '%';
+    document.getElementById('sb-prob1').textContent = (sbq.prob1()*100).toFixed(1) + '%';
+  }
+  document.querySelectorAll('#panel-single button[data-gate]').forEach(btn => {
+    btn.addEventListener('click', () => { sbq[btn.dataset.gate](); sbRefresh(); });
+  });
+  document.getElementById('sb-reset').addEventListener('click', () => {
+    sbq.reset(); sbRefresh();
+    document.getElementById('sb-bar0').style.width = '50%';
+    document.getElementById('sb-bar1').style.width = '50%';
+    document.getElementById('sb-count0').textContent = '—';
+    document.getElementById('sb-count1').textContent = '—';
+  });
+  document.getElementById('sb-run-shots').addEventListener('click', () => {
+    const { c0, c1 } = sbq.sampleShots(1000);
+    const total = c0 + c1;
+    document.getElementById('sb-bar0').style.width = (c0/total*100) + '%';
+    document.getElementById('sb-bar1').style.width = (c1/total*100) + '%';
+    document.getElementById('sb-count0').textContent = c0 + ' (' + (c0/total*100).toFixed(1) + '%)';
+    document.getElementById('sb-count1').textContent = c1 + ' (' + (c1/total*100).toFixed(1) + '%)';
+  });
+  sbRefresh();
+
+  const sbtq = new TwoQubit();
+  let sbSelectedTarget = null;
+  document.querySelectorAll('#sb-target-buttons .tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+      document.querySelectorAll('#sb-target-buttons .tag').forEach(t => t.classList.remove('active'));
+      tag.classList.add('active');
+      sbSelectedTarget = tag.dataset.target;
+      const gates = TwoQubit.minGatesFor(sbSelectedTarget);
+      document.getElementById('sb-recipe').textContent = gates.length ? gates.join(' → ') : '(none needed)';
+      document.getElementById('sb-measure-btn').disabled = true;
+      document.getElementById('sb-q1-result').textContent = '—';
+      document.getElementById('sb-q2-result').textContent = '—';
+    });
+  });
+  document.getElementById('sb-prepare-btn').addEventListener('click', () => {
+    if (!sbSelectedTarget) return;
+    sbtq.reset();
+    if (sbSelectedTarget[0] === '1') sbtq.X1();
+    if (sbSelectedTarget[1] === '1') sbtq.X2();
+    document.getElementById('sb-measure-btn').disabled = false;
+    document.getElementById('sb-q1-result').textContent = '—';
+    document.getElementById('sb-q2-result').textContent = '—';
+  });
+  document.getElementById('sb-measure-btn').addEventListener('click', () => {
+    const result = sbtq.measure();
+    document.getElementById('sb-q1-result').textContent = result[0];
+    document.getElementById('sb-q2-result').textContent = result[1];
+  });
+  document.getElementById('sb-bell-btn').addEventListener('click', () => {
+    sbtq.reset(); sbtq.H1(); sbtq.CNOT();
+    ['00','01','10','11'].forEach(k => document.getElementById('sb-bell-'+k).textContent = '0%');
+  });
+  document.getElementById('sb-bell-shots-btn').addEventListener('click', () => {
+    const counts = sbtq.sampleShots(200);
+    ['00','01','10','11'].forEach(k => {
+      document.getElementById('sb-bell-'+k).textContent = ((counts[k]/200)*100).toFixed(0) + '%';
+    });
+  });
+
+  const sbDecoWidget = createBlochWidget(document.getElementById('sb-decoy-bloch'));
+  const sbTempSlider = document.getElementById('sb-temp-slider');
+  let sbMagnitude = 1.0;
+  function sbTempFromSlider(v) { return 15 * Math.pow(300000 / 15, v / 100); }
+  function sbUpdateTempLabel() {
+    const v = +sbTempSlider.value;
+    const mK = sbTempFromSlider(v);
+    document.getElementById('sb-temp-val').textContent = mK < 1000 ? `${mK.toFixed(0)} mK` : `${(mK/1000).toFixed(1)} K`;
+  }
+  sbTempSlider.addEventListener('input', sbUpdateTempLabel);
+  sbUpdateTempLabel();
+  setInterval(() => {
+    if (document.getElementById('panel-physical').style.display === 'none') return;
+    const v = +sbTempSlider.value;
+    sbMagnitude -= 0.01 + (v / 100) * 0.18;
+    if (sbMagnitude <= 0.03) sbMagnitude = 1.0;
+    sbDecoWidget.set(Math.PI/2, performance.now() / 400, sbMagnitude);
+    document.getElementById('sb-coherence-val').textContent = Math.max(0, sbMagnitude * 100).toFixed(0) + '%';
+    document.getElementById('sb-coherence-val').style.color = sbMagnitude > 0.5 ? 'var(--primary)' : (sbMagnitude > 0.2 ? 'var(--amber)' : 'var(--red)');
+  }, 120);
+</script>
+{% endblock %}

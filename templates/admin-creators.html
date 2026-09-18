@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Pending Creators — Qubit Sandbox{% endblock %}
+{% block page_title %}Pending Creator Requests{% endblock %}
+
+{% block content %}
+
+<p class="muted" style="margin-bottom:24px;">Visible only to accounts in the <span class="mono">ADMIN_EMAILS</span> allowlist. Approving switches an account to a verified creator (unlocks the <a href="{{ url_for('lesson_creator') }}">Lesson Creator</a>); rejecting leaves it as a creator-type account that can't publish.</p>
+
+{% if pending %}
+<div class="panel">
+  {% for u in pending %}
+  <div class="lesson-step-head" style="padding:16px 0; {% if not loop.last %}border-bottom:1px solid var(--line);{% endif %}" data-user-row="{{ u.id }}">
+    <div style="flex:1; min-width:0;">
+      <strong>{{ u.name }}</strong>
+      <span class="muted mono" style="font-size:0.8rem; margin-left:8px;">{{ u.email }} &middot; {{ u.provider }}</span>
+    </div>
+    <div style="display:flex; gap:8px; flex-shrink:0;">
+      <button class="small" data-approve="{{ u.id }}">Approve</button>
+      <button class="small ghost" data-reject="{{ u.id }}">Reject</button>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="coming-soon-block">
+  <div class="cs-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 6L9 17l-5-5"/></svg>
+  </div>
+  <h2>No pending requests</h2>
+  <p class="muted" style="margin:0;">Everyone who's requested creator access has already been reviewed.</p>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  async function act(userId, action) {
+    const row = document.querySelector(`[data-user-row="${userId}"]`);
+    try {
+      const res = await fetch(`/admin/creators/${userId}/${action}`, {
+        method: 'POST',
+        headers: { 'X-CSRF-Token': window.QS_CSRF_TOKEN }
+      });
+      if (res.ok && row) {
+        row.style.opacity = '0.4';
+        row.innerHTML = `<div class="muted">${action === 'approve' ? 'Approved' : 'Rejected'}.</div>`;
+      }
+    } catch (e) { /* leave the row as-is on failure — the buttons still work if retried */ }
+  }
+  document.querySelectorAll('[data-approve]').forEach(btn => {
+    btn.addEventListener('click', () => act(btn.dataset.approve, 'approve'));
+  });
+  document.querySelectorAll('[data-reject]').forEach(btn => {
+    btn.addEventListener('click', () => act(btn.dataset.reject, 'reject'));
+  });
+</script>
+{% endblock %}

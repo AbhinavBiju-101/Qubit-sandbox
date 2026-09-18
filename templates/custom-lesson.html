@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}{{ lesson.title }} — Qubit Sandbox{% endblock %}
+{% block page_title %}{{ lesson.title }}{% endblock %}
+
+{% block content %}
+
+<div class="pill" style="margin-bottom:14px;">COMMUNITY LESSON &middot; BY {{ author_name.upper() }}</div>
+{% if not lesson.published %}
+<div class="callout" style="margin-bottom:18px; border-left-color:var(--red, #e0523f); background:var(--red-soft, #fdece9);">
+  <strong>Unpublished — only you can see this.</strong> Everyone else gets a 404. Republish or edit it from the <a href="{{ url_for('lesson_creator') }}">Lesson Creator</a>.
+</div>
+{% endif %}
+<h1 style="margin-bottom:6px;">{{ lesson.title }}</h1>
+{% if lesson.description %}
+<p class="lede muted" style="font-size:1.05rem;">{{ lesson.description }}</p>
+{% endif %}
+
+<p class="muted" style="font-size:0.82rem; margin-top:10px;">
+  Written with the <a href="{{ url_for('lesson_creator') }}">Lesson Creator</a>.
+  {% if is_own %}<a href="{{ url_for('lesson_creator') }}" style="margin-left:6px;">Edit this lesson →</a>{% endif %}
+</p>
+
+<div class="lesson-progress-row" style="margin-top:16px;">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
+
+{% for step in steps %}
+<div class="lesson-step" data-step="step{{ loop.index0 }}">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">{{ loop.index }}</div>
+    <h3>{{ step.title }}</h3>
+  </div>
+  <div class="lesson-step-body">
+    {% if step.body %}
+    <p class="muted" style="white-space: pre-line;">{{ step.body }}</p>
+    {% endif %}
+    {% if step.widget == 'coin-flip' %}
+    <div class="panel" style="margin-top:16px; padding:0; overflow:hidden;">
+      <iframe src="{{ url_for('embed_coin_flip') }}" style="width:100%; height:480px; border:0; display:block;" loading="lazy"></iframe>
+    </div>
+    {% elif step.widget == 'two-qubit' %}
+    <div class="panel" style="margin-top:16px; padding:0; overflow:hidden;">
+      <iframe src="{{ url_for('embed_two_qubit') }}" style="width:100%; height:420px; border:0; display:block;" loading="lazy"></iframe>
+    </div>
+    {% endif %}
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step{{ loop.index0 }}"> Mark this step complete
+    </label>
+  </div>
+</div>
+{% endfor %}
+
+<div class="panel" style="margin-top:8px; text-align:center;">
+  <p class="muted" style="margin:0;">Browse <a href="{{ url_for('lessons') }}">all lessons</a>, or write your own with the <a href="{{ url_for('lesson_creator') }}">Lesson Creator</a>.</p>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script>
+  // Community lessons weren't trackable at all before (futureplans.md
+  // #11) — same initLessonProgress() every built-in lesson uses,
+  // keyed as "custom-<slug>" so it doesn't collide with the 6 fixed
+  // lesson ids. Open to everyone to READ (this page has no
+  // @login_required), but like every open lesson, tracking itself is
+  // still signed-in-only — initLessonProgress() handles that already.
+  initLessonProgress('custom-{{ lesson.slug }}');
+</script>
+{% endblock %}

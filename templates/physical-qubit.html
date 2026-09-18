@@ -1,3 +1,4 @@
+{% from "_lesson_nav.html" import lesson_nav %}
 {% extends "base.html" %}
 {% block title %}Physical Qubit — Qubit Sandbox{% endblock %}
 {% block page_title %}Lesson 3 · Physical Qubit{% endblock %}
@@ -12,6 +13,8 @@
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
   <span class="lesson-progress-pct" id="lp-pct">0%</span>
 </div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
 
 <!-- ===================== STEP 1 — HARDWARE CHAIN ===================== -->
 <div class="lesson-step" data-step="step1">
@@ -77,6 +80,7 @@
 
     <div class="panel" style="margin-top:16px;">
       <div class="panel-label">SANDBOX · TEMPERATURE</div>
+      <div style="text-align:right; margin-bottom:-6px;"><a href="{{ url_for('sandbox') }}?topic=physical" style="font-size:0.78rem;">Open full-screen →</a></div>
       <div class="grid-2" style="align-items:center;">
         <svg id="decoy-bloch" viewBox="0 0 260 260" style="width:100%; max-width:240px; display:block; margin:0 auto;"></svg>
         <div>
@@ -103,6 +107,8 @@
     </label>
   </div>
 </div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
 
 {% endblock %}
 

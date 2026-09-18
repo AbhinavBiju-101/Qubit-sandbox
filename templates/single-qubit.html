@@ -1,3 +1,4 @@
+{% from "_lesson_nav.html" import lesson_nav %}
 {% extends "base.html" %}
 {% block title %}Single Qubit — Qubit Sandbox{% endblock %}
 {% block page_title %}Lesson 1 · Single Qubit{% endblock %}
@@ -6,12 +7,14 @@
 
 <div class="pill blue" style="margin-bottom:14px;">HACKATHON PROBLEM 1 · COIN FLIP, BUT QUANTUM</div>
 <h1 style="margin-bottom:6px;">One qubit, in superposition.</h1>
-<p class="lede muted" style="font-size:1.05rem;">Four short steps. Check each one off as you go — every gate click below is a real 2×2 complex matrix multiplying the state, nothing is precomputed.</p>
+<p class="lede muted" style="font-size:1.05rem;">Five short steps. Check each one off as you go — every gate click below is a real 2×2 complex matrix multiplying the state, nothing is precomputed.</p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
   <span class="lesson-progress-pct" id="lp-pct">0%</span>
 </div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
 
 <!-- ===================== STEP 1 — THEORY ===================== -->
 <div class="lesson-step" data-step="step1">
@@ -20,7 +23,7 @@
     <h3>What is a qubit, actually?</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">A classical bit is 0 or 1 — nothing in between. A qubit's state is a pair of complex numbers <span class="mono">(α, β)</span> called <strong>amplitudes</strong>, one for |0⟩ and one for |1⟩, with the rule <span class="mono">|α|² + |β|² = 1</span>.</p>
+    <p class="muted">A classical bit is 0 or 1 — nothing in between. A qubit's state is a pair of complex numbers <span class="mono">(α, β)</span> called <strong>amplitudes</strong>, one for |0⟩ and one for |1⟩, with the rule <span class="mono">|α|² + |β|² = 1</span>. <em>(New to this? <a href="{{ url_for('qm_basics') }}">Lesson 0</a> derives where that rule comes from, with real numbers only — worth a detour if this paragraph moved fast.)</em></p>
     <p class="muted">You never see α and β directly. What you get on measurement is 0 with probability <span class="mono">|α|²</span>, or 1 with probability <span class="mono">|β|²</span> — that's <strong>Born's rule</strong>, and it's the only place randomness enters quantum mechanics.</p>
     <div class="callout blue">A qubit starting at |0⟩ has α&nbsp;=&nbsp;1, β&nbsp;=&nbsp;0 — measuring it always gives 0. Nothing quantum has happened yet. The interesting part starts in Step 2, once a gate moves that pair of numbers somewhere else.</div>
     <label class="mark-done-check" style="margin-top:16px;">
@@ -41,6 +44,7 @@
     <div class="grid-2" style="margin-top:18px;">
       <div class="panel">
         <div class="panel-label">SANDBOX · BLOCH SPHERE</div>
+        <div style="text-align:right; margin-bottom:-6px;"><a href="{{ url_for('sandbox') }}?topic=single" style="font-size:0.78rem;">Open full-screen →</a></div>
         <svg id="bloch" viewBox="0 0 300 300" style="width:100%; max-width:300px; display:block; margin:0 auto;"></svg>
         <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:14px;">
           <button data-gate="H">H</button>
@@ -136,6 +140,60 @@
   </div>
 </div>
 
+<!-- ===================== STEP 5 — QISKIT AER COMPARISON ===================== -->
+<div class="lesson-step" data-step="step5">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">5</div>
+    <h3>How good is our toy simulator, actually?</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Everything above runs on this app's own from-scratch complex-matrix simulator. This step sends your exact circuit — whatever gates you've applied in Step 2, or the RY(θ) from Step 4 — to a Flask endpoint that runs it on <strong>real IBM Qiskit</strong> (<span class="mono">qiskit-aer</span>'s <span class="mono">AerSimulator</span>), then runs 1,000 shots on both so you can compare the statistical noise directly.</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX vs QISKIT AER · 1000 SHOTS EACH</div>
+      <button class="primary" id="run-qiskit-compare">Run same circuit on Qiskit Aer</button>
+      <span class="mono" id="qiskit-status" style="margin-left:12px; font-size:0.82rem; color:var(--text-muted);"></span>
+
+      <div class="grid-2" style="margin-top:22px;">
+        <div>
+          <div class="mono" style="font-size:0.72rem; color:var(--text-faint); margin-bottom:8px; letter-spacing:0.04em;">YOUR SANDBOX</div>
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+            <div class="mono" style="width:16px; color:var(--primary); font-weight:700;">0</div>
+            <div style="flex:1; background:var(--surface-alt); border:1px solid var(--line); border-radius:999px; height:18px; overflow:hidden;"><div id="cmp-own-bar0" style="height:100%; width:50%; background:var(--primary); border-radius:999px; transition:width 0.4s ease;"></div></div>
+            <div class="mono" id="cmp-own-count0" style="width:64px; text-align:right; font-size:0.8rem;">—</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="mono" style="width:16px; color:var(--amber); font-weight:700;">1</div>
+            <div style="flex:1; background:var(--surface-alt); border:1px solid var(--line); border-radius:999px; height:18px; overflow:hidden;"><div id="cmp-own-bar1" style="height:100%; width:50%; background:var(--amber); border-radius:999px; transition:width 0.4s ease;"></div></div>
+            <div class="mono" id="cmp-own-count1" style="width:64px; text-align:right; font-size:0.8rem;">—</div>
+          </div>
+        </div>
+        <div>
+          <div class="mono" style="font-size:0.72rem; color:var(--text-faint); margin-bottom:8px; letter-spacing:0.04em;">QISKIT AER (real IBM backend)</div>
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+            <div class="mono" style="width:16px; color:var(--green); font-weight:700;">0</div>
+            <div style="flex:1; background:var(--surface-alt); border:1px solid var(--line); border-radius:999px; height:18px; overflow:hidden;"><div id="cmp-qk-bar0" style="height:100%; width:50%; background:var(--green); border-radius:999px; transition:width 0.4s ease;"></div></div>
+            <div class="mono" id="cmp-qk-count0" style="width:64px; text-align:right; font-size:0.8rem;">—</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="mono" style="width:16px; color:var(--red); font-weight:700;">1</div>
+            <div style="flex:1; background:var(--surface-alt); border:1px solid var(--line); border-radius:999px; height:18px; overflow:hidden;"><div id="cmp-qk-bar1" style="height:100%; width:50%; background:var(--red); border-radius:999px; transition:width 0.4s ease;"></div></div>
+            <div class="mono" id="cmp-qk-count1" style="width:64px; text-align:right; font-size:0.8rem;">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout" id="qiskit-diff-callout" style="margin-top:18px; display:none;"></div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step5"> I compared my sandbox against Qiskit Aer
+    </label>
+  </div>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
 {% endblock %}
 
 {% block scripts %}
@@ -146,6 +204,12 @@
 <script>
   const q = new Qubit();
   const widget = createBlochWidget(document.getElementById('bloch'));
+
+  // Machine-readable mirror of the gates applied to `q`, kept separate
+  // from q.log (which is a display string like "RY(60.0°)"). This is
+  // what Step 5 sends to /api/compare-shots so the server can replay
+  // the exact same circuit in real Qiskit.
+  let appliedGates = [];
 
   function fmtState() {
     const zero = C.abs(q.a) < 1e-3 ? '' : `(${C.fmt(q.a,2)})|0⟩`;
@@ -163,9 +227,9 @@
   }
 
   document.querySelectorAll('button[data-gate]').forEach(btn => {
-    btn.addEventListener('click', () => { q[btn.dataset.gate](); qsStatsIncrement('gatesApplied', 1); refresh(); });
+    btn.addEventListener('click', () => { q[btn.dataset.gate](); appliedGates.push(btn.dataset.gate); qsStatsIncrement('gatesApplied', 1); refresh(); });
   });
-  document.getElementById('reset-btn').addEventListener('click', () => { q.reset(); refresh(); resetBars(); });
+  document.getElementById('reset-btn').addEventListener('click', () => { q.reset(); appliedGates = []; refresh(); resetBars(); resetCompare(); });
 
   function resetBars(){
     document.getElementById('bar0').style.width = '50%';
@@ -201,9 +265,65 @@
   document.getElementById('bonus-apply').addEventListener('click', () => {
     q.reset();
     q.RY(+slider.value * Math.PI / 180);
+    appliedGates = [`RY:${slider.value}`];
     qsStatsIncrement('gatesApplied', 1);
     refresh();
     document.getElementById('run-shots').click();
+  });
+
+  // ---- Step 5: Qiskit Aer comparison ----
+  function resetCompare() {
+    ['cmp-own-bar0','cmp-own-bar1','cmp-qk-bar0','cmp-qk-bar1'].forEach(id => document.getElementById(id).style.width = '50%');
+    ['cmp-own-count0','cmp-own-count1','cmp-qk-count0','cmp-qk-count1'].forEach(id => document.getElementById(id).textContent = '—');
+    document.getElementById('qiskit-status').textContent = '';
+    document.getElementById('qiskit-diff-callout').style.display = 'none';
+  }
+
+  document.getElementById('run-qiskit-compare').addEventListener('click', async () => {
+    const statusEl = document.getElementById('qiskit-status');
+    const btn = document.getElementById('run-qiskit-compare');
+
+    // Your sandbox's own 1000 shots, run fresh right alongside Qiskit's.
+    const own = q.sampleShots(1000);
+    const ownTotal = own.c0 + own.c1;
+    document.getElementById('cmp-own-bar0').style.width = (own.c0 / ownTotal * 100) + '%';
+    document.getElementById('cmp-own-bar1').style.width = (own.c1 / ownTotal * 100) + '%';
+    document.getElementById('cmp-own-count0').textContent = own.c0 + ' (' + (own.c0/ownTotal*100).toFixed(1) + '%)';
+    document.getElementById('cmp-own-count1').textContent = own.c1 + ' (' + (own.c1/ownTotal*100).toFixed(1) + '%)';
+    qsStatsIncrement('shotsRun', 1000);
+
+    btn.disabled = true;
+    statusEl.textContent = 'Calling qiskit-aer on the server…';
+
+    try {
+      const res = await fetch('/api/compare-shots', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gates: appliedGates, shots: 1000 })
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        statusEl.textContent = data.message || 'Qiskit Aer isn\'t available on this server right now.';
+        return;
+      }
+
+      const c0 = data.counts['0'], c1 = data.counts['1'], total = c0 + c1;
+      document.getElementById('cmp-qk-bar0').style.width = (c0/total*100) + '%';
+      document.getElementById('cmp-qk-bar1').style.width = (c1/total*100) + '%';
+      document.getElementById('cmp-qk-count0').textContent = c0 + ' (' + (c0/total*100).toFixed(1) + '%)';
+      document.getElementById('cmp-qk-count1').textContent = c1 + ' (' + (c1/total*100).toFixed(1) + '%)';
+      statusEl.textContent = 'Ran on ' + data.backend + '.';
+
+      const diff = Math.abs((own.c0/ownTotal) - (c0/total)) * 100;
+      const callout = document.getElementById('qiskit-diff-callout');
+      callout.style.display = 'block';
+      callout.innerHTML = `P(0) differs by <strong>${diff.toFixed(1)} percentage points</strong> between the two runs — both simulators implement the same math (Born's rule on the same statevector), so this gap is exactly the statistical noise you'd expect from 1,000 independent shots, not a bug in either one. Re-run both to see it shift around.`;
+    } catch (e) {
+      statusEl.textContent = 'Could not reach the server — is app.py running?';
+    } finally {
+      btn.disabled = false;
+    }
   });
 
   initLessonProgress('single-qubit');

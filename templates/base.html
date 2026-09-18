@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{% block title %}Qubit Sandbox{% endblock %}</title>
+<link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/logo.svg') }}">
+<link rel="alternate icon" href="{{ url_for('static', filename='favicon.ico') }}">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='images/apple-touch-icon.png') }}">
+<link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+<meta name="theme-color" content="#3e5cf6">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
@@ -37,6 +42,16 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/></svg>
         {% elif item.icon == 'chart' %}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>
+        {% elif item.icon == 'play' %}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9.2"/><path d="M10 8.5l6 3.5-6 3.5v-7z" fill="currentColor" stroke="none"/></svg>
+        {% elif item.icon == 'pencil' %}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        {% elif item.icon == 'code' %}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 8l-5 4 5 4"/><path d="M15 8l5 4-5 4"/></svg>
+        {% elif item.icon == 'book' %}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        {% elif item.icon == 'user' %}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
         {% endif %}
         <span class="nav-label">{{ item.label }}</span>
         {% if item.badge %}<span class="nav-badge">{{ item.badge }}</span>{% endif %}
@@ -45,6 +60,13 @@
     </nav>
 
     <div class="sidebar-footer">
+      <div class="auth-status">
+        {% if current_user.is_authenticated %}
+          <a href="{{ url_for('account') }}">Hi, {{ current_user.name.split(' ')[0] }} &rarr;</a>
+        {% else %}
+          <a href="{{ url_for('login') }}">Sign in</a>
+        {% endif %}
+      </div>
       <a href="{{ url_for('landing') }}">&larr; <span class="footer-text">Back to intro</span></a>
     </div>
   </aside>
@@ -67,7 +89,24 @@
   </div>
 </div>
 
+<script>
+  // Real, server-truth signed-in state (Flask-Login's current_user),
+  // not a localStorage mock — see futureplans.md #10. Pages that must
+  // be signed-in-only use @login_required in app.py and never render
+  // for anonymous visitors at all; this flag is for the two open
+  // lessons (QM Basics, Single Qubit) whose progress-tracking UI should
+  // still adapt to sign-in state, via lesson-progress.js.
+  window.QS_AUTHENTICATED = {{ 'true' if current_user.is_authenticated else 'false' }};
+  // Sent back as the X-CSRF-Token header on every state-changing
+  // fetch() — see app.py's csrf_protect decorator for what checks it.
+  window.QS_CSRF_TOKEN = {{ csrf_token|tojson }};
+</script>
 <script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+  }
+</script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

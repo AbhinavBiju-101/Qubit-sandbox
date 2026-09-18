@@ -1,0 +1,324 @@
+{% extends "base.html" %}
+{% block title %}Lesson Creator — Qubit Sandbox{% endblock %}
+{% block page_title %}Lesson Creator{% endblock %}
+
+{% block content %}
+
+{% if current_user.is_authenticated and current_user.can_create_lessons %}
+
+<h2 style="margin-bottom:4px;" id="lc-form-heading">Write a lesson</h2>
+<p class="muted" style="margin-bottom:24px;">Publishes immediately, open to everyone (no sign-in needed to read it — same as QM Basics/Single Qubit), and shows up in a "Community lessons" section on <a href="{{ url_for('lessons') }}">/lessons</a>. Steps are plain text — line breaks are kept, but no HTML/markdown formatting yet (see <span class="mono">futureplans.md</span> #11).</p>
+
+<div class="panel" id="lc-form-panel" data-editing-id="">
+  <div class="panel-label" id="lc-form-label">NEW LESSON</div>
+
+  <label class="field-label" for="lc-title">Title</label>
+  <input type="text" id="lc-title" maxlength="200" placeholder="e.g. Quantum Coin Flip, Explained Slowly">
+
+  <label class="field-label" for="lc-description">Short description</label>
+  <textarea id="lc-description" style="min-height:3.5em;" placeholder="One or two sentences — shows on the lesson card."></textarea>
+
+  <label class="field-label">Steps</label>
+  <div id="lc-steps"></div>
+  <button type="button" class="small ghost" id="lc-add-step" style="margin-top:6px;">+ Add step</button>
+
+  <div style="margin-top:22px; display:flex; align-items:center; gap:12px;">
+    <button class="primary" id="lc-publish">Publish lesson</button>
+    <button class="small ghost" id="lc-cancel-edit" style="display:none;">Cancel edit</button>
+    <span class="mono muted" id="lc-status" style="font-size:0.82rem;"></span>
+  </div>
+</div>
+
+{% if my_lessons %}
+<div class="section-title" style="margin-top:32px;"><h2>Your lessons</h2></div>
+<div class="panel" style="margin-top:14px;">
+  {% for l in my_lessons %}
+  <div class="lesson-step-head" style="padding:14px 0; {% if not loop.last %}border-bottom:1px solid var(--line);{% endif %}"
+       data-lesson-id="{{ l.id }}" data-slug="{{ l.slug }}" data-title="{{ l.title }}"
+       data-description="{{ l.description or '' }}" data-steps="{{ l.steps_json }}"
+       data-published="{{ l.published }}">
+    <div style="flex:1; min-width:0;">
+      <strong>{{ l.title }}</strong>
+      {% if not l.published %}<span class="lock-chip" style="margin:0 0 0 8px; vertical-align:middle;">Unpublished</span>{% endif %}
+      <div class="muted" style="font-size:0.8rem;">{{ l.description }}</div>
+    </div>
+    <div style="display:flex; gap:8px; flex-shrink:0; align-items:center;">
+      <a href="{{ url_for('custom_lesson', slug=l.slug) }}" target="_blank" rel="noopener" style="font-size:0.82rem;">View →</a>
+      <button class="small ghost" data-edit-lesson>Edit</button>
+      <button class="small ghost" data-toggle-publish>{{ 'Unpublish' if l.published else 'Republish' }}</button>
+      <button class="small ghost" data-delete-lesson style="color:var(--red, #e0523f); border-color:var(--red, #e0523f);">Delete</button>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% elif current_user.is_authenticated and current_user.account_type == 'creator' and current_user.creator_status == 'pending' %}
+
+<div class="coming-soon-block">
+  <div class="cs-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+  </div>
+  <h2>Your creator request is pending</h2>
+  <p class="muted" style="max-width:52ch; margin:0 auto 22px;">
+    An admin needs to approve this before you can publish lessons.
+    There's no timeline for that on a self-hosted deployment like
+    this one — it depends on whoever's running it checking
+    <span class="mono">/admin/creators</span>.
+  </p>
+  <a class="btn" href="{{ url_for('lessons') }}">See the lessons that exist today →</a>
+</div>
+
+{% elif current_user.is_authenticated and current_user.account_type == 'creator' and current_user.creator_status == 'rejected' %}
+
+<div class="coming-soon-block">
+  <div class="cs-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
+  </div>
+  <h2>Creator request not approved</h2>
+  <p class="muted" style="max-width:52ch; margin:0 auto 22px;">
+    Whoever's running this deployment reviewed your request and didn't approve it. There's no self-serve re-request flow — reach out to them directly if you think that's worth revisiting.
+  </p>
+  <a class="btn" href="{{ url_for('lessons') }}">See the lessons that exist today →</a>
+</div>
+
+{% elif current_user.is_authenticated %}
+
+<div class="coming-soon-block">
+  <div class="cs-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+  </div>
+  <h2>Creator accounts only</h2>
+  <p class="muted" style="max-width:52ch; margin:0 auto 22px;">
+    You're signed in as a <strong>{{ current_user.account_type }}</strong> account. Publishing lessons needs a verified <strong>creator</strong> account — request one below; it's instant if your email is pre-approved, otherwise an admin reviews it.
+  </p>
+  <button class="btn primary" id="request-creator-btn">Request creator access</button>
+  <p class="mono muted" id="request-creator-status" style="font-size:0.82rem; margin-top:14px;"></p>
+</div>
+
+{% else %}
+
+<div class="coming-soon-block">
+  <div class="cs-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+  </div>
+  <h2>A workspace for creator accounts</h2>
+  <p class="muted" style="max-width:52ch; margin:0 auto 22px;">
+    Create an account and pick "Creator" to write a lesson — title,
+    description, and ordered steps, each optionally embedding a live
+    widget (the same <a href="{{ url_for('embed_coin_flip') }}" target="_blank" rel="noopener">Coin Flip</a>
+    or <a href="{{ url_for('embed_two_qubit') }}" target="_blank" rel="noopener">Two Qubit</a> widgets
+    built for embedding elsewhere). Publishes immediately to
+    <a href="{{ url_for('lessons') }}">/lessons</a>, open to everyone.
+    Creator accounts need verification — instant with a pre-approved
+    email, otherwise an admin reviews the request.
+  </p>
+  <a class="btn primary" href="{{ url_for('signup', next=url_for('lesson_creator')) }}">Create an account →</a>
+  <p class="muted" style="font-size:0.85rem; margin-top:14px;">Already have an account? <a href="{{ url_for('login', next=url_for('lesson_creator')) }}">Sign in</a></p>
+</div>
+
+<div class="panel" style="margin-top:8px;">
+  <div class="panel-label">NOT YET BUILT</div>
+  <div class="lesson-step">
+    <div class="lesson-step-head"><div class="lesson-step-num">A</div><h3>Rich text / markdown in step bodies</h3></div>
+    <div class="lesson-step-body"><p class="muted">Steps are plain text on purpose (line breaks kept, no HTML) — safe by construction, no formatting though.</p></div>
+  </div>
+</div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+{% if current_user.is_authenticated and current_user.can_create_lessons %}
+<script>
+  const WIDGET_OPTIONS = [
+    { value: '', label: 'No widget — text only' },
+    { value: 'coin-flip', label: 'Coin Flip widget (single qubit)' },
+    { value: 'two-qubit', label: 'Two Qubit / Bell state widget' },
+  ];
+
+  function lcStepRow(index, data) {
+    data = data || {};
+    const div = document.createElement('div');
+    div.className = 'lesson-step';
+    div.dataset.stepIndex = index;
+    div.innerHTML = `
+      <div class="lesson-step-body" style="padding:16px 18px;">
+        <label class="field-label" style="margin-top:0;">Step ${index + 1} title</label>
+        <input type="text" class="lc-step-title" maxlength="120" placeholder="e.g. What superposition means">
+        <label class="field-label">Step body</label>
+        <textarea class="lc-step-body" maxlength="4000" placeholder="Plain text — line breaks are kept."></textarea>
+        <label class="field-label">Widget (optional)</label>
+        <select class="lc-step-widget">
+          ${WIDGET_OPTIONS.map(o => `<option value="${o.value}">${o.label}</option>`).join('')}
+        </select>
+        <button type="button" class="small ghost lc-remove-step" style="margin-top:12px;">Remove step</button>
+      </div>
+    `;
+    div.querySelector('.lc-step-title').value = data.title || '';
+    div.querySelector('.lc-step-body').value = data.body || '';
+    div.querySelector('.lc-step-widget').value = data.widget || '';
+    div.querySelector('.lc-remove-step').addEventListener('click', () => {
+      if (document.querySelectorAll('#lc-steps .lesson-step').length <= 1) {
+        document.getElementById('lc-status').textContent = 'A lesson needs at least one step.';
+        return;
+      }
+      div.remove();
+    });
+    return div;
+  }
+
+  document.getElementById('lc-add-step').addEventListener('click', () => {
+    const stepsEl = document.getElementById('lc-steps');
+    if (stepsEl.children.length >= 12) {
+      document.getElementById('lc-status').textContent = 'Max 12 steps per lesson.';
+      return;
+    }
+    stepsEl.appendChild(lcStepRow(stepsEl.children.length));
+  });
+
+  // Start with one empty step so the form isn't empty on first load.
+  document.getElementById('lc-steps').appendChild(lcStepRow(0));
+
+  function resetForm() {
+    document.getElementById('lc-form-panel').dataset.editingId = '';
+    document.getElementById('lc-form-label').textContent = 'NEW LESSON';
+    document.getElementById('lc-form-heading').textContent = 'Write a lesson';
+    document.getElementById('lc-publish').textContent = 'Publish lesson';
+    document.getElementById('lc-cancel-edit').style.display = 'none';
+    document.getElementById('lc-title').value = '';
+    document.getElementById('lc-description').value = '';
+    document.getElementById('lc-steps').innerHTML = '';
+    document.getElementById('lc-steps').appendChild(lcStepRow(0));
+    document.getElementById('lc-status').textContent = '';
+  }
+
+  function loadForEdit(row) {
+    const id = row.dataset.lessonId;
+    document.getElementById('lc-form-panel').dataset.editingId = id;
+    document.getElementById('lc-form-label').textContent = 'EDITING LESSON';
+    document.getElementById('lc-form-heading').textContent = 'Edit "' + row.dataset.title + '"';
+    document.getElementById('lc-publish').textContent = 'Save changes';
+    document.getElementById('lc-cancel-edit').style.display = '';
+    document.getElementById('lc-title').value = row.dataset.title;
+    document.getElementById('lc-description').value = row.dataset.description;
+    const steps = JSON.parse(row.dataset.steps || '[]');
+    const stepsEl = document.getElementById('lc-steps');
+    stepsEl.innerHTML = '';
+    (steps.length ? steps : [{}]).forEach((s, i) => stepsEl.appendChild(lcStepRow(i, s)));
+    document.getElementById('lc-status').textContent = '';
+    document.getElementById('lc-form-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  document.getElementById('lc-cancel-edit').addEventListener('click', resetForm);
+
+  document.getElementById('lc-publish').addEventListener('click', async () => {
+    const statusEl = document.getElementById('lc-status');
+    const btn = document.getElementById('lc-publish');
+    const editingId = document.getElementById('lc-form-panel').dataset.editingId;
+    const title = document.getElementById('lc-title').value.trim();
+    const description = document.getElementById('lc-description').value.trim();
+    const steps = Array.from(document.querySelectorAll('#lc-steps .lesson-step')).map(row => ({
+      title: row.querySelector('.lc-step-title').value.trim(),
+      body: row.querySelector('.lc-step-body').value.trim(),
+      widget: row.querySelector('.lc-step-widget').value || null,
+    }));
+
+    if (!title) { statusEl.textContent = 'Title is required.'; return; }
+    if (steps.some(s => !s.title)) { statusEl.textContent = 'Every step needs a title.'; return; }
+
+    btn.disabled = true;
+    statusEl.textContent = editingId ? 'Saving…' : 'Publishing…';
+    try {
+      const res = await fetch(editingId ? `/api/lessons/${editingId}` : '/api/lessons', {
+        method: editingId ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': window.QS_CSRF_TOKEN },
+        body: JSON.stringify({ title, description, steps })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        statusEl.textContent = data.message || 'Could not save.';
+        return;
+      }
+      statusEl.innerHTML = `Saved → <a href="${data.url}" target="_blank" rel="noopener">${data.url}</a>. Reloading…`;
+      setTimeout(() => window.location.reload(), 700);
+    } catch (e) {
+      statusEl.textContent = 'Could not reach the server — is app.py running?';
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  document.querySelectorAll('[data-edit-lesson]').forEach(btn => {
+    btn.addEventListener('click', () => loadForEdit(btn.closest('[data-lesson-id]')));
+  });
+
+  document.querySelectorAll('[data-toggle-publish]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const row = btn.closest('[data-lesson-id]');
+      const id = row.dataset.lessonId;
+      const nowPublished = row.dataset.published === 'True' || row.dataset.published === 'true' || row.dataset.published === '1';
+      btn.disabled = true;
+      try {
+        const res = await fetch(`/api/lessons/${id}/publish`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': window.QS_CSRF_TOKEN },
+          body: JSON.stringify({ published: !nowPublished })
+        });
+        if (res.ok) window.location.reload();
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  });
+
+  document.querySelectorAll('[data-delete-lesson]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const row = btn.closest('[data-lesson-id]');
+      if (!confirm(`Delete "${row.dataset.title}" permanently? This can't be undone.`)) return;
+      btn.disabled = true;
+      try {
+        const res = await fetch(`/api/lessons/${row.dataset.lessonId}`, {
+          method: 'DELETE',
+          headers: { 'X-CSRF-Token': window.QS_CSRF_TOKEN }
+        });
+        if (res.ok) window.location.reload();
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  });
+</script>
+{% endif %}
+
+{% if current_user.is_authenticated and not current_user.can_create_lessons and current_user.account_type != 'creator' %}
+<script>
+  document.getElementById('request-creator-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('request-creator-btn');
+    const statusEl = document.getElementById('request-creator-status');
+    btn.disabled = true;
+    statusEl.textContent = 'Requesting…';
+    try {
+      const res = await fetch('{{ url_for("account_request_creator") }}', {
+        method: 'POST',
+        headers: { 'X-CSRF-Token': window.QS_CSRF_TOKEN }
+      });
+      const data = await res.json();
+      if (res.ok) {
+        statusEl.textContent = data.creator_status === 'verified'
+          ? 'Verified instantly — reloading…'
+          : 'Request submitted — pending admin approval. Reloading…';
+        setTimeout(() => window.location.reload(), 700);
+      } else {
+        statusEl.textContent = data.message || 'Could not submit request.';
+        btn.disabled = false;
+      }
+    } catch (e) {
+      statusEl.textContent = 'Could not reach the server — is app.py running?';
+      btn.disabled = false;
+    }
+  });
+</script>
+{% endif %}
+{% endblock %}

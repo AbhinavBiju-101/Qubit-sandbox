@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block title %}Lessons — Qubit Sandbox{% endblock %}
+{% block page_title %}Lessons{% endblock %}
+
+{% block content %}
+
+<h2 style="margin-bottom:4px;">All lessons</h2>
+<p class="muted" style="margin-bottom:24px;">Short, hands-on, with a built-in sandbox for each idea. QM Basics and Single Qubit are open to everyone; the rest unlock once you're signed in.</p>
+
+<div class="grid-3" style="align-items:stretch;">
+
+  <a href="{{ url_for('qm_basics') }}" class="card-link">
+    <div class="lesson-card">
+      <div class="licon" style="background:var(--surface-alt); color:var(--text-muted);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M9 9h6M9 13h6M9 17h3"/></svg>
+      </div>
+      <span class="pill" style="margin-bottom:10px; width:fit-content;">Lesson 0 · Start here</span>
+      <h3>QM Basics</h3>
+      <p>State vectors, probability amplitudes, and Born's rule — the prerequisite Single Qubit assumes you already have.</p>
+      <div class="lesson-progress-row">
+        <div class="lesson-progress-track"><div class="lesson-progress-fill" id="dash-qm-fill"></div></div>
+        <span class="lesson-progress-pct" id="dash-qm-pct">0%</span>
+      </div>
+    </div>
+  </a>
+
+  <a href="{{ url_for('single_qubit') }}" class="card-link">
+    <div class="lesson-card">
+      <div class="licon" style="background:var(--primary-soft); color:var(--primary);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><ellipse cx="12" cy="12" rx="9" ry="4"/><ellipse cx="12" cy="12" rx="9" ry="4" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9" ry="4" transform="rotate(120 12 12)"/></svg>
+      </div>
+      <span class="pill blue" style="margin-bottom:10px; width:fit-content;">Lesson 1 · Superposition</span>
+      <h3>Single Qubit</h3>
+      <p>Build a real qubit, apply gates, and run 1,000 measurements to see superposition collapse into statistics.</p>
+      <div class="lesson-progress-row">
+        <div class="lesson-progress-track"><div class="lesson-progress-fill" id="dash-single-fill"></div></div>
+        <span class="lesson-progress-pct" id="dash-single-pct">0%</span>
+      </div>
+    </div>
+  </a>
+
+  <a href="{{ url_for('two_qubit') }}" class="card-link">
+    <div class="lesson-card" data-lockable="true">
+      <div class="licon" style="background:var(--green-soft); color:var(--green);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="12" r="6.2"/><circle cx="15" cy="12" r="6.2"/></svg>
+      </div>
+      <span class="pill green lock-pill" style="margin-bottom:10px; width:fit-content;">Lesson 2 · Measurement</span>
+      <h3>Two Qubits</h3>
+      <p>Prepare and identify any of the four basis states, then see what entanglement changes about measurement.</p>
+      <div class="lesson-progress-row lock-progress">
+        <div class="lesson-progress-track"><div class="lesson-progress-fill" id="dash-two-fill"></div></div>
+        <span class="lesson-progress-pct" id="dash-two-pct">0%</span>
+      </div>
+    </div>
+  </a>
+
+  <a href="{{ url_for('physical_qubit') }}" class="card-link">
+    <div class="lesson-card" data-lockable="true">
+      <div class="licon" style="background:var(--amber-soft); color:var(--amber-dim);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="6" width="12" height="12" rx="1.5"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg>
+      </div>
+      <span class="pill amber lock-pill" style="margin-bottom:10px; width:fit-content;">Lesson 3 · Hardware</span>
+      <h3>Physical Qubit</h3>
+      <p>Josephson junction → transmon → resonator → readout, plus a live temperature/decoherence demo.</p>
+      <div class="lesson-progress-row lock-progress">
+        <div class="lesson-progress-track"><div class="lesson-progress-fill" id="dash-phys-fill"></div></div>
+        <span class="lesson-progress-pct" id="dash-phys-pct">0%</span>
+      </div>
+    </div>
+  </a>
+
+  <a href="{{ url_for('hardware_lab') }}" class="card-link">
+    <div class="lesson-card" data-lockable="true">
+      <div class="licon" style="background:var(--surface-alt); color:var(--text-faint);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/></svg>
+      </div>
+      <span class="pill lock-pill" style="margin-bottom:10px; width:fit-content;">Lesson 4 · Deep Dive</span>
+      <h3>Hardware Lab</h3>
+      <p>A deeper look at transistor structure, the LC oscillator/zero-resistance analogy, and an actual chip-layout diagram.</p>
+      <div class="lesson-progress-row lock-progress">
+        <div class="lesson-progress-track"><div class="lesson-progress-fill" id="dash-hw-fill"></div></div>
+        <span class="lesson-progress-pct" id="dash-hw-pct">0%</span>
+      </div>
+    </div>
+  </a>
+
+  <a href="{{ url_for('reality_check') }}" class="card-link">
+    <div class="lesson-card" data-lockable="true">
+      <div class="licon" style="background:var(--primary-soft); color:var(--primary);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>
+      </div>
+      <span class="pill lock-pill" style="margin-bottom:10px; width:fit-content;">Lesson 5 · Scaling</span>
+      <h3>Reality Check</h3>
+      <p>Real published qubit counts, a full system architecture, and the actual scaling bottleneck at 100 qubits.</p>
+      <div class="lesson-progress-row lock-progress">
+        <div class="lesson-progress-track"><div class="lesson-progress-fill" id="dash-reality-fill"></div></div>
+        <span class="lesson-progress-pct" id="dash-reality-pct">0%</span>
+      </div>
+    </div>
+  </a>
+
+</div>
+
+{% if custom_lessons %}
+<div class="section-title" style="margin-top:36px;"><h2>Community lessons</h2></div>
+<p class="muted" style="margin-bottom:20px;">Written by educator accounts with the <a href="{{ url_for('lesson_creator') }}">Lesson Creator</a>. Open to everyone, no progress tracking yet.</p>
+<div class="grid-3" style="align-items:stretch;">
+  {% for l in custom_lessons %}
+  <a href="{{ url_for('custom_lesson', slug=l.slug) }}" class="card-link">
+    <div class="lesson-card">
+      <div class="licon" style="background:var(--green-soft); color:var(--green);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      </div>
+      <span class="pill green" style="margin-bottom:10px; width:fit-content;">Community</span>
+      <h3>{{ l.title }}</h3>
+      <p>{{ l.description or "No description given." }}</p>
+      <div style="margin-top:auto; padding-top:14px;"><span class="pill">Open →</span></div>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="panel" style="margin-top:24px; text-align:center;">
+  <p class="muted" style="margin:0;">Want a widget with no lesson text around it? Try the <a href="{{ url_for('sandbox') }}">Sandbox</a>.</p>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lessons-data.js') }}"></script>
+<script>
+  const signedIn = window.QS_AUTHENTICATED;
+
+  if (!signedIn) {
+    // Two Qubits / Physical Qubit / Reality Check are @login_required
+    // server-side now — this dimming is just a preview of that, clicking
+    // one still correctly bounces to /login.
+    document.querySelectorAll('.lesson-card[data-lockable="true"]').forEach(card => {
+      card.classList.add('locked');
+      const pill = card.querySelector('.lock-pill');
+      if (pill) {
+        pill.classList.add('lock-chip');
+        pill.classList.remove('pill', 'green', 'amber');
+        pill.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Sign in to unlock';
+      }
+      const row = card.querySelector('.lock-progress');
+      if (row) row.style.display = 'none';
+    });
+  } else {
+    const idToFill = { 'qm-basics': 'dash-qm-fill', 'single-qubit': 'dash-single-fill', 'two-qubit': 'dash-two-fill', 'physical-qubit': 'dash-phys-fill', 'hardware-lab': 'dash-hw-fill', 'reality-check': 'dash-reality-fill' };
+    const idToPct = { 'qm-basics': 'dash-qm-pct', 'single-qubit': 'dash-single-pct', 'two-qubit': 'dash-two-pct', 'physical-qubit': 'dash-phys-pct', 'hardware-lab': 'dash-hw-pct', 'reality-check': 'dash-reality-pct' };
+    qsFetchAllProgress().then(all => {
+      QS_LESSON_DEFS.forEach(l => {
+        const entry = all[l.id] || { done: [] };
+        const pct = qsComputePct(entry.done, l.steps);
+        const fillEl = document.getElementById(idToFill[l.id]);
+        const pctEl = document.getElementById(idToPct[l.id]);
+        if (fillEl) fillEl.style.width = pct + '%';
+        if (pctEl) pctEl.textContent = pct + '%';
+      });
+    });
+  }
+</script>
+{% endblock %}

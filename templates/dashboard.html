@@ -4,8 +4,15 @@
 
 {% block content %}
 
+<div class="panel callout blue" id="onboarding-panel" style="display:none; margin-bottom:24px;">
+  <button id="onboarding-dismiss" class="ghost small" style="float:right; margin:-4px -4px 0 0;" aria-label="Dismiss">✕</button>
+  <h3 style="margin-bottom:8px;">New here? Quick orientation.</h3>
+  <p class="muted" style="margin-bottom:10px;">The <strong>sidebar</strong> on the left has Dashboard, <strong>Lessons</strong> (the full catalog), Demos, and (soon) the Lesson Creator, plus Python IDE and your <strong>Account</strong> — click the <strong>«</strong> at its top to collapse it to icons only. <strong>QM Basics</strong> and <strong>Single Qubit</strong> are open to everyone; <strong>sign in</strong> to unlock the rest and start tracking progress. Want to mess with a demo without any lesson text around it? Try <a href="{{ url_for('sandbox') }}">Sandbox</a>.</p>
+  <button id="onboarding-start" class="primary small">Start with Lesson 0 →</button>
+</div>
+
 <h2 style="margin-bottom:4px;">Welcome back</h2>
-<p class="muted">Pick up a lesson, or jump straight into a sandbox. Progress is saved in this browser.</p>
+<p class="muted" id="dash-welcome-copy">Pick up where you left off, or jump straight into a <a href="{{ url_for('sandbox') }}">sandbox</a>. Progress is saved to your account once you're signed in.</p>
 
 <div class="grid-3" style="margin:24px 0 36px;">
   <div class="stat">
@@ -17,113 +24,110 @@
     <span class="label">gates applied</span>
   </div>
   <div class="stat">
-    <span class="num" id="stat-lessons">0/4</span>
+    <span class="num" id="stat-lessons">0/5</span>
     <span class="label">lessons completed</span>
   </div>
 </div>
 
-<div class="section-title"><h2>Lessons</h2></div>
-<p class="muted" style="margin-bottom:20px;">Short, hands-on, with a built-in sandbox for each idea.</p>
-
-<div class="grid-3" style="align-items:stretch;">
-
-  <a href="{{ url_for('single_qubit') }}" class="card-link">
-    <div class="lesson-card">
-      <div class="licon" style="background:var(--primary-soft); color:var(--primary);">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><ellipse cx="12" cy="12" rx="9" ry="4"/><ellipse cx="12" cy="12" rx="9" ry="4" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9" ry="4" transform="rotate(120 12 12)"/></svg>
-      </div>
-      <span class="pill blue" style="margin-bottom:10px; width:fit-content;">Lesson 1 · Superposition</span>
-      <h3>Single Qubit</h3>
-      <p>Build a real qubit, apply gates, and run 1,000 measurements to see superposition collapse into statistics.</p>
-      <div class="lesson-progress-row">
-        <div class="lesson-progress-track"><div class="lesson-progress-fill" id="dash-single-fill"></div></div>
-        <span class="lesson-progress-pct" id="dash-single-pct">0%</span>
-      </div>
-    </div>
-  </a>
-
-  <a href="{{ url_for('two_qubit') }}" class="card-link">
-    <div class="lesson-card">
-      <div class="licon" style="background:var(--green-soft); color:var(--green);">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="12" r="6.2"/><circle cx="15" cy="12" r="6.2"/></svg>
-      </div>
-      <span class="pill green" style="margin-bottom:10px; width:fit-content;">Lesson 2 · Measurement</span>
-      <h3>Two Qubits</h3>
-      <p>Prepare and identify any of the four basis states, then see what entanglement changes about measurement.</p>
-      <div class="lesson-progress-row">
-        <div class="lesson-progress-track"><div class="lesson-progress-fill" id="dash-two-fill"></div></div>
-        <span class="lesson-progress-pct" id="dash-two-pct">0%</span>
-      </div>
-    </div>
-  </a>
-
-  <a href="{{ url_for('physical_qubit') }}" class="card-link">
-    <div class="lesson-card">
-      <div class="licon" style="background:var(--amber-soft); color:var(--amber-dim);">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="6" width="12" height="12" rx="1.5"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg>
-      </div>
-      <span class="pill amber" style="margin-bottom:10px; width:fit-content;">Lesson 3 · Hardware</span>
-      <h3>Physical Qubit</h3>
-      <p>Josephson junction → transmon → resonator → readout, plus a live temperature/decoherence demo.</p>
-      <div class="lesson-progress-row">
-        <div class="lesson-progress-track"><div class="lesson-progress-fill" id="dash-phys-fill"></div></div>
-        <span class="lesson-progress-pct" id="dash-phys-pct">0%</span>
-      </div>
-    </div>
-  </a>
-
-  <a href="{{ url_for('hardware_lab') }}" class="card-link">
-    <div class="lesson-card">
-      <div class="soon-badge">Coming soon</div>
-      <div class="licon" style="background:var(--surface-alt); color:var(--text-faint);">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/></svg>
-      </div>
-      <h3>Hardware Lab</h3>
-      <p>A deeper look at transistor and superconducting circuit structure, plus the zero-resistance LC oscillation analogy.</p>
-      <div style="margin-top:auto; padding-top:14px;"><span class="pill">In progress →</span></div>
-    </div>
-  </a>
-
-  <a href="{{ url_for('reality_check') }}" class="card-link">
-    <div class="lesson-card">
-      <div class="licon" style="background:var(--primary-soft); color:var(--primary);">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>
-      </div>
-      <span class="pill" style="margin-bottom:10px; width:fit-content;">Lesson 4 · Scaling</span>
-      <h3>Reality Check</h3>
-      <p>Real published qubit counts, a full system architecture, and the actual scaling bottleneck at 100 qubits.</p>
-      <div class="lesson-progress-row">
-        <div class="lesson-progress-track"><div class="lesson-progress-fill" id="dash-reality-fill"></div></div>
-        <span class="lesson-progress-pct" id="dash-reality-pct">0%</span>
-      </div>
-    </div>
-  </a>
-
+<div class="section-title" style="display:flex; align-items:baseline; justify-content:space-between;">
+  <h2>Continue where you left off</h2>
+  <a href="{{ url_for('lessons') }}" style="font-size:0.85rem; white-space:nowrap;">Browse all lessons →</a>
 </div>
+
+<div class="continue-list" id="continue-list" style="margin-top:14px;"></div>
 
 {% endblock %}
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/stats.js') }}"></script>
 <script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lessons-data.js') }}"></script>
 <script>
   const s = qsStatsGet();
   document.getElementById('stat-shots').textContent = s.shotsRun.toLocaleString();
   document.getElementById('stat-gates').textContent = s.gatesApplied.toLocaleString();
 
-  const LESSONS = [
-    { id: 'single-qubit', steps: 4, fill: 'dash-single-fill', pct: 'dash-single-pct' },
-    { id: 'two-qubit', steps: 3, fill: 'dash-two-fill', pct: 'dash-two-pct' },
-    { id: 'physical-qubit', steps: 4, fill: 'dash-phys-fill', pct: 'dash-phys-pct' },
-    { id: 'reality-check', steps: 4, fill: 'dash-reality-fill', pct: 'dash-reality-pct' },
-  ];
-  let completedCount = 0;
-  LESSONS.forEach(l => {
-    const p = getLessonProgress(l.id, l.steps);
-    document.getElementById(l.fill).style.width = p.pct + '%';
-    document.getElementById(l.pct).textContent = p.pct + '%';
-    if (p.pct === 100) completedCount++;
+  const signedIn = window.QS_AUTHENTICATED;
+  const continueList = document.getElementById('continue-list');
+
+  // ---- Onboarding panel (first visit only, dismissible) ----
+  const ONBOARDING_KEY = 'qs_onboarding_dismissed';
+  if (!localStorage.getItem(ONBOARDING_KEY)) {
+    document.getElementById('onboarding-panel').style.display = 'block';
+  }
+  document.getElementById('onboarding-dismiss').addEventListener('click', () => {
+    localStorage.setItem(ONBOARDING_KEY, '1');
+    document.getElementById('onboarding-panel').style.display = 'none';
   });
-  document.getElementById('stat-lessons').textContent = completedCount + '/' + LESSONS.length;
+  document.getElementById('onboarding-start').addEventListener('click', () => {
+    localStorage.setItem(ONBOARDING_KEY, '1');
+    location.href = '{{ url_for("qm_basics") }}';
+  });
+
+  // ---- Continue where you left off ----
+  function renderContinueCard(def, pct) {
+    const a = document.createElement('a');
+    a.href = def.href;
+    a.className = 'continue-card';
+    a.innerHTML = `
+      <div class="cc-info">
+        <div class="cc-title">${def.title}</div>
+        <div class="muted" style="font-size:0.82rem;">${def.tag}</div>
+        <div class="cc-track"><div class="cc-fill" style="width:${pct}%;"></div></div>
+      </div>
+      <div class="cc-pct">${pct}%</div>
+    `;
+    return a;
+  }
+
+  function renderEmptyState(message, showSignIn) {
+    const div = document.createElement('div');
+    div.className = 'panel continue-empty';
+    div.innerHTML = `
+      <p class="muted" style="margin-bottom:16px;">${message}</p>
+      <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+        <a class="btn primary small" href="{{ url_for('qm_basics') }}">Start with QM Basics</a>
+        <a class="btn small" href="{{ url_for('single_qubit') }}">Jump to Single Qubit</a>
+        ${showSignIn ? `<a class="btn small" href="/login?next=${encodeURIComponent('/dashboard')}">Sign in</a>` : ''}
+      </div>
+    `;
+    return div;
+  }
+
+  (async () => {
+    if (!signedIn) {
+      document.getElementById('stat-lessons').textContent = '—';
+      document.getElementById('stat-lessons').closest('.stat').querySelector('.label').textContent = 'sign in to track completed lessons';
+      continueList.appendChild(renderEmptyState(
+        "Sign in to get a personalized list here, and to unlock Two Qubits, Physical Qubit, and Reality Check.",
+        true
+      ));
+      return;
+    }
+
+    const all = await qsFetchAllProgress(); // { lesson_id: { done, last_visited } }
+    let completedCount = 0;
+    const withProgress = QS_LESSON_DEFS.map(def => {
+      const entry = all[def.id] || { done: [], last_visited: null };
+      const pct = qsComputePct(entry.done, def.steps);
+      if (pct === 100) completedCount++;
+      return { def, pct, visited: entry.last_visited || 0 };
+    });
+    document.getElementById('stat-lessons').textContent = completedCount + '/' + QS_LESSON_DEFS.length;
+
+    const inProgress = withProgress
+      .filter(x => x.visited > 0 && x.pct < 100)
+      .sort((a, b) => b.visited - a.visited)
+      .slice(0, 4);
+
+    if (inProgress.length === 0) {
+      continueList.appendChild(renderEmptyState(
+        "Nothing in progress yet — open a lesson and it'll show up here next time.",
+        false
+      ));
+    } else {
+      inProgress.forEach(x => continueList.appendChild(renderContinueCard(x.def, x.pct)));
+    }
+  })();
 </script>
 {% endblock %}

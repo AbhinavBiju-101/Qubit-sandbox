@@ -1,0 +1,533 @@
+{% extends "base.html" %}
+{% block title %}Python IDE — Qubit Sandbox{% endblock %}
+{% block page_title %}Python IDE{% endblock %}
+
+{% block content %}
+
+<!-- Doc links below point at the general QuantumCircuit API page
+     rather than a per-method anchor (e.g. #h) — this page's docs
+     appear to be client-rendered, so anchor IDs weren't reliably
+     verifiable by fetching the page directly. Linking the whole page
+     is honest; a wrong or dead per-method anchor would not be. -->
+<h2 style="margin-bottom:4px;">The code behind the sandbox</h2>
+<p class="muted" style="margin-bottom:26px;">These are real <span class="mono">qiskit</span> snippets — not illustrations. Hit "Run" and it calls the same <span class="mono">/api/compare-shots</span> Flask endpoint the Single Qubit lesson's Step 5 uses, which runs your circuit on real <span class="mono">qiskit-aer</span> server-side and returns actual counts.</p>
+
+<h2 style="margin-bottom:4px;">Code editor</h2>
+<p class="muted" style="margin-bottom:16px;">A real code editor, not just fixed buttons — but running arbitrary Python server-side is a genuine security problem, so this runs a <strong>restricted subset</strong>: build a <span class="mono">QuantumCircuit</span> named <span class="mono">qc</span>, call gate methods on it (<span class="mono">h x y z ry rx rz cx measure measure_all barrier</span>), do simple arithmetic — no <span class="mono">import</span>, no loops, no function/class definitions, no other function calls. Every "Open in editor" button below loads real, runnable code here. Max 3 qubits, 60 operations, 3 second timeout.</p>
+
+<div class="panel" style="margin-bottom:20px;">
+  <div class="panel-label">YOUR CIRCUIT</div>
+  <textarea id="editor-textarea" spellcheck="false" style="width:100%; min-height:220px; font-family:var(--font-mono); font-size:0.85rem; line-height:1.6; background:#14172a; color:#d7dcf5; border:none; border-radius:var(--radius); padding:16px 18px; box-sizing:border-box; resize:vertical;">qc = QuantumCircuit(1, 1)
+qc.h(0)
+qc.measure(0, 0)</textarea>
+  <div style="margin-top:14px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+    <button class="primary" id="editor-run">Run</button>
+    <label class="mono muted" style="font-size:0.82rem; display:flex; align-items:center; gap:6px;">shots <input type="number" id="editor-shots" value="1000" min="1" max="20000" style="width:80px;"></label>
+    <span class="mono muted" id="editor-status" style="font-size:0.82rem;"></span>
+  </div>
+  <div class="snippet-result" id="editor-result"></div>
+</div>
+
+<div class="callout" style="margin-top:8px; margin-bottom:8px;">
+  <strong>Not a general Python sandbox, on purpose.</strong> The restriction above isn't a placeholder for "coming later" — running someone's arbitrary code on a server is a real security problem (filesystem/network access, resource exhaustion), and this project takes the position that a small, genuinely safe subset beats a big unsafe one. See <span class="mono">futureplans.md</span> #12 and the comment above <span class="mono">/api/run-code</span> in <span class="mono">app.py</span> for the full reasoning.
+</div>
+
+<hr class="hair">
+
+<div class="panel" style="margin-bottom:20px;">
+  <div class="panel-label">HADAMARD — SUPERPOSITION</div>
+  <div class="code-block" id="code-h"><span class="kw">from</span> qiskit <span class="kw">import</span> QuantumCircuit
+<span class="kw">from</span> qiskit_aer <span class="kw">import</span> AerSimulator
+
+qc = <span class="fn">QuantumCircuit</span>(1, 1)
+qc.<span class="fn">h</span>(0)              <span class="cm"># put qubit 0 into superposition</span>
+qc.<span class="fn">measure</span>(0, 0)
+
+result = <span class="fn">AerSimulator</span>().<span class="fn">run</span>(qc, shots=1000).<span class="fn">result</span>()
+<span class="kw">print</span>(result.<span class="fn">get_counts</span>())</div>
+  <div style="margin-top:14px; display:flex; align-items:center; gap:12px;">
+    <button class="primary" data-run="H">Run on Qiskit Aer</button>
+    <button class="small ghost" data-open-editor="H">Open in editor →</button>
+    <span class="mono muted" id="status-H" style="font-size:0.82rem;"></span>
+  </div>
+  <p class="muted" style="font-size:0.8rem; margin-top:8px;">
+    <span class="mono">.h()</span> — <a href="https://quantum.cloud.ibm.com/docs/en/api/qiskit/qiskit.circuit.QuantumCircuit" target="_blank" rel="noopener">Qiskit docs: QuantumCircuit.h()</a>
+  </p>
+  <div class="snippet-result" id="result-H"></div>
+</div>
+
+<div class="panel" style="margin-bottom:20px;">
+  <div class="panel-label">PAULI-X — BIT FLIP</div>
+  <div class="code-block" id="code-x"><span class="kw">from</span> qiskit <span class="kw">import</span> QuantumCircuit
+<span class="kw">from</span> qiskit_aer <span class="kw">import</span> AerSimulator
+
+qc = <span class="fn">QuantumCircuit</span>(1, 1)
+qc.<span class="fn">x</span>(0)              <span class="cm"># flip |0⟩ -> |1⟩, deterministic</span>
+qc.<span class="fn">measure</span>(0, 0)
+
+result = <span class="fn">AerSimulator</span>().<span class="fn">run</span>(qc, shots=1000).<span class="fn">result</span>()
+<span class="kw">print</span>(result.<span class="fn">get_counts</span>())</div>
+  <div style="margin-top:14px; display:flex; align-items:center; gap:12px;">
+    <button class="primary" data-run="X">Run on Qiskit Aer</button>
+    <button class="small ghost" data-open-editor="X">Open in editor →</button>
+    <span class="mono muted" id="status-X" style="font-size:0.82rem;"></span>
+  </div>
+  <p class="muted" style="font-size:0.8rem; margin-top:8px;">
+    <span class="mono">.x()</span> — <a href="https://quantum.cloud.ibm.com/docs/en/api/qiskit/qiskit.circuit.QuantumCircuit" target="_blank" rel="noopener">Qiskit docs: QuantumCircuit.x()</a>
+  </p>
+  <div class="snippet-result" id="result-X"></div>
+</div>
+
+<div class="panel" style="margin-bottom:20px;">
+  <div class="panel-label">RY(θ) — TUNABLE ROTATION</div>
+  <div class="code-block" id="code-ry"><span class="kw">import</span> math
+<span class="kw">from</span> qiskit <span class="kw">import</span> QuantumCircuit
+<span class="kw">from</span> qiskit_aer <span class="kw">import</span> AerSimulator
+
+theta_deg = <span id="ry-deg-code">60</span>
+qc = <span class="fn">QuantumCircuit</span>(1, 1)
+qc.<span class="fn">ry</span>(math.<span class="fn">radians</span>(theta_deg), 0)   <span class="cm"># P(0) = cos²(θ/2)</span>
+qc.<span class="fn">measure</span>(0, 0)
+
+result = <span class="fn">AerSimulator</span>().<span class="fn">run</span>(qc, shots=1000).<span class="fn">result</span>()
+<span class="kw">print</span>(result.<span class="fn">get_counts</span>())</div>
+  <div style="margin-top:14px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+    <label class="mono" style="font-size:0.82rem; display:flex; align-items:center; gap:8px;">θ = <input type="range" id="ry-deg-slider" min="0" max="180" value="60" style="width:140px;"><span id="ry-deg-label">60°</span></label>
+    <button class="primary" data-run="RY">Run on Qiskit Aer</button>
+    <button class="small ghost" data-open-editor="RY">Open in editor →</button>
+    <span class="mono muted" id="status-RY" style="font-size:0.82rem;"></span>
+  </div>
+  <p class="muted" style="font-size:0.8rem; margin-top:8px;">
+    <span class="mono">.ry()</span> — <a href="https://quantum.cloud.ibm.com/docs/en/api/qiskit/qiskit.circuit.QuantumCircuit" target="_blank" rel="noopener">Qiskit docs: QuantumCircuit.ry()</a>
+  </p>
+  <div class="snippet-result" id="result-RY"></div>
+</div>
+
+<hr class="hair">
+
+<h2 style="margin-bottom:4px;">Two-qubit circuits</h2>
+<p class="muted" style="margin-bottom:20px;">Same idea, extended to two qubits — hits a second endpoint (<span class="mono">/api/compare-shots-2q</span>) that builds a real 2-qubit <span class="mono">QuantumCircuit</span> and returns all four outcome counts.</p>
+
+<div class="panel" style="margin-bottom:20px;">
+  <div class="panel-label">PREPARE |11⟩</div>
+  <div class="code-block" id="code-11"><span class="kw">from</span> qiskit <span class="kw">import</span> QuantumCircuit
+<span class="kw">from</span> qiskit_aer <span class="kw">import</span> AerSimulator
+
+qc = <span class="fn">QuantumCircuit</span>(2, 2)
+qc.<span class="fn">x</span>(0)              <span class="cm"># flip qubit 1</span>
+qc.<span class="fn">x</span>(1)              <span class="cm"># flip qubit 2</span>
+qc.<span class="fn">measure</span>([0, 1], [0, 1])
+
+result = <span class="fn">AerSimulator</span>().<span class="fn">run</span>(qc, shots=1000).<span class="fn">result</span>()
+<span class="kw">print</span>(result.<span class="fn">get_counts</span>())</div>
+  <p class="muted" style="font-size:0.8rem; margin-top:10px;">
+    <span class="mono">.x()</span> — <a href="https://quantum.cloud.ibm.com/docs/en/api/qiskit/qiskit.circuit.QuantumCircuit" target="_blank" rel="noopener">Qiskit docs: QuantumCircuit.x()</a>
+  </p>
+  <div style="margin-top:10px; display:flex; align-items:center; gap:12px;">
+    <button class="primary" data-run2q="X1,X2" data-result-id="11">Run on Qiskit Aer</button>
+    <button class="small ghost" data-open-editor2q="X1,X2">Open in editor →</button>
+    <span class="mono muted" id="status-11" style="font-size:0.82rem;"></span>
+  </div>
+  <div class="snippet-result-2q" id="result-11"></div>
+</div>
+
+<div class="panel" style="margin-bottom:20px;">
+  <div class="panel-label">BELL STATE — H(q1) → CNOT(q1→q2)</div>
+  <div class="code-block" id="code-bell"><span class="kw">from</span> qiskit <span class="kw">import</span> QuantumCircuit
+<span class="kw">from</span> qiskit_aer <span class="kw">import</span> AerSimulator
+
+qc = <span class="fn">QuantumCircuit</span>(2, 2)
+qc.<span class="fn">h</span>(0)              <span class="cm"># superposition on qubit 1</span>
+qc.<span class="fn">cx</span>(0, 1)          <span class="cm"># entangle: flip qubit 2 iff qubit 1 is |1⟩</span>
+qc.<span class="fn">measure</span>([0, 1], [0, 1])
+
+result = <span class="fn">AerSimulator</span>().<span class="fn">run</span>(qc, shots=1000).<span class="fn">result</span>()
+<span class="kw">print</span>(result.<span class="fn">get_counts</span>())  <span class="cm"># expect ~50/50 split between '00' and '11' only</span></div>
+  <p class="muted" style="font-size:0.8rem; margin-top:10px;">
+    <span class="mono">.h()</span> / <span class="mono">.cx()</span> — <a href="https://quantum.cloud.ibm.com/docs/en/api/qiskit/qiskit.circuit.QuantumCircuit" target="_blank" rel="noopener">Qiskit docs: QuantumCircuit.h() / .cx()</a>
+  </p>
+  <div style="margin-top:10px; display:flex; align-items:center; gap:12px;">
+    <button class="primary" data-run2q="H1,CNOT" data-result-id="bell">Run on Qiskit Aer</button>
+    <button class="small ghost" data-open-editor2q="H1,CNOT">Open in editor →</button>
+    <span class="mono muted" id="status-bell" style="font-size:0.82rem;"></span>
+  </div>
+  <div class="snippet-result-2q" id="result-bell"></div>
+</div>
+
+<hr class="hair">
+
+<h2 style="margin-bottom:4px;">Circuit Builder</h2>
+<p class="muted" style="margin-bottom:20px;">Build a circuit by clicking gates instead of typing — the code below updates live, Run sends it to the same endpoints above, and "Open in editor" hands it off to the code editor if you want to hand-edit it further from there.</p>
+
+<div class="panel">
+  <div class="panel-label">SANDBOX · CIRCUIT BUILDER</div>
+
+  <div class="tag-list" id="cb-qubit-mode" style="margin-top:0;">
+    <div class="tag active" data-mode="1">1 qubit</div>
+    <div class="tag" data-mode="2">2 qubits</div>
+  </div>
+
+  <div style="margin-top:16px;">
+    <div class="muted" style="font-size:0.82rem; margin-bottom:8px;">Add a gate:</div>
+    <div class="tag-list" id="cb-gate-palette-1">
+      <div class="tag" data-gate="H" title="Hadamard — rotates to the equator, an exact 50/50 superposition.">H</div>
+      <div class="tag" data-gate="X" title="Pauli-X — the quantum NOT gate. Flips |0⟩↔|1⟩ deterministically.">X</div>
+      <div class="tag" data-gate="Y" title="Pauli-Y — 180° rotation about the Y axis. Flips |0⟩↔|1⟩ with a different phase effect than X.">Y</div>
+      <div class="tag" data-gate="Z" title="Pauli-Z — leaves |0⟩ unchanged, flips the sign of |1⟩'s amplitude. Invisible if you're sitting at |0⟩.">Z</div>
+      <div class="tag" data-gate="RY:60" title="RY(θ) — tunable rotation. P(0) = cos²(θ/2). Edit the angle after adding it.">RY(60°)</div>
+    </div>
+    <div class="tag-list" id="cb-gate-palette-2" style="display:none;">
+      <div class="tag" data-gate="X1" title="Flip qubit 1 only.">X1</div>
+      <div class="tag" data-gate="X2" title="Flip qubit 2 only.">X2</div>
+      <div class="tag" data-gate="H1" title="Hadamard on qubit 1 only — puts just qubit 1 into superposition.">H1</div>
+      <div class="tag" data-gate="CNOT" title="Controlled-X: flips qubit 2 if and only if qubit 1 is |1⟩. This is what creates entanglement.">CNOT</div>
+    </div>
+  </div>
+
+  <div id="cb-gate-desc" class="muted" style="font-size:0.8rem; margin-top:10px; min-height:1.2em;"></div>
+
+  <div style="margin-top:14px;">
+    <div class="muted" style="font-size:0.82rem; margin-bottom:8px;">Your circuit:</div>
+    <div id="cb-chips" class="tag-list" style="min-height:34px;">
+      <span class="muted mono" id="cb-empty-hint" style="font-size:0.82rem;">(empty — add a gate above)</span>
+    </div>
+  </div>
+
+  <div class="code-block" id="cb-code" style="margin-top:16px;"></div>
+
+  <div style="margin-top:14px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+    <button class="primary" id="cb-run">Run on Qiskit Aer</button>
+    <button class="small ghost" id="cb-open-editor">Open in editor →</button>
+    <button class="small ghost" id="cb-clear">Clear circuit</button>
+    <span class="mono muted" id="cb-status" style="font-size:0.82rem;"></span>
+  </div>
+  <div class="snippet-result" id="cb-result-1"></div>
+  <div class="snippet-result-2q" id="cb-result-2"></div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function renderResult(id, data) {
+    const el = document.getElementById('result-' + id);
+    if (!data || !data.counts) { el.textContent = ''; return; }
+    const c0 = data.counts['0'], c1 = data.counts['1'], total = c0 + c1;
+    el.innerHTML = `<span class="mono">{'0': ${c0}, '1': ${c1}}</span> &nbsp;—&nbsp; P(0) = ${(c0/total*100).toFixed(1)}%, P(1) = ${(c1/total*100).toFixed(1)}%`;
+  }
+
+  async function runSnippet(id, gates) {
+    const statusEl = document.getElementById('status-' + id);
+    const btn = document.querySelector(`button[data-run="${id}"]`);
+    btn.disabled = true;
+    statusEl.textContent = 'Calling qiskit-aer…';
+    try {
+      const res = await fetch('/api/compare-shots', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gates, shots: 1000 })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        statusEl.textContent = data.message || 'Qiskit Aer is not available on this server.';
+        return;
+      }
+      statusEl.textContent = 'Ran on ' + data.backend + '.';
+      renderResult(id, data);
+    } catch (e) {
+      statusEl.textContent = 'Could not reach the server — is app.py running?';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // ==================== Real code editor ====================
+  const editorTextarea = document.getElementById('editor-textarea');
+  const editorResultEl = document.getElementById('editor-result');
+  const editorStatusEl = document.getElementById('editor-status');
+
+  function renderEditorResult(data) {
+    if (!data || !data.counts) { editorResultEl.textContent = ''; return; }
+    const entries = Object.entries(data.counts);
+    const total = entries.reduce((sum, [, v]) => sum + v, 0) || 1;
+    editorResultEl.innerHTML = entries
+      .map(([k, v]) => `<span class="mono">'${k}': ${v}</span> (${(v/total*100).toFixed(1)}%)`)
+      .join(' &nbsp;·&nbsp; ');
+  }
+
+  document.getElementById('editor-run').addEventListener('click', async () => {
+    const btn = document.getElementById('editor-run');
+    const code = editorTextarea.value;
+    const shots = document.getElementById('editor-shots').value;
+    btn.disabled = true;
+    editorStatusEl.textContent = 'Validating and running…';
+    editorResultEl.textContent = '';
+    try {
+      const res = await fetch('/api/run-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, shots })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        editorStatusEl.textContent = data.message || 'Could not run that code.';
+        return;
+      }
+      editorStatusEl.textContent = `Ran on ${data.backend} — ${data.num_qubits} qubit${data.num_qubits === 1 ? '' : 's'}.`;
+      renderEditorResult(data);
+    } catch (e) {
+      editorStatusEl.textContent = 'Could not reach the server — is app.py running?';
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  function openInEditor(code) {
+    editorTextarea.value = code;
+    editorStatusEl.textContent = '';
+    editorResultEl.textContent = '';
+    editorTextarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    editorTextarea.focus();
+  }
+
+  // Restricted-grammar equivalents of the illustrative code-block
+  // snippets above (those show full real Qiskit including imports and
+  // print(), which the editor's restricted grammar doesn't allow —
+  // see the callout — so "Open in editor" loads the stripped,
+  // actually-runnable version instead).
+  document.querySelector('button[data-open-editor="H"]').addEventListener('click', () => {
+    openInEditor('qc = QuantumCircuit(1, 1)\nqc.h(0)\nqc.measure(0, 0)');
+  });
+  document.querySelector('button[data-open-editor="X"]').addEventListener('click', () => {
+    openInEditor('qc = QuantumCircuit(1, 1)\nqc.x(0)\nqc.measure(0, 0)');
+  });
+  document.querySelector('button[data-open-editor="RY"]').addEventListener('click', () => {
+    const rad = (+ryDegSlider.value * Math.PI / 180).toFixed(4);
+    openInEditor(`qc = QuantumCircuit(1, 1)\nqc.ry(${rad}, 0)  # ${ryDegSlider.value}°\nqc.measure(0, 0)`);
+  });
+  document.querySelectorAll('button[data-open-editor2q]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const gates = btn.dataset.openEditor2q.split(',');
+      let lines = ['qc = QuantumCircuit(2, 2)'];
+      gates.forEach(g => {
+        if (g === 'X1') lines.push('qc.x(0)');
+        else if (g === 'X2') lines.push('qc.x(1)');
+        else if (g === 'H1') lines.push('qc.h(0)');
+        else if (g === 'CNOT') lines.push('qc.cx(0, 1)');
+      });
+      lines.push('qc.measure([0, 1], [0, 1])');
+      openInEditor(lines.join('\n'));
+    });
+  });
+
+  const ryDegSlider = document.getElementById('ry-deg-slider');
+  const ryDegLabel = document.getElementById('ry-deg-label');
+  const ryDegCode = document.getElementById('ry-deg-code');
+  ryDegSlider.addEventListener('input', () => {
+    ryDegLabel.textContent = ryDegSlider.value + '°';
+    ryDegCode.textContent = ryDegSlider.value;
+  });
+
+  document.querySelector('button[data-run="H"]').addEventListener('click', () => runSnippet('H', ['H']));
+  document.querySelector('button[data-run="X"]').addEventListener('click', () => runSnippet('X', ['X']));
+  document.querySelector('button[data-run="RY"]').addEventListener('click', () => runSnippet('RY', [`RY:${ryDegSlider.value}`]));
+
+  // ---- two-qubit snippets ----
+  function render2qResult(resultId, data) {
+    const el = document.getElementById('result-' + resultId);
+    if (!data || !data.counts) { el.textContent = ''; return; }
+    const c = data.counts, total = c['00'] + c['01'] + c['10'] + c['11'];
+    const pct = k => total ? (c[k]/total*100).toFixed(1) : '0.0';
+    el.innerHTML = `<div class="mono" style="margin-top:10px; display:grid; grid-template-columns:repeat(4,1fr); gap:10px; font-size:0.82rem;">` +
+      ['00','01','10','11'].map(k => `<div class="stat" style="padding:10px 12px;"><span class="num" style="font-size:1.1rem;">${pct(k)}%</span><span class="label">|${k}⟩ · ${c[k]}</span></div>`).join('') +
+      `</div>`;
+  }
+
+  document.querySelectorAll('button[data-run2q]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const gates = btn.dataset.run2q.split(',');
+      const resultId = btn.dataset.resultId;
+      const statusEl = document.getElementById('status-' + resultId);
+      btn.disabled = true;
+      statusEl.textContent = 'Calling qiskit-aer…';
+      try {
+        const res = await fetch('/api/compare-shots-2q', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ gates, shots: 1000 })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          statusEl.textContent = data.message || 'Qiskit Aer is not available on this server.';
+          return;
+        }
+        statusEl.textContent = 'Ran on ' + data.backend + '.';
+        render2qResult(resultId, data);
+      } catch (e) {
+        statusEl.textContent = 'Could not reach the server — is app.py running?';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  });
+
+  // ==================== Circuit Builder ====================
+  const GATE_DESCRIPTIONS = {
+    'H': "Hadamard — rotates to the equator, an exact 50/50 superposition.",
+    'X': "Pauli-X — the quantum NOT gate. Flips |0⟩↔|1⟩ deterministically.",
+    'Y': "Pauli-Y — 180° rotation about the Y axis. Flips |0⟩↔|1⟩ with a different phase effect than X.",
+    'Z': "Pauli-Z — leaves |0⟩ unchanged, flips the sign of |1⟩'s amplitude. Invisible if you're sitting at |0⟩.",
+    'X1': "Flip qubit 1 only.",
+    'X2': "Flip qubit 2 only.",
+    'H1': "Hadamard on qubit 1 only — puts just qubit 1 into superposition.",
+    'CNOT': "Controlled-X: flips qubit 2 if and only if qubit 1 is |1⟩. This is what creates entanglement.",
+  };
+  function ryDescription(deg) { return `RY(${deg}°) — tunable rotation. P(0) = cos²(θ/2) ≈ ${(Math.cos(deg*Math.PI/360)**2*100).toFixed(1)}% at this angle.`; }
+
+  let cbMode = '1';
+  let cbGates = []; // array of gate strings, e.g. ['H', 'X'] or ['H1', 'CNOT']
+
+  function cbSetMode(mode) {
+    cbMode = mode;
+    cbGates = [];
+    document.querySelectorAll('#cb-qubit-mode .tag').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
+    document.getElementById('cb-gate-palette-1').style.display = mode === '1' ? '' : 'none';
+    document.getElementById('cb-gate-palette-2').style.display = mode === '2' ? '' : 'none';
+    cbRender();
+  }
+
+  function cbAddGate(gate) {
+    cbGates.push(gate);
+    const desc = gate.startsWith('RY:') ? ryDescription(gate.split(':')[1]) : (GATE_DESCRIPTIONS[gate] || '');
+    document.getElementById('cb-gate-desc').textContent = desc;
+    cbRender();
+  }
+
+  function cbRemoveGate(index) {
+    cbGates.splice(index, 1);
+    cbRender();
+  }
+
+  function cbPythonCode() {
+    const nq = cbMode === '1' ? 1 : 2;
+    let lines = [
+      'from qiskit import QuantumCircuit',
+      'from qiskit_aer import AerSimulator',
+      '',
+      `qc = QuantumCircuit(${nq}, ${nq})`,
+    ];
+    cbGates.forEach(g => {
+      if (g === 'H') lines.push('qc.h(0)');
+      else if (g === 'X') lines.push('qc.x(0)');
+      else if (g === 'Y') lines.push('qc.y(0)');
+      else if (g === 'Z') lines.push('qc.z(0)');
+      else if (g.startsWith('RY:')) lines.push(`qc.ry(${(+g.split(':')[1] * Math.PI / 180).toFixed(4)}, 0)  # ${g.split(':')[1]}°`);
+      else if (g === 'X1') lines.push('qc.x(0)');
+      else if (g === 'X2') lines.push('qc.x(1)');
+      else if (g === 'H1') lines.push('qc.h(0)');
+      else if (g === 'CNOT') lines.push('qc.cx(0, 1)');
+    });
+    if (nq === 1) lines.push('qc.measure(0, 0)');
+    else lines.push('qc.measure([0, 1], [0, 1])');
+    lines.push('', 'result = AerSimulator().run(qc, shots=1000).result()', 'print(result.get_counts())');
+    return lines.join('\n');
+  }
+
+  function cbRender() {
+    const chipsEl = document.getElementById('cb-chips');
+    const emptyHint = document.getElementById('cb-empty-hint');
+    chipsEl.querySelectorAll('.cb-chip').forEach(el => el.remove());
+    if (cbGates.length === 0) {
+      emptyHint.style.display = '';
+    } else {
+      emptyHint.style.display = 'none';
+      cbGates.forEach((g, i) => {
+        const chip = document.createElement('div');
+        chip.className = 'tag active cb-chip';
+        chip.style.cursor = 'pointer';
+        chip.title = 'Click to remove';
+        chip.textContent = (g.startsWith('RY:') ? `RY(${g.split(':')[1]}°)` : g) + ' ✕';
+        chip.addEventListener('click', () => cbRemoveGate(i));
+        chipsEl.appendChild(chip);
+      });
+    }
+    document.getElementById('cb-code').textContent = cbPythonCode();
+    document.getElementById('cb-result-1').innerHTML = '';
+    document.getElementById('cb-result-2').innerHTML = '';
+    document.getElementById('cb-status').textContent = '';
+  }
+
+  document.querySelectorAll('#cb-qubit-mode .tag').forEach(tag => {
+    tag.addEventListener('click', () => cbSetMode(tag.dataset.mode));
+  });
+  document.querySelectorAll('#cb-gate-palette-1 .tag, #cb-gate-palette-2 .tag').forEach(tag => {
+    tag.addEventListener('click', () => cbAddGate(tag.dataset.gate));
+  });
+  document.getElementById('cb-clear').addEventListener('click', () => { cbGates = []; cbRender(); });
+
+  function cbEditorCode() {
+    // Same as cbPythonCode() but without the imports/print() the
+    // restricted editor grammar doesn't allow — see the callout above
+    // the editor and _validate_circuit_code() in app.py.
+    const nq = cbMode === '1' ? 1 : 2;
+    let lines = [`qc = QuantumCircuit(${nq}, ${nq})`];
+    cbGates.forEach(g => {
+      if (g === 'H') lines.push('qc.h(0)');
+      else if (g === 'X') lines.push('qc.x(0)');
+      else if (g === 'Y') lines.push('qc.y(0)');
+      else if (g === 'Z') lines.push('qc.z(0)');
+      else if (g.startsWith('RY:')) lines.push(`qc.ry(${(+g.split(':')[1] * Math.PI / 180).toFixed(4)}, 0)`);
+      else if (g === 'X1') lines.push('qc.x(0)');
+      else if (g === 'X2') lines.push('qc.x(1)');
+      else if (g === 'H1') lines.push('qc.h(0)');
+      else if (g === 'CNOT') lines.push('qc.cx(0, 1)');
+    });
+    if (nq === 1) lines.push('qc.measure(0, 0)');
+    else lines.push('qc.measure([0, 1], [0, 1])');
+    return lines.join('\n');
+  }
+
+  document.getElementById('cb-open-editor').addEventListener('click', () => {
+    if (cbGates.length === 0) { document.getElementById('cb-status').textContent = 'Add at least one gate first.'; return; }
+    openInEditor(cbEditorCode());
+  });
+
+  document.getElementById('cb-run').addEventListener('click', async () => {
+    const statusEl = document.getElementById('cb-status');
+    const btn = document.getElementById('cb-run');
+    if (cbGates.length === 0) { statusEl.textContent = 'Add at least one gate first.'; return; }
+    btn.disabled = true;
+    statusEl.textContent = 'Calling qiskit-aer…';
+    const endpoint = cbMode === '1' ? '/api/compare-shots' : '/api/compare-shots-2q';
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gates: cbGates, shots: 1000 })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        statusEl.textContent = data.message || 'Qiskit Aer is not available on this server.';
+        return;
+      }
+      statusEl.textContent = 'Ran on ' + data.backend + '.';
+      if (cbMode === '1') {
+        const c0 = data.counts['0'], c1 = data.counts['1'], total = c0 + c1;
+        document.getElementById('cb-result-1').innerHTML = `<span class="mono">{'0': ${c0}, '1': ${c1}}</span> &nbsp;—&nbsp; P(0) = ${(c0/total*100).toFixed(1)}%, P(1) = ${(c1/total*100).toFixed(1)}%`;
+      } else {
+        const c = data.counts, total = c['00'] + c['01'] + c['10'] + c['11'];
+        const pct = k => total ? (c[k]/total*100).toFixed(1) : '0.0';
+        document.getElementById('cb-result-2').innerHTML = `<div class="mono" style="margin-top:10px; display:grid; grid-template-columns:repeat(4,1fr); gap:10px; font-size:0.82rem;">` +
+          ['00','01','10','11'].map(k => `<div class="stat" style="padding:10px 12px;"><span class="num" style="font-size:1.1rem;">${pct(k)}%</span><span class="label">|${k}⟩ · ${c[k]}</span></div>`).join('') +
+          `</div>`;
+      }
+    } catch (e) {
+      statusEl.textContent = 'Could not reach the server — is app.py running?';
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  cbRender();
+</script>
+{% endblock %}
