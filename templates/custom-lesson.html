@@ -26,13 +26,16 @@
 </div>
 
 {% for step in steps %}
-<div class="lesson-step" data-step="step{{ loop.index0 }}">
+{% set step_idx = loop.index0 %}
+<div class="lesson-step" data-step="step{{ step_idx }}">
   <div class="lesson-step-head">
     <div class="lesson-step-num">{{ loop.index }}</div>
     <h3>{{ step.title }}</h3>
   </div>
   <div class="lesson-step-body">
-    {% if step.body %}
+    {% if step.body_html %}
+    <div class="md-body">{{ step.body_html | safe }}</div>
+    {% elif step.body %}
     <p class="muted" style="white-space: pre-line;">{{ step.body }}</p>
     {% endif %}
     {% if step.widget == 'coin-flip' %}
@@ -43,10 +46,29 @@
     <div class="panel" style="margin-top:16px; padding:0; overflow:hidden;">
       <iframe src="{{ url_for('embed_two_qubit') }}" style="width:100%; height:420px; border:0; display:block;" loading="lazy"></iframe>
     </div>
+    {% elif step.widget and step.widget.startswith('custom-') %}
+    <div class="panel custom-widget-embed" data-widget-id="{{ step.widget[7:] }}" style="margin-top:16px;">
+      <div class="panel-label">CREATOR WIDGET</div>
+      <div class="code-block widget-code" style="margin-top:6px;">Loading…</div>
+      <div style="margin-top:14px; display:flex; align-items:center; gap:12px;">
+        <button class="primary small widget-run">Run on Qiskit Aer</button>
+        <span class="mono muted widget-status" style="font-size:0.82rem;"></span>
+      </div>
+      <div class="snippet-result widget-result"></div>
+    </div>
     {% endif %}
     <label class="mark-done-check" style="margin-top:16px;">
-      <input type="checkbox" data-step-check="step{{ loop.index0 }}"> Mark this step complete
+      <input type="checkbox" data-step-check="step{{ step_idx }}"> Mark this step complete
     </label>
+    {% if step.checklist %}
+    <div class="step-checklist" style="margin-top:8px;">
+      {% for item in step.checklist %}
+      <label class="mark-done-check" style="display:block; margin-top:6px;">
+        <input type="checkbox" data-step-check="step{{ step_idx }}-c{{ loop.index0 }}"> {{ item }}
+      </label>
+      {% endfor %}
+    </div>
+    {% endif %}
   </div>
 </div>
 {% endfor %}
@@ -67,5 +89,48 @@
   // @login_required), but like every open lesson, tracking itself is
   // still signed-in-only — initLessonProgress() handles that already.
   initLessonProgress('custom-{{ lesson.slug }}');
+
+  // ---- Creator widget embeds (Lesson Creator × Python IDE) ----
+  document.querySelectorAll('.custom-widget-embed').forEach(async (panel) => {
+    const id = panel.dataset.widgetId;
+    const codeEl = panel.querySelector('.widget-code');
+    const statusEl = panel.querySelector('.widget-status');
+    const resultEl = panel.querySelector('.widget-result');
+    const runBtn = panel.querySelector('.widget-run');
+    let code = '';
+    try {
+      const res = await fetch(`/api/widgets/${id}`);
+      const data = await res.json();
+      if (!res.ok) { codeEl.textContent = 'This widget is no longer available.'; runBtn.disabled = true; return; }
+      code = data.code;
+      codeEl.textContent = code;
+    } catch (e) {
+      codeEl.textContent = 'Could not reach the server.';
+      runBtn.disabled = true;
+      return;
+    }
+    runBtn.addEventListener('click', async () => {
+      runBtn.disabled = true;
+      statusEl.textContent = 'Calling qiskit-aer…';
+      resultEl.textContent = '';
+      try {
+        const res = await fetch('/api/run-code', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, shots: 1000 })
+        });
+        const data = await res.json();
+        if (!res.ok) { statusEl.textContent = data.message || 'Could not run this widget.'; return; }
+        statusEl.textContent = `Ran on ${data.backend}.`;
+        const entries = Object.entries(data.counts);
+        const total = entries.reduce((sum, [, v]) => sum + v, 0) || 1;
+        resultEl.innerHTML = entries.map(([k, v]) => `<span class="mono">'${k}': ${v}</span> (${(v/total*100).toFixed(1)}%)`).join(' &nbsp;·&nbsp; ');
+      } catch (e) {
+        statusEl.textContent = 'Could not reach the server.';
+      } finally {
+        runBtn.disabled = false;
+      }
+    });
+  });
 </script>
 {% endblock %}

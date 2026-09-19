@@ -345,6 +345,32 @@ footer.marketing-footer{ border-top: 1px solid var(--line); padding: 30px 0 50px
 .code-block .fn{ color: #7db8ff; }
 .code-block .str{ color: #9ee39a; }
 .code-block .cm{ color: #7a8199; }
+
+/* ---- Badge toast (gamification.js) ---- */
+.qs-badge-toast{ position: fixed; bottom: 22px; right: 22px; z-index: 999; background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--radius); box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,0.18)); padding: 14px 18px; min-width: 220px; opacity: 0; transform: translateY(16px); transition: opacity 0.25s ease, transform 0.25s ease; }
+.qs-badge-toast.show{ opacity: 1; transform: translateY(0); }
+.qs-badge-toast strong{ display:block; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.04em; color: var(--amber-dim); margin-bottom: 4px; }
+.qs-badge-toast div{ font-weight: 600; font-size: 0.95rem; }
+
+/* ---- Gamification / badges grid (account.html, dashboard.html) ---- */
+.badge-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:12px; margin-top:14px; }
+.badge-tile{ border:1px solid var(--line); border-radius:var(--radius); padding:14px 12px; text-align:center; background:var(--surface); }
+.badge-tile.locked{ opacity:0.35; filter:grayscale(1); }
+.badge-tile .b-emoji{ font-size:1.7rem; display:block; margin-bottom:6px; }
+.badge-tile .b-label{ font-size:0.78rem; font-weight:600; }
+.badge-tile .b-desc{ font-size:0.7rem; color:var(--text-faint); margin-top:3px; }
+.streak-flame{ display:flex; align-items:center; gap:8px; font-family:var(--font-mono); }
+
+/* ---- Creator-authored markdown (custom-lesson.html) ---- */
+.md-body{ color: var(--text-muted); font-size: 0.95rem; line-height:1.65; }
+.md-body p{ margin: 0 0 12px; }
+.md-body code{ background: var(--surface-alt); padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.85em; }
+.md-body pre{ background: #14172a; color:#d7dcf5; padding:14px 16px; border-radius:var(--radius); overflow-x:auto; }
+.md-body pre code{ background:none; padding:0; }
+.md-body ul, .md-body ol{ margin: 0 0 12px 22px; }
+.md-body blockquote{ border-left: 3px solid var(--line-strong); margin: 0 0 12px; padding: 2px 14px; color: var(--text-faint); }
+.md-body table{ border-collapse: collapse; margin-bottom: 12px; }
+.md-body th, .md-body td{ border: 1px solid var(--line); padding: 6px 10px; }
 .snippet-result{ margin-top: 12px; font-family: var(--font-mono); font-size: 0.85rem; }
 .snippet-result-2q{ margin-top: 4px; }
 

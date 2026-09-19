@@ -76,6 +76,42 @@ try:
 except ImportError:
     QISKIT_AVAILABLE = False
 
+# Markdown in lesson step bodies (Lesson Creator v2) — optional/lazy
+# like qiskit above, so the app still boots without it (steps just
+# render as the old plain-text/white-space:pre-line fallback — see
+# _render_markdown()). bleach sanitizes the HTML markdown produces
+# down to a small allowlist before it's stored, so what's in the DB is
+# already safe and custom-lesson.html can render it with `| safe`.
+try:
+    import bleach
+    import markdown as _markdown_lib
+
+    MARKDOWN_AVAILABLE = True
+except ImportError:
+    MARKDOWN_AVAILABLE = False
+
+_MD_ALLOWED_TAGS = [
+    "p", "br", "strong", "em", "b", "i", "u", "s", "code", "pre", "blockquote",
+    "ul", "ol", "li", "h1", "h2", "h3", "h4", "h5", "h6", "a", "hr", "table", "thead",
+    "tbody", "tr", "th", "td", "span",
+]
+_MD_ALLOWED_ATTRS = {"a": ["href", "title", "rel"], "span": ["class"], "code": ["class"]}
+
+
+def _render_markdown(text):
+    """Creator-authored step body -> sanitized HTML. Falls back to
+    returning None (caller then renders the old plain-text/pre-line
+    way) if the markdown/bleach packages aren't installed. `text` is
+    already trusted to be this shape (validated + length-capped in
+    _validate_lesson_payload) but the OUTPUT is still run through
+    bleach — never trust that Markdown-the-library's HTML output is
+    automatically safe, since raw <script>/<img onerror> etc. written
+    directly into markdown source passes straight through it."""
+    if not MARKDOWN_AVAILABLE or not text:
+        return None
+    html = _markdown_lib.markdown(text, extensions=["fenced_code", "tables"])
+    return bleach.clean(html, tags=_MD_ALLOWED_TAGS, attributes=_MD_ALLOWED_ATTRS, strip=True)
+
 
 # ======================================================================
 # Auth — Google OAuth (Authlib) + server sessions (Flask-Login)
@@ -322,12 +358,21 @@ NAV_ITEMS = [
 # (educator-authored) lessons aren't in this sequence — they're
 # freestanding, no prev/next between them for v1.
 LESSON_ORDER = [
-    {"id": "qm-basics", "title": "QM Basics", "href": "/qm-basics"},
-    {"id": "single-qubit", "title": "Single Qubit", "href": "/single-qubit"},
-    {"id": "two-qubit", "title": "Two Qubits", "href": "/two-qubit"},
-    {"id": "physical-qubit", "title": "Physical Qubit", "href": "/physical-qubit"},
-    {"id": "hardware-lab", "title": "Hardware Lab", "href": "/hardware-lab"},
-    {"id": "reality-check", "title": "Reality Check", "href": "/reality-check"},
+    {"id": "qm-basics", "title": "QM Basics", "href": "/qm-basics", "steps": 3},
+    {"id": "single-qubit", "title": "Single Qubit", "href": "/single-qubit", "steps": 5},
+    {"id": "two-qubit", "title": "Two Qubits", "href": "/two-qubit", "steps": 3},
+    {"id": "physical-qubit", "title": "Physical Qubit", "href": "/physical-qubit", "steps": 4},
+    {"id": "hardware-lab", "title": "Hardware Lab", "href": "/hardware-lab", "steps": 3},
+    {"id": "reality-check", "title": "Reality Check", "href": "/reality-check", "steps": 4},
+]
+
+# Module 1's two embeddable widgets (they aren't lessons — no steps/
+# progress — but the person asked for them grouped visually alongside
+# Module 1's lessons on /lessons and in the Python IDE / Lesson
+# Creator's widget picker).
+BUILTIN_WIDGETS = [
+    {"id": "coin-flip", "title": "Coin Flip (single qubit)", "href": "/embed/coin-flip"},
+    {"id": "two-qubit-widget", "title": "Two Qubit / Bell state", "href": "/embed/two-qubit"},
 ]
 
 
@@ -346,8 +391,17 @@ def _lesson_nav(lesson_id):
 def inject_nav():
     """Makes `nav_items`/`csrf_token` available in every template
     without passing them explicitly in each render_template() call
-    below. `current_user` is already injected globally by Flask-Login."""
-    return {"nav_items": NAV_ITEMS, "csrf_token": session.get("csrf_token", "")}
+    below. `current_user` is already injected globally by Flask-Login.
+
+    Admin nav entry: previously /admin/creators worked but had NO link
+    to it anywhere in the UI — an admin had to already know the URL.
+    That's the "where is that?" bug — fixed by appending an Admin item
+    here, only for signed-in accounts where current_user.is_admin is
+    true (computed from ADMIN_EMAILS — see the User class above)."""
+    items = list(NAV_ITEMS)
+    if current_user.is_authenticated and current_user.is_admin:
+        items.append({"key": "admin", "label": "Admin", "href": "/admin/creators", "icon": "shield", "badge": (str(len(db.list_pending_creators())) if db.list_pending_creators() else None)})
+    return {"nav_items": items, "csrf_token": session.get("csrf_token", "")}
 
 
 @app.route("/")
@@ -368,14 +422,81 @@ def dashboard():
 
 @app.route("/lessons")
 def lessons():
-    # The full lesson catalog — every built-in lesson (open or gated),
-    # one card each, plus any published community-authored lessons
-    # (see Lesson Creator / futureplans.md #11) in their own section.
-    # Gated built-in lessons just show locked; clicking one while
-    # signed out hits @login_required and bounces to /login.
+    # The full lesson catalog, organized into Modules (Module 1 =
+    # the built-in lessons + widgets; any published creator module
+    # after that; anything a creator hasn't put in a module yet is
+    # still listed under "Other community lessons") rather than one
+    # flat list.
+    catalog = _module_catalog()
+    community_modules = catalog[1:]  # catalog[0] is always the builtin Module 1
+    standalone = [l for l in db.list_custom_lessons() if l["module_id"] is None]
     return render_template(
-        "lessons.html", active_page="lessons", custom_lessons=db.list_custom_lessons()
+        "lessons.html",
+        active_page="lessons",
+        community_modules=community_modules,
+        standalone_lessons=standalone,
     )
+
+
+def _module_catalog():
+    """Builds the unified Modules catalog: the built-in 'Module 1' (its
+    lessons come from LESSON_ORDER + BUILTIN_WIDGETS by convention, not
+    a DB join — those aren't DB rows) followed by every published
+    creator module that has at least one published lesson in it.
+    Shared by /lessons, /dashboard, /account, and /api/modules so all
+    four stay in sync from one place."""
+    builtin = db.get_builtin_module()
+    catalog = [
+        {
+            "id": None,
+            "slug": "module-1",
+            "title": builtin["title"] if builtin else "Module 1: Foundations",
+            "description": builtin["description"] if builtin else "",
+            "kind": "builtin",
+            "author": None,
+            "published": True,
+            "lessons": [
+                {"id": l["id"], "title": l["title"], "href": l["href"], "steps": l["steps"], "kind": "builtin"}
+                for l in LESSON_ORDER
+            ],
+            "widgets": BUILTIN_WIDGETS,
+        }
+    ]
+    for m in db.list_published_community_modules():
+        author = db.get_user_by_id(m["author_user_id"])
+        lessons_in_module = db.list_custom_lessons_by_module(m["id"], published_only=True)
+        catalog.append(
+            {
+                "id": m["id"],
+                "slug": m["slug"],
+                "title": m["title"],
+                "description": m["description"] or "",
+                "kind": "community",
+                "author": author["name"] if author else "A Qubit Sandbox creator",
+                "published": bool(m["published"]),
+                "lessons": [
+                    {
+                        "id": f"custom-{l['slug']}",
+                        "title": l["title"],
+                        "href": url_for("custom_lesson", slug=l["slug"]),
+                        "steps": len(json.loads(l["steps_json"])),
+                        "kind": "community",
+                    }
+                    for l in lessons_in_module
+                ],
+                "widgets": [],
+            }
+        )
+    return catalog
+
+
+@app.route("/api/modules")
+def api_modules():
+    """Powers the module-grouped /lessons catalog and the per-module
+    progress bars on Dashboard/Account — client pairs this with
+    /api/progress (lesson_id -> done steps) to compute % per module,
+    so this endpoint itself needs no auth and carries no per-user data."""
+    return jsonify({"modules": _module_catalog()})
 
 
 @app.route("/account")
@@ -508,16 +629,40 @@ def sandbox():
 def lesson_creator():
     # v1 (futureplans.md #11): a real, working authoring form for
     # verified creator accounts (current_user.can_create_lessons — see
-    # the account-type/CREATOR_EMAILS model above), rendered inside
-    # lesson-creator.html itself via Jinja conditionals rather than a
-    # separate template, since the signed-out / not-a-creator /
-    # pending-approval states still need their own explanations.
-    # Anyone's own past submissions are listed too (verified creators
-    # only), via list_custom_lessons_by_author.
-    my_lessons = []
+    # the account-type/CREATOR_EMAILS model above). Management of past
+    # submissions (edit/delete/publish, modules, widgets) now lives on
+    # its own page — see /creator/submissions — this route stays
+    # focused on the "write/edit one lesson" form; `?edit=<id>` loads
+    # an existing lesson of yours into that form (LESSON_EDIT_DATA
+    # below carries the payload client-side, no extra fetch needed).
+    my_lessons, my_modules, my_widgets = [], [], []
+    edit_lesson = None
     if current_user.is_authenticated and current_user.can_create_lessons:
         my_lessons = db.list_custom_lessons_by_author(int(current_user.id))
-    return render_template("lesson-creator.html", active_page="creator", my_lessons=my_lessons)
+        my_modules = db.list_modules_by_author(int(current_user.id))
+        my_widgets = db.list_custom_widgets_by_author(int(current_user.id))
+        edit_id = request.args.get("edit", type=int)
+        if edit_id:
+            candidate = db.get_custom_lesson_by_id(edit_id)
+            if candidate is not None and candidate["author_user_id"] == int(current_user.id):
+                edit_lesson = candidate
+    edit_lesson_data = None
+    if edit_lesson is not None:
+        edit_lesson_data = {
+            "id": edit_lesson["id"],
+            "title": edit_lesson["title"],
+            "description": edit_lesson["description"],
+            "steps": json.loads(edit_lesson["steps_json"]),
+            "module_id": edit_lesson["module_id"],
+        }
+    return render_template(
+        "lesson-creator.html",
+        active_page="creator",
+        my_lessons=my_lessons,
+        my_modules=my_modules,
+        my_widgets=my_widgets,
+        edit_lesson_data=edit_lesson_data,
+    )
 
 
 def admin_required(f):
@@ -568,38 +713,75 @@ def admin_reject_creator(user_id):
 
 
 MAX_LESSON_STEPS = 12
-VALID_WIDGETS = {None, "coin-flip", "two-qubit"}
+MAX_CHECKLIST_ITEMS = 6
 
 
-def _validate_lesson_payload(data):
-    """Shared by create and edit. Returns (title, description, steps)
-    on success, or (None, None, error_response) on failure — check
-    `steps is None` to tell which case you got."""
+def _valid_widget_ref(widget, author_id):
+    """None/"coin-flip"/"two-qubit" are always fine; "custom-<id>" is
+    only fine if that widget exists AND was authored by this creator
+    (a step can't embed someone else's saved widget)."""
+    if widget in (None, "coin-flip", "two-qubit"):
+        return True
+    if isinstance(widget, str) and widget.startswith("custom-"):
+        try:
+            widget_id = int(widget[len("custom-"):])
+        except ValueError:
+            return False
+        w = db.get_custom_widget_by_id(widget_id)
+        return w is not None and w["author_user_id"] == author_id
+    return False
+
+
+def _validate_lesson_payload(data, author_id):
+    """Shared by create and edit. Returns (title, description, steps,
+    module_id) on success, or (None, None, error_response, None) on
+    failure — check `steps is None` to tell which case you got."""
     title = (data.get("title") or "").strip()
     description = (data.get("description") or "").strip()
     raw_steps = data.get("steps")
+    raw_module_id = data.get("module_id")
 
     if not title or len(title) > 200:
-        return None, None, (jsonify({"error": "bad_request", "message": "Title is required (max 200 chars)."}), 400)
+        return None, None, (jsonify({"error": "bad_request", "message": "Title is required (max 200 chars)."}), 400), None
     if not isinstance(raw_steps, list) or not (1 <= len(raw_steps) <= MAX_LESSON_STEPS):
-        return None, None, (jsonify({"error": "bad_request", "message": f"Need 1–{MAX_LESSON_STEPS} steps."}), 400)
+        return None, None, (jsonify({"error": "bad_request", "message": f"Need 1–{MAX_LESSON_STEPS} steps."}), 400), None
+
+    module_id = None
+    if raw_module_id not in (None, "", 0, "0"):
+        try:
+            module_id = int(raw_module_id)
+        except (TypeError, ValueError):
+            return None, None, (jsonify({"error": "bad_request", "message": "Invalid module."}), 400), None
+        m = db.get_module_by_id(module_id)
+        if m is None or m["author_user_id"] != author_id:
+            return None, None, (jsonify({"error": "bad_request", "message": "Not your module."}), 400), None
 
     steps = []
     for s in raw_steps:
         if not isinstance(s, dict):
-            return None, None, (jsonify({"error": "bad_request", "message": "Each step must be an object."}), 400)
+            return None, None, (jsonify({"error": "bad_request", "message": "Each step must be an object."}), 400), None
         step_title = (s.get("title") or "").strip()
         body = (s.get("body") or "").strip()
         widget = s.get("widget") or None
+        raw_checklist = s.get("checklist") or []
         if not step_title or len(step_title) > 120:
-            return None, None, (jsonify({"error": "bad_request", "message": "Each step needs a title (max 120 chars)."}), 400)
+            return None, None, (jsonify({"error": "bad_request", "message": "Each step needs a title (max 120 chars)."}), 400), None
         if len(body) > 4000:
-            return None, None, (jsonify({"error": "bad_request", "message": "Step body is too long (max 4000 chars)."}), 400)
-        if widget not in VALID_WIDGETS:
-            return None, None, (jsonify({"error": "bad_request", "message": f"Unknown widget: {widget!r}"}), 400)
-        steps.append({"title": step_title, "body": body, "widget": widget})
+            return None, None, (jsonify({"error": "bad_request", "message": "Step body is too long (max 4000 chars)."}), 400), None
+        if not _valid_widget_ref(widget, author_id):
+            return None, None, (jsonify({"error": "bad_request", "message": f"Unknown or not-your widget: {widget!r}"}), 400), None
+        if not isinstance(raw_checklist, list) or len(raw_checklist) > MAX_CHECKLIST_ITEMS:
+            return None, None, (jsonify({"error": "bad_request", "message": f"Max {MAX_CHECKLIST_ITEMS} custom checklist items per step."}), 400), None
+        checklist = []
+        for item in raw_checklist:
+            item = (item or "").strip() if isinstance(item, str) else ""
+            if item:
+                if len(item) > 200:
+                    return None, None, (jsonify({"error": "bad_request", "message": "Checklist item too long (max 200 chars)."}), 400), None
+                checklist.append(item)
+        steps.append({"title": step_title, "body": body, "widget": widget, "checklist": checklist})
 
-    return title, description, steps
+    return title, description, steps, module_id
 
 
 @app.route("/api/lessons", methods=["POST"])
@@ -617,11 +799,11 @@ def api_create_lesson():
         return jsonify({"error": "forbidden", "message": "Verified creator account required."}), 403
 
     data = request.get_json(silent=True) or {}
-    title, description, steps = _validate_lesson_payload(data)
+    title, description, steps, module_id = _validate_lesson_payload(data, int(current_user.id))
     if title is None:
         return steps  # _validate_lesson_payload stashed the (response, status) error tuple here on failure
 
-    lesson = db.create_custom_lesson(int(current_user.id), title, description, steps)
+    lesson = db.create_custom_lesson(int(current_user.id), title, description, steps, module_id)
     return jsonify({"slug": lesson["slug"], "url": url_for("custom_lesson", slug=lesson["slug"])})
 
 
@@ -649,11 +831,11 @@ def api_edit_lesson(lesson_id):
         return err
 
     data = request.get_json(silent=True) or {}
-    title, description, steps = _validate_lesson_payload(data)
+    title, description, steps, module_id = _validate_lesson_payload(data, int(current_user.id))
     if title is None:
         return steps
 
-    updated = db.update_custom_lesson(lesson_id, title, description, steps)
+    updated = db.update_custom_lesson(lesson_id, title, description, steps, module_id)
     return jsonify({"slug": updated["slug"], "url": url_for("custom_lesson", slug=updated["slug"])})
 
 
@@ -672,6 +854,32 @@ def api_toggle_publish_lesson(lesson_id):
     return jsonify({"published": published})
 
 
+@app.route("/api/lessons/<int:lesson_id>/module", methods=["POST"])
+@login_required
+@csrf_protect
+def api_set_lesson_module(lesson_id):
+    """Quick reassignment of a lesson's module from the My Submissions
+    page, without going through the full edit form."""
+    if not current_user.can_create_lessons:
+        return jsonify({"error": "forbidden", "message": "Verified creator account required."}), 403
+    lesson, err = _get_own_lesson_or_403(lesson_id)
+    if lesson is None:
+        return err
+    data = request.get_json(silent=True) or {}
+    raw = data.get("module_id")
+    module_id = None
+    if raw not in (None, "", 0, "0"):
+        try:
+            module_id = int(raw)
+        except (TypeError, ValueError):
+            return jsonify({"error": "bad_request"}), 400
+        m = db.get_module_by_id(module_id)
+        if m is None or m["author_user_id"] != int(current_user.id):
+            return jsonify({"error": "bad_request", "message": "Not your module."}), 400
+    db.set_lesson_module(lesson_id, module_id)
+    return jsonify({"module_id": module_id})
+
+
 @app.route("/api/lessons/<int:lesson_id>", methods=["DELETE"])
 @login_required
 @csrf_protect
@@ -683,6 +891,319 @@ def api_delete_lesson(lesson_id):
         return err
     db.delete_custom_lesson(lesson_id)
     return jsonify({"deleted": True})
+
+
+# --------------------------------------------------------------------
+# Creator modules — a named, ordered set of a creator's own lessons,
+# published together (see `modules` table in db.py).
+# --------------------------------------------------------------------
+
+MAX_MODULE_TITLE = 200
+MAX_MODULE_DESC = 500
+
+
+def _get_own_module_or_403(module_id):
+    m = db.get_module_by_id(module_id)
+    if m is None:
+        return None, (jsonify({"error": "not_found"}), 404)
+    if m["author_user_id"] != int(current_user.id):
+        return None, (jsonify({"error": "forbidden", "message": "Not your module."}), 403)
+    return m, None
+
+
+@app.route("/api/creator-modules", methods=["POST"])
+@login_required
+@csrf_protect
+def api_create_module():
+    if not current_user.can_create_lessons:
+        return jsonify({"error": "forbidden", "message": "Verified creator account required."}), 403
+    data = request.get_json(silent=True) or {}
+    title = (data.get("title") or "").strip()
+    description = (data.get("description") or "").strip()
+    if not title or len(title) > MAX_MODULE_TITLE:
+        return jsonify({"error": "bad_request", "message": f"Title is required (max {MAX_MODULE_TITLE} chars)."}), 400
+    if len(description) > MAX_MODULE_DESC:
+        return jsonify({"error": "bad_request", "message": f"Description too long (max {MAX_MODULE_DESC} chars)."}), 400
+    m = db.create_module(int(current_user.id), title, description)
+    return jsonify({"id": m["id"], "slug": m["slug"], "title": m["title"]})
+
+
+@app.route("/api/creator-modules/<int:module_id>", methods=["PUT"])
+@login_required
+@csrf_protect
+def api_edit_module(module_id):
+    m, err = _get_own_module_or_403(module_id)
+    if m is None:
+        return err
+    data = request.get_json(silent=True) or {}
+    title = (data.get("title") or "").strip()
+    description = (data.get("description") or "").strip()
+    if not title or len(title) > MAX_MODULE_TITLE:
+        return jsonify({"error": "bad_request", "message": f"Title is required (max {MAX_MODULE_TITLE} chars)."}), 400
+    updated = db.update_module(module_id, title, description)
+    return jsonify({"id": updated["id"], "title": updated["title"]})
+
+
+@app.route("/api/creator-modules/<int:module_id>/publish", methods=["POST"])
+@login_required
+@csrf_protect
+def api_toggle_publish_module(module_id):
+    m, err = _get_own_module_or_403(module_id)
+    if m is None:
+        return err
+    data = request.get_json(silent=True) or {}
+    published = bool(data.get("published"))
+    db.set_module_published(module_id, published, publish_lessons_too=True)
+    return jsonify({"published": published})
+
+
+@app.route("/api/creator-modules/<int:module_id>", methods=["DELETE"])
+@login_required
+@csrf_protect
+def api_delete_module(module_id):
+    m, err = _get_own_module_or_403(module_id)
+    if m is None:
+        return err
+    db.delete_module(module_id)
+    return jsonify({"deleted": True})
+
+
+# --------------------------------------------------------------------
+# Creator widgets — a saved restricted-grammar circuit (same AST
+# validator as /api/run-code), embeddable in a lesson step. Built from
+# the Python IDE ("save as widget") or the Lesson Creator directly.
+# --------------------------------------------------------------------
+
+MAX_WIDGET_TITLE = 120
+
+
+@app.route("/api/widgets", methods=["GET"])
+@login_required
+def api_list_widgets():
+    if not current_user.can_create_lessons:
+        return jsonify({"error": "forbidden"}), 403
+    widgets = db.list_custom_widgets_by_author(int(current_user.id))
+    return jsonify({"widgets": [{"id": w["id"], "title": w["title"], "code": w["code"]} for w in widgets]})
+
+
+@app.route("/api/widgets", methods=["POST"])
+@login_required
+@csrf_protect
+def api_create_widget():
+    if not current_user.can_create_lessons:
+        return jsonify({"error": "forbidden", "message": "Verified creator account required."}), 403
+    data = request.get_json(silent=True) or {}
+    title = (data.get("title") or "").strip()
+    code = data.get("code") or ""
+    if not title or len(title) > MAX_WIDGET_TITLE:
+        return jsonify({"error": "bad_request", "message": f"Title is required (max {MAX_WIDGET_TITLE} chars)."}), 400
+    try:
+        _validate_circuit_code(code)
+    except _CodeValidationError as e:
+        return jsonify({"error": "invalid_code", "message": str(e)}), 400
+    w = db.create_custom_widget(int(current_user.id), title, code)
+    return jsonify({"id": w["id"], "title": w["title"], "widget_ref": f"custom-{w['id']}"})
+
+
+@app.route("/api/widgets/<int:widget_id>")
+def api_get_widget(widget_id):
+    # Publicly readable (no @login_required): a published lesson step
+    # can embed this for any visitor to run, same posture as the
+    # lesson content itself. Read-only — running it goes through the
+    # existing, separately-validated /api/run-code.
+    w = db.get_custom_widget_by_id(widget_id)
+    if w is None:
+        return jsonify({"error": "not_found"}), 404
+    return jsonify({"id": w["id"], "title": w["title"], "code": w["code"]})
+
+
+@app.route("/api/widgets/<int:widget_id>", methods=["DELETE"])
+@login_required
+@csrf_protect
+def api_delete_widget(widget_id):
+    w = db.get_custom_widget_by_id(widget_id)
+    if w is None:
+        return jsonify({"error": "not_found"}), 404
+    if w["author_user_id"] != int(current_user.id):
+        return jsonify({"error": "forbidden"}), 403
+    db.delete_custom_widget(widget_id)
+    return jsonify({"deleted": True})
+
+
+@app.route("/creator/submissions")
+@login_required
+def creator_submissions():
+    # The dedicated "My Submissions" page: every lesson AND every
+    # module this creator has authored, with edit/delete/publish
+    # controls — split out from /lesson-creator (which stays focused on
+    # the "write something new" form) now that there's enough to manage
+    # (modules + widgets alongside lessons) to warrant its own page.
+    if not current_user.can_create_lessons:
+        abort(403)
+    my_lessons = db.list_custom_lessons_by_author(int(current_user.id))
+    my_modules = db.list_modules_by_author(int(current_user.id))
+    my_widgets = db.list_custom_widgets_by_author(int(current_user.id))
+    return render_template(
+        "creator-submissions.html",
+        active_page="creator",
+        my_lessons=my_lessons,
+        my_modules=my_modules,
+        my_widgets=my_widgets,
+    )
+
+
+# --------------------------------------------------------------------
+# Gamification — daily streaks, hours studied, unlockable badges.
+# --------------------------------------------------------------------
+
+def _today_str():
+    import datetime
+
+    return datetime.datetime.utcnow().strftime("%Y-%m-%d")
+
+
+def _compute_streaks(dates):
+    """`dates` is a sorted list of 'YYYY-MM-DD' strings. Returns
+    (current_streak, longest_streak). Current streak counts back from
+    today (or yesterday, so a streak isn't lost just because you
+    haven't opened the app yet today) as long as consecutive calendar
+    days are present."""
+    import datetime
+
+    if not dates:
+        return 0, 0
+    day_set = {datetime.date.fromisoformat(d) for d in dates}
+    longest = 1
+    run = 1
+    sorted_days = sorted(day_set)
+    for i in range(1, len(sorted_days)):
+        if (sorted_days[i] - sorted_days[i - 1]).days == 1:
+            run += 1
+        else:
+            run = 1
+        longest = max(longest, run)
+
+    today = datetime.date.today()
+    current = 0
+    cursor = today if today in day_set else (today - datetime.timedelta(days=1))
+    if cursor in day_set:
+        current = 1
+        d = cursor
+        while (d - datetime.timedelta(days=1)) in day_set:
+            d = d - datetime.timedelta(days=1)
+            current += 1
+    return current, longest
+
+
+def _lesson_completion_map(user_id):
+    """{ lesson_id: bool completed } across built-in + every custom
+    lesson this user has ever touched — used for the completion-count
+    badges (first-lesson, five-lessons, module-1-done)."""
+    progress = db.get_all_progress(user_id)
+    completed = {}
+    builtin_steps = {l["id"]: l["steps"] for l in LESSON_ORDER}
+    for lid, total_steps in builtin_steps.items():
+        entry = progress.get(lid) or {"done": []}
+        completed[lid] = len(entry.get("done") or []) >= total_steps
+    for lid, entry in progress.items():
+        if lid in builtin_steps or not lid.startswith("custom-"):
+            continue
+        lesson = db.get_custom_lesson(lid[len("custom-"):])
+        if lesson is None:
+            continue
+        steps = json.loads(lesson["steps_json"])
+        total = sum(1 + len(s.get("checklist") or []) for s in steps)
+        completed[lid] = len(entry.get("done") or []) >= max(total, 1)
+    return completed
+
+
+def compute_and_sync_badges(user_id, local_hour=None):
+    """Recomputes every badge condition and persists any newly-earned
+    ones (db.award_badge_if_new is idempotent). Returns the list of
+    badge_keys earned for THE FIRST TIME by this call, so callers (the
+    activity ping, step-completion) can surface a "badge unlocked!"
+    toast — an empty list means nothing new."""
+    newly_earned = []
+
+    def _try(key, condition):
+        if condition and db.award_badge_if_new(user_id, key):
+            newly_earned.append(key)
+
+    dates = db.get_activity_dates(user_id)
+    current_streak, longest_streak = _compute_streaks(dates)
+    _try("streak-3", longest_streak >= 3)
+    _try("streak-7", longest_streak >= 7)
+    _try("streak-30", longest_streak >= 30)
+
+    import datetime
+
+    weekdays = {datetime.date.fromisoformat(d).weekday() for d in dates}  # Mon=0..Sun=6
+    _try("weekend-studier", 5 in weekdays and 6 in weekdays)
+
+    total_hours = db.get_total_minutes(user_id) / 60.0
+    _try("hours-10", total_hours >= 10)
+    _try("hours-40", total_hours >= 40)
+
+    if local_hour is not None:
+        _try("early-bird", 0 <= local_hour < 7)
+        _try("night-owl", local_hour >= 23)
+
+    completed = _lesson_completion_map(user_id)
+    completed_count = sum(1 for v in completed.values() if v)
+    _try("first-lesson", completed_count >= 1)
+    _try("five-lessons", completed_count >= 5)
+    builtin_ids = [l["id"] for l in LESSON_ORDER]
+    _try("module-1-done", all(completed.get(lid) for lid in builtin_ids))
+
+    return newly_earned
+
+
+@app.route("/api/activity/ping", methods=["POST"])
+@login_required
+@csrf_protect
+def api_activity_ping():
+    """Called every ~60s by a page that's open and focused (lesson,
+    demo, sandbox, Python IDE — see lesson-progress.js) to log one
+    minute of activity for today and re-check badges. Coarse on
+    purpose — this is a "were you actively here" signal for streaks/
+    hours badges, not a billing-grade timer."""
+    data = request.get_json(silent=True) or {}
+    local_hour = data.get("local_hour")
+    try:
+        local_hour = int(local_hour) if local_hour is not None else None
+    except (TypeError, ValueError):
+        local_hour = None
+    db.record_activity(int(current_user.id), _today_str(), minutes=1)
+    newly_earned = compute_and_sync_badges(int(current_user.id), local_hour=local_hour)
+    return jsonify({"ok": True, "newly_earned": newly_earned})
+
+
+@app.route("/api/gamification")
+@login_required
+def api_gamification():
+    """Streak/hours/badges summary for Dashboard + Account."""
+    user_id = int(current_user.id)
+    dates = db.get_activity_dates(user_id)
+    current_streak, longest_streak = _compute_streaks(dates)
+    total_minutes = db.get_total_minutes(user_id)
+    earned = db.get_user_badges(user_id)
+    badges = [
+        {"key": k, **meta, "earned_at": earned.get(k)}
+        for k, meta in db.BADGE_CATALOG.items()
+    ]
+    badges.sort(key=lambda b: (b["earned_at"] is None, -(b["earned_at"] or 0)))
+    return jsonify(
+        {
+            "current_streak": current_streak,
+            "longest_streak": longest_streak,
+            "total_minutes": total_minutes,
+            "total_hours": round(total_minutes / 60.0, 1),
+            "days_active": len(dates),
+            "badges": badges,
+            "earned_count": len(earned),
+            "total_count": len(db.BADGE_CATALOG),
+        }
+    )
 
 
 @app.route("/lessons/custom/<slug>")
@@ -703,6 +1224,12 @@ def custom_lesson(slug):
     if not lesson["published"] and not is_own:
         abort(404)
     steps = json.loads(lesson["steps_json"])
+    # Markdown → sanitized HTML per step (falls back to None, meaning
+    # "render the old plain-text/pre-line way", if Markdown/bleach
+    # aren't installed — see _render_markdown()).
+    for step in steps:
+        step["body_html"] = _render_markdown(step.get("body", ""))
+        step.setdefault("checklist", [])
     author = db.get_user_by_id(lesson["author_user_id"])
     return render_template(
         "custom-lesson.html",
@@ -723,6 +1250,21 @@ def python_ide():
     # see futureplans.md #12 for why that's a deliberately separate,
     # bigger decision.
     return render_template("python-ide.html", active_page="ide")
+
+
+@app.route("/python-ide/editor")
+def python_ide_editor():
+    # The real, dedicated full-page IDE (fixes the "Open in editor just
+    # scrolls to a tiny textarea" complaint) — its own page with a
+    # proper code area, a console/output panel that keeps a run
+    # history instead of overwriting the last result, and a collapsible
+    # gate-reference sidebar. Every "Open in editor" button on
+    # /python-ide hands code off here via sessionStorage (see that
+    # page's openInEditor()) rather than embedding this UI inline.
+    # "Save as widget" only actually works for verified creators
+    # (current_user.can_create_lessons) — shown to everyone but the
+    # button explains itself if you're not one yet.
+    return render_template("python-ide-editor.html", active_page="ide")
 
 
 @app.route("/login")

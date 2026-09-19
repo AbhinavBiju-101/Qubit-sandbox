@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block title %}Python IDE — Editor — Qubit Sandbox{% endblock %}
+{% block page_title %}Python IDE{% endblock %}
+
+{% block content %}
+
+<div style="display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:4px; flex-wrap:wrap;">
+  <h2 style="margin:0;">Full-screen editor</h2>
+  <a href="{{ url_for('python_ide') }}" class="mono muted" style="font-size:0.8rem;">&larr; Back to snippets &amp; Circuit Builder</a>
+</div>
+<p class="muted" style="margin-bottom:20px;">Same restricted grammar as the quick-run box: build a <span class="mono">QuantumCircuit</span> named <span class="mono">qc</span>, call gate methods on it, no imports/loops/functions. Every run is appended to the console below instead of overwriting the last result.</p>
+
+<div class="grid-2" id="ide-layout">
+  <div>
+    <div class="panel" style="padding:0; overflow:hidden; margin-bottom:18px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--line); background:var(--surface-alt);">
+        <span class="mono" style="font-size:0.76rem; font-weight:600; color:var(--text-muted);">CIRCUIT.PY</span>
+        <div style="display:flex; gap:8px;">
+          <button class="small ghost" id="ide-clear">Clear</button>
+          <button class="small ghost" id="ide-reset">Reset to default</button>
+        </div>
+      </div>
+      <textarea id="ide-code" spellcheck="false" style="width:100%; min-height:340px; font-family:var(--font-mono); font-size:0.88rem; line-height:1.65; background:#14172a; color:#d7dcf5; border:none; padding:18px 20px; box-sizing:border-box; resize:vertical; display:block;">qc = QuantumCircuit(1, 1)
+qc.h(0)
+qc.measure(0, 0)</textarea>
+    </div>
+
+    <div class="panel" style="margin-bottom:18px;">
+      <div class="panel-label">RUN</div>
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+        <button class="primary" id="ide-run">Run circuit</button>
+        <label class="mono muted" style="font-size:0.82rem; display:flex; align-items:center; gap:6px;">shots <input type="number" id="ide-shots" value="1000" min="1" max="20000" style="width:90px;"></label>
+        {% if current_user.is_authenticated and current_user.can_create_lessons %}
+        <button class="small ghost" id="ide-save-widget">Save as widget</button>
+        {% else %}
+        <span class="mono muted" style="font-size:0.76rem;" title="Verified creator accounts can save a snippet as an embeddable lesson widget.">Save as widget (creator accounts only)</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label">CONSOLE</div>
+      <div id="ide-console" class="mono" style="font-size:0.85rem; line-height:1.7; max-height:420px; overflow-y:auto;">
+        <p class="muted" style="margin:0;">Nothing run yet — hit "Run circuit" above.</p>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="panel" style="margin-bottom:18px;">
+      <div class="panel-label">GATE REFERENCE</div>
+      <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+        <tbody>
+          <tr><td class="mono" style="padding:6px 8px 6px 0; color:var(--primary); white-space:nowrap;">qc.h(q)</td><td class="muted">Hadamard — puts qubit q into superposition</td></tr>
+          <tr><td class="mono" style="padding:6px 8px 6px 0; color:var(--primary); white-space:nowrap;">qc.x(q)</td><td class="muted">Pauli-X — bit flip (classical NOT)</td></tr>
+          <tr><td class="mono" style="padding:6px 8px 6px 0; color:var(--primary); white-space:nowrap;">qc.y(q)</td><td class="muted">Pauli-Y rotation</td></tr>
+          <tr><td class="mono" style="padding:6px 8px 6px 0; color:var(--primary); white-space:nowrap;">qc.z(q)</td><td class="muted">Pauli-Z — phase flip</td></tr>
+          <tr><td class="mono" style="padding:6px 8px 6px 0; color:var(--primary); white-space:nowrap;">qc.rx/ry/rz(θ, q)</td><td class="muted">Rotation by θ radians about X/Y/Z</td></tr>
+          <tr><td class="mono" style="padding:6px 8px 6px 0; color:var(--primary); white-space:nowrap;">qc.cx(c, t)</td><td class="muted">CNOT — entangles control c with target t</td></tr>
+          <tr><td class="mono" style="padding:6px 8px 6px 0; color:var(--primary); white-space:nowrap;">qc.measure(q, c)</td><td class="muted">Measure qubit q into classical bit c</td></tr>
+          <tr><td class="mono" style="padding:6px 8px 6px 0; color:var(--primary); white-space:nowrap;">qc.measure_all()</td><td class="muted">Measure every qubit</td></tr>
+          <tr><td class="mono" style="padding:6px 8px 6px 0; color:var(--primary); white-space:nowrap;">qc.barrier()</td><td class="muted">Visual separator, no effect on results</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel" style="margin-bottom:18px;">
+      <div class="panel-label">LOAD A STARTER</div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button class="small ghost" data-starter="h" style="text-align:left;">Single qubit — superposition (H)</button>
+        <button class="small ghost" data-starter="bell" style="text-align:left;">Two qubit — Bell state (H + CNOT)</button>
+        <button class="small ghost" data-starter="ghz" style="text-align:left;">Three qubit — GHZ state</button>
+        <button class="small ghost" data-starter="flip" style="text-align:left;">Classical bit flip (X)</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label">LIMITS</div>
+      <ul class="muted" style="margin:0; padding-left:18px; font-size:0.82rem; line-height:1.8;">
+        <li>Max 3 qubits</li>
+        <li>Max 60 operations</li>
+        <li>3 second run timeout</li>
+        <li>No imports, loops, or function/class definitions</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const codeEl = document.getElementById('ide-code');
+  const consoleEl = document.getElementById('ide-console');
+  const statusRunBtn = document.getElementById('ide-run');
+
+  const DEFAULT_CODE = 'qc = QuantumCircuit(1, 1)\nqc.h(0)\nqc.measure(0, 0)';
+
+  // Code handed off from /python-ide's "Open in editor" buttons (see
+  // that page's openInEditor()) arrives via sessionStorage rather than
+  // a query param, since a circuit built in the Circuit Builder can be
+  // several lines — consumed once, then cleared, so a page refresh
+  // here doesn't keep re-loading stale handed-off code.
+  const pending = sessionStorage.getItem('qs_ide_pending_code');
+  if (pending) {
+    codeEl.value = pending;
+    sessionStorage.removeItem('qs_ide_pending_code');
+  }
+
+  document.getElementById('ide-clear').addEventListener('click', () => { codeEl.value = ''; codeEl.focus(); });
+  document.getElementById('ide-reset').addEventListener('click', () => { codeEl.value = DEFAULT_CODE; codeEl.focus(); });
+
+  const STARTERS = {
+    h: DEFAULT_CODE,
+    flip: 'qc = QuantumCircuit(1, 1)\nqc.x(0)\nqc.measure(0, 0)',
+    bell: 'qc = QuantumCircuit(2, 2)\nqc.h(0)\nqc.cx(0, 1)\nqc.measure_all()',
+    ghz: 'qc = QuantumCircuit(3, 3)\nqc.h(0)\nqc.cx(0, 1)\nqc.cx(1, 2)\nqc.measure_all()',
+  };
+  document.querySelectorAll('[data-starter]').forEach(btn => {
+    btn.addEventListener('click', () => { codeEl.value = STARTERS[btn.dataset.starter]; codeEl.focus(); });
+  });
+
+  function consoleLine(html) {
+    if (consoleEl.dataset.empty !== 'false') { consoleEl.innerHTML = ''; consoleEl.dataset.empty = 'false'; }
+    const entry = document.createElement('div');
+    entry.style.cssText = 'padding:10px 0; border-bottom:1px solid var(--line);';
+    entry.innerHTML = html;
+    consoleEl.insertBefore(entry, consoleEl.firstChild); // newest run on top
+  }
+
+  document.getElementById('ide-run').addEventListener('click', async () => {
+    const code = codeEl.value;
+    const shots = document.getElementById('ide-shots').value;
+    statusRunBtn.disabled = true;
+    const stamp = new Date().toLocaleTimeString();
+    try {
+      const res = await fetch('/api/run-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, shots })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        consoleLine(`<span class="mono muted">[${stamp}]</span> <strong style="color:var(--red,#e0523f);">Error:</strong> ${data.message || 'Could not run that code.'}`);
+        return;
+      }
+      const entries = Object.entries(data.counts);
+      const total = entries.reduce((sum, [, v]) => sum + v, 0) || 1;
+      const resultStr = entries.map(([k, v]) => `'${k}': ${v} (${(v/total*100).toFixed(1)}%)`).join(' &nbsp;·&nbsp; ');
+      consoleLine(`<span class="mono muted">[${stamp}]</span> Ran on ${data.backend} — ${data.num_qubits} qubit${data.num_qubits === 1 ? '' : 's'}, ${data.shots} shots<br><span style="margin-top:4px; display:inline-block;">${resultStr}</span>`);
+    } catch (e) {
+      consoleLine(`<span class="mono muted">[${stamp}]</span> <strong style="color:var(--red,#e0523f);">Error:</strong> Could not reach the server — is app.py running?`);
+    } finally {
+      statusRunBtn.disabled = false;
+    }
+  });
+
+  {% if current_user.is_authenticated and current_user.can_create_lessons %}
+  document.getElementById('ide-save-widget').addEventListener('click', async () => {
+    const title = prompt('Widget title (shown to students in the Lesson Creator):');
+    if (!title) return;
+    const btn = document.getElementById('ide-save-widget');
+    btn.disabled = true;
+    try {
+      const res = await fetch('/api/widgets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': window.QS_CSRF_TOKEN },
+        body: JSON.stringify({ title, code: codeEl.value })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        consoleLine(`<strong style="color:var(--red,#e0523f);">Could not save widget:</strong> ${data.message || 'Unknown error.'}`);
+        return;
+      }
+      consoleLine(`<strong style="color:var(--green);">Saved widget "${data.title}".</strong> Pick it from any step's Widget dropdown in the <a href="{{ url_for('lesson_creator') }}">Lesson Creator</a>.`);
+    } catch (e) {
+      consoleLine('<strong style="color:var(--red,#e0523f);">Could not reach the server.</strong>');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+  {% endif %}
+</script>
+{% endblock %}

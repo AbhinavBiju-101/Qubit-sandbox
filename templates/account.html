@@ -63,7 +63,34 @@
   </div>
 </div>
 
-<div class="section-title"><h2>Lesson progress</h2></div>
+<div class="section-title"><h2>Streak &amp; study time</h2></div>
+<div class="grid-3" style="margin-top:14px; margin-bottom:8px;">
+  <div class="stat">
+    <span class="num streak-flame" id="stat-streak">🔥 0</span>
+    <span class="label">day streak</span>
+  </div>
+  <div class="stat">
+    <span class="num" id="stat-hours">0</span>
+    <span class="label">hours studied (all time)</span>
+  </div>
+  <div class="stat">
+    <span class="num" id="stat-badges">0/0</span>
+    <span class="label">badges unlocked</span>
+  </div>
+</div>
+<p class="muted" style="font-size:0.78rem; margin:0 0 28px;">Counted from time spent anywhere in the app while a tab is open and focused — a coarse signal, not a precise timer. Longest streak ever: <span class="mono" id="stat-longest-streak">0</span> days.</p>
+
+<div class="section-title"><h2>Badges</h2></div>
+<div class="panel" style="margin-top:14px; margin-bottom:36px;">
+  <div class="badge-grid" id="badge-grid"></div>
+</div>
+
+<div class="section-title"><h2>Progress by module</h2></div>
+<div class="panel" style="margin-top:14px;">
+  <div id="account-module-list">Loading…</div>
+</div>
+
+<div class="section-title" style="margin-top:32px;"><h2>Lesson progress</h2></div>
 <div class="panel" style="margin-top:14px;">
   <div id="account-lesson-list"></div>
 </div>
@@ -116,6 +143,65 @@
       listEl.appendChild(row);
     });
     document.getElementById('stat-lessons').textContent = completedCount + '/' + QS_LESSON_DEFS.length;
+
+    // ---- Module progress (Modules feature) ----
+    try {
+      const modRes = await fetch('/api/modules');
+      const modData = await modRes.json();
+      const modListEl = document.getElementById('account-module-list');
+      modListEl.innerHTML = '';
+      (modData.modules || []).forEach((m, mi) => {
+        let total = 0, done = 0;
+        if (m.kind === 'builtin') {
+          m.lessons.forEach(l => {
+            const entry = all[l.id] || { done: [] };
+            total += l.steps;
+            done += Math.min((entry.done || []).length, l.steps);
+          });
+        } else {
+          m.lessons.forEach(l => {
+            const entry = all[l.id];
+            total += 1;
+            if (entry && (entry.done || []).length > 0) done += 1;
+          });
+        }
+        const pct = total ? Math.round(done / total * 100) : 0;
+        const row = document.createElement('div');
+        row.style.cssText = `padding:14px 0; ${mi < modData.modules.length - 1 ? 'border-bottom:1px solid var(--line);' : ''}`;
+        row.innerHTML = `
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px;">
+            <strong>${m.title}</strong>
+            <span class="mono muted" style="font-size:0.82rem;">${pct}%</span>
+          </div>
+          <div class="lesson-progress-track"><div class="lesson-progress-fill" style="width:${pct}%;"></div></div>
+        `;
+        modListEl.appendChild(row);
+      });
+      if (!modData.modules || !modData.modules.length) modListEl.innerHTML = '<p class="muted">No modules yet.</p>';
+    } catch (e) {
+      document.getElementById('account-module-list').innerHTML = '<p class="muted">Could not load module progress.</p>';
+    }
+
+    // ---- Gamification: streak, hours, badges ----
+    try {
+      const gRes = await fetch('/api/gamification');
+      const g = await gRes.json();
+      document.getElementById('stat-streak').textContent = '🔥 ' + g.current_streak;
+      document.getElementById('stat-hours').textContent = g.total_hours;
+      document.getElementById('stat-badges').textContent = g.earned_count + '/' + g.total_count;
+      document.getElementById('stat-longest-streak').textContent = g.longest_streak;
+      const grid = document.getElementById('badge-grid');
+      grid.innerHTML = '';
+      g.badges.forEach(b => {
+        const tile = document.createElement('div');
+        tile.className = 'badge-tile' + (b.earned_at ? '' : ' locked');
+        tile.title = b.desc;
+        tile.innerHTML = `<span class="b-emoji">${b.emoji}</span><span class="b-label">${b.label}</span><div class="b-desc">${b.earned_at ? 'Earned ' + new Date(b.earned_at * 1000).toLocaleDateString() : b.desc}</div>`;
+        grid.appendChild(tile);
+      });
+    } catch (e) {
+      document.getElementById('badge-grid').innerHTML = '<p class="muted">Could not load badges.</p>';
+    }
   })();
 
   document.getElementById('account-delete-btn').addEventListener('click', async () => {

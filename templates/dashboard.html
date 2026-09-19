@@ -14,7 +14,7 @@
 <h2 style="margin-bottom:4px;">Welcome back</h2>
 <p class="muted" id="dash-welcome-copy">Pick up where you left off, or jump straight into a <a href="{{ url_for('sandbox') }}">sandbox</a>. Progress is saved to your account once you're signed in.</p>
 
-<div class="grid-3" style="margin:24px 0 36px;">
+<div class="grid-3" style="margin:24px 0 12px;">
   <div class="stat">
     <span class="num" id="stat-shots">0</span>
     <span class="label">measurement shots run</span>
@@ -28,6 +28,8 @@
     <span class="label">lessons completed</span>
   </div>
 </div>
+
+<div class="grid-3" style="margin:0 0 36px;" id="dash-gamify-row"></div>
 
 <div class="section-title" style="display:flex; align-items:baseline; justify-content:space-between;">
   <h2>Continue where you left off</h2>
@@ -128,6 +130,17 @@
     } else {
       inProgress.forEach(x => continueList.appendChild(renderContinueCard(x.def, x.pct)));
     }
+
+    // ---- Compact gamification row: streak / hours / badges ----
+    try {
+      const gRes = await fetch('/api/gamification');
+      const g = await gRes.json();
+      document.getElementById('dash-gamify-row').innerHTML = `
+        <div class="stat"><span class="num streak-flame">🔥 ${g.current_streak}</span><span class="label">day streak</span></div>
+        <div class="stat"><span class="num">${g.total_hours}</span><span class="label">hours studied</span></div>
+        <div class="stat"><span class="num">${g.earned_count}/${g.total_count}</span><span class="label">badges — see <a href="{{ url_for('account') }}">Account</a></span></div>
+      `;
+    } catch (e) { /* gamification is a bonus — silently skip on failure */ }
   })();
 </script>
 {% endblock %}

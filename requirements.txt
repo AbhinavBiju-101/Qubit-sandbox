@@ -15,3 +15,11 @@ python-dotenv==1.0.1
 # target.
 qiskit==1.2.4
 qiskit-aer==0.15.1
+
+# For creator-authored markdown in lesson step bodies (Modules /
+# Lesson Creator v2) — Markdown renders to HTML, bleach sanitizes it
+# down to a safe tag/attribute allowlist before it's ever sent to a
+# browser (see _render_markdown() in app.py). Small, pure-Python, no
+# heavy dependency tree.
+Markdown==3.7
+bleach==6.2.0

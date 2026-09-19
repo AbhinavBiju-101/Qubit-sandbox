@@ -5,9 +5,20 @@
 {% block content %}
 
 <h2 style="margin-bottom:4px;">All lessons</h2>
-<p class="muted" style="margin-bottom:24px;">Short, hands-on, with a built-in sandbox for each idea. QM Basics and Single Qubit are open to everyone; the rest unlock once you're signed in.</p>
+<p class="muted" style="margin-bottom:24px;">Organized into Modules. QM Basics and Single Qubit are open to everyone; the rest of Module 1 unlocks once you're signed in.</p>
 
-<div class="grid-3" style="align-items:stretch;">
+<div class="section-title" style="display:flex; align-items:center; justify-content:space-between; gap:14px;">
+  <div>
+    <span class="panel-label" style="position:static; display:inline-block; margin-bottom:6px;">MODULE 1</span>
+    <h2 style="margin:0;">Foundations of Quantum Computing</h2>
+  </div>
+  <div style="min-width:160px; text-align:right;" id="module-1-progress-wrap">
+    <span class="mono muted" id="module-1-progress-pct" style="font-size:0.85rem;">—</span>
+    <div class="lesson-progress-track" style="margin-top:6px;"><div class="lesson-progress-fill" id="module-1-progress-fill"></div></div>
+  </div>
+</div>
+
+<div class="grid-3" style="align-items:stretch; margin-top:16px;">
 
   <a href="{{ url_for('qm_basics') }}" class="card-link">
     <div class="lesson-card">
@@ -101,11 +112,56 @@
 
 </div>
 
-{% if custom_lessons %}
-<div class="section-title" style="margin-top:36px;"><h2>Community lessons</h2></div>
-<p class="muted" style="margin-bottom:20px;">Written by educator accounts with the <a href="{{ url_for('lesson_creator') }}">Lesson Creator</a>. Open to everyone, no progress tracking yet.</p>
+<div class="section-title" style="margin-top:8px;"><h3 style="font-size:0.95rem; color:var(--text-muted);">Module 1 widgets</h3></div>
 <div class="grid-3" style="align-items:stretch;">
-  {% for l in custom_lessons %}
+  {% for w in [{"title": "Coin Flip", "desc": "Single-qubit superposition, no lesson text.", "href": url_for('embed_coin_flip')}, {"title": "Two Qubit / Bell State", "desc": "Entanglement widget, standalone.", "href": url_for('embed_two_qubit')}] %}
+  <a href="{{ w.href }}" target="_blank" rel="noopener" class="card-link">
+    <div class="lesson-card">
+      <div class="licon" style="background:var(--surface-alt); color:var(--text-muted);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>
+      </div>
+      <span class="pill" style="margin-bottom:10px; width:fit-content;">Widget</span>
+      <h3>{{ w.title }}</h3>
+      <p>{{ w.desc }}</p>
+      <div style="margin-top:auto; padding-top:14px;"><span class="pill">Open →</span></div>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+
+{% for m in community_modules %}
+<div class="section-title" style="margin-top:40px; display:flex; align-items:center; justify-content:space-between; gap:14px;">
+  <div>
+    <span class="panel-label" style="position:static; display:inline-block; margin-bottom:6px;">MODULE &middot; BY {{ m.author.upper() if m.author else 'COMMUNITY' }}</span>
+    <h2 style="margin:0;">{{ m.title }}</h2>
+    {% if m.description %}<p class="muted" style="margin-top:4px;">{{ m.description }}</p>{% endif %}
+  </div>
+  <div style="min-width:160px; text-align:right;" class="module-progress-wrap" data-module-lessons="{{ m.lessons | map(attribute='id') | list | tojson | e }}">
+    <span class="mono muted module-progress-pct" style="font-size:0.85rem;">—</span>
+    <div class="lesson-progress-track" style="margin-top:6px;"><div class="lesson-progress-fill module-progress-fill"></div></div>
+  </div>
+</div>
+<div class="grid-3" style="align-items:stretch; margin-top:16px;">
+  {% for l in m.lessons %}
+  <a href="{{ l.href }}" class="card-link">
+    <div class="lesson-card">
+      <div class="licon" style="background:var(--green-soft); color:var(--green);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      </div>
+      <span class="pill green" style="margin-bottom:10px; width:fit-content;">{{ l.steps }} step{{ 's' if l.steps != 1 }}</span>
+      <h3>{{ l.title }}</h3>
+      <div style="margin-top:auto; padding-top:14px;"><span class="pill">Open →</span></div>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% endfor %}
+
+{% if standalone_lessons %}
+<div class="section-title" style="margin-top:40px;"><h2>Other community lessons</h2></div>
+<p class="muted" style="margin-bottom:20px;">Not yet grouped into a module by their creator. Written with the <a href="{{ url_for('lesson_creator') }}">Lesson Creator</a>.</p>
+<div class="grid-3" style="align-items:stretch;">
+  {% for l in standalone_lessons %}
   <a href="{{ url_for('custom_lesson', slug=l.slug) }}" class="card-link">
     <div class="lesson-card">
       <div class="licon" style="background:var(--green-soft); color:var(--green);">
@@ -122,7 +178,7 @@
 {% endif %}
 
 <div class="panel" style="margin-top:24px; text-align:center;">
-  <p class="muted" style="margin:0;">Want a widget with no lesson text around it? Try the <a href="{{ url_for('sandbox') }}">Sandbox</a>.</p>
+  <p class="muted" style="margin:0;">Want a widget with no lesson text around it? Try the <a href="{{ url_for('sandbox') }}">Sandbox</a>. Creators: group your own lessons into a Module from the <a href="{{ url_for('creator_submissions') }}">My Submissions</a> page.</p>
 </div>
 
 {% endblock %}
@@ -148,10 +204,13 @@
       const row = card.querySelector('.lock-progress');
       if (row) row.style.display = 'none';
     });
+    document.getElementById('module-1-progress-wrap').innerHTML = '<span class="mono muted" style="font-size:0.8rem;">Sign in to track</span>';
+    document.querySelectorAll('.module-progress-wrap').forEach(w => w.innerHTML = '<span class="mono muted" style="font-size:0.8rem;">Sign in to track</span>');
   } else {
     const idToFill = { 'qm-basics': 'dash-qm-fill', 'single-qubit': 'dash-single-fill', 'two-qubit': 'dash-two-fill', 'physical-qubit': 'dash-phys-fill', 'hardware-lab': 'dash-hw-fill', 'reality-check': 'dash-reality-fill' };
     const idToPct = { 'qm-basics': 'dash-qm-pct', 'single-qubit': 'dash-single-pct', 'two-qubit': 'dash-two-pct', 'physical-qubit': 'dash-phys-pct', 'hardware-lab': 'dash-hw-pct', 'reality-check': 'dash-reality-pct' };
     qsFetchAllProgress().then(all => {
+      let modTotal = 0, modDone = 0;
       QS_LESSON_DEFS.forEach(l => {
         const entry = all[l.id] || { done: [] };
         const pct = qsComputePct(entry.done, l.steps);
@@ -159,8 +218,34 @@
         const pctEl = document.getElementById(idToPct[l.id]);
         if (fillEl) fillEl.style.width = pct + '%';
         if (pctEl) pctEl.textContent = pct + '%';
+        modTotal += l.steps;
+        modDone += Math.min((entry.done || []).length, l.steps);
+      });
+      const modPct = modTotal ? Math.round(modDone / modTotal * 100) : 0;
+      const m1Fill = document.getElementById('module-1-progress-fill');
+      const m1Pct = document.getElementById('module-1-progress-pct');
+      if (m1Fill) m1Fill.style.width = modPct + '%';
+      if (m1Pct) m1Pct.textContent = modPct + '% complete';
+
+      // Community module progress bars — each card stashed its own
+      // lesson-id list in data-module-lessons; we don't know per-lesson
+      // step counts client-side for these (dynamic), so this is a
+      // simpler "lessons touched at all / lessons fully done" ratio
+      // rather than a step-level percentage.
+      document.querySelectorAll('.module-progress-wrap[data-module-lessons]').forEach(wrap => {
+        const ids = JSON.parse(wrap.dataset.moduleLessons || '[]');
+        if (!ids.length) { wrap.querySelector('.module-progress-pct').textContent = 'No lessons yet'; return; }
+        let done = 0;
+        ids.forEach(id => {
+          const entry = all[id];
+          if (entry && entry.done && entry.done.length > 0) done++; // approx: touched
+        });
+        const pct = Math.round(done / ids.length * 100);
+        wrap.querySelector('.module-progress-fill').style.width = pct + '%';
+        wrap.querySelector('.module-progress-pct').textContent = pct + '% touched';
       });
     });
   }
 </script>
 {% endblock %}
+

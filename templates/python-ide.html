@@ -13,10 +13,13 @@
 <p class="muted" style="margin-bottom:26px;">These are real <span class="mono">qiskit</span> snippets — not illustrations. Hit "Run" and it calls the same <span class="mono">/api/compare-shots</span> Flask endpoint the Single Qubit lesson's Step 5 uses, which runs your circuit on real <span class="mono">qiskit-aer</span> server-side and returns actual counts.</p>
 
 <h2 style="margin-bottom:4px;">Code editor</h2>
-<p class="muted" style="margin-bottom:16px;">A real code editor, not just fixed buttons — but running arbitrary Python server-side is a genuine security problem, so this runs a <strong>restricted subset</strong>: build a <span class="mono">QuantumCircuit</span> named <span class="mono">qc</span>, call gate methods on it (<span class="mono">h x y z ry rx rz cx measure measure_all barrier</span>), do simple arithmetic — no <span class="mono">import</span>, no loops, no function/class definitions, no other function calls. Every "Open in editor" button below loads real, runnable code here. Max 3 qubits, 60 operations, 3 second timeout.</p>
+<p class="muted" style="margin-bottom:16px;">A real code editor, not just fixed buttons — but running arbitrary Python server-side is a genuine security problem, so this runs a <strong>restricted subset</strong>: build a <span class="mono">QuantumCircuit</span> named <span class="mono">qc</span>, call gate methods on it (<span class="mono">h x y z ry rx rz cx measure measure_all barrier</span>), do simple arithmetic — no <span class="mono">import</span>, no loops, no function/class definitions, no other function calls. Every "Open in editor" button below opens the full-screen IDE (code area + console + gate reference) with that snippet loaded. Max 3 qubits, 60 operations, 3 second timeout.</p>
 
 <div class="panel" style="margin-bottom:20px;">
-  <div class="panel-label">YOUR CIRCUIT</div>
+  <div class="panel-label" style="display:flex; align-items:center; justify-content:space-between;">
+    <span>QUICK RUN</span>
+    <a href="{{ url_for('python_ide_editor') }}" class="mono" style="font-size:0.76rem; font-weight:600;">Open full-screen IDE →</a>
+  </div>
   <textarea id="editor-textarea" spellcheck="false" style="width:100%; min-height:220px; font-family:var(--font-mono); font-size:0.85rem; line-height:1.6; background:#14172a; color:#d7dcf5; border:none; border-radius:var(--radius); padding:16px 18px; box-sizing:border-box; resize:vertical;">qc = QuantumCircuit(1, 1)
 qc.h(0)
 qc.measure(0, 0)</textarea>
@@ -283,11 +286,13 @@ result = <span class="fn">AerSimulator</span>().<span class="fn">run</span>(qc, 
   });
 
   function openInEditor(code) {
-    editorTextarea.value = code;
-    editorStatusEl.textContent = '';
-    editorResultEl.textContent = '';
-    editorTextarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    editorTextarea.focus();
+    // Fixed: this used to just scroll to the small inline editor above
+    // — now it hands the code off (via sessionStorage, since it can be
+    // long) to a real dedicated full-page IDE: a proper code area,
+    // output/console, run history, and gate reference side-by-side,
+    // not a cramped textarea in the middle of this page.
+    sessionStorage.setItem('qs_ide_pending_code', code);
+    window.location.href = '{{ url_for("python_ide_editor") }}';
   }
 
   // Restricted-grammar equivalents of the illustrative code-block

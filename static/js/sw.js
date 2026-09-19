@@ -24,7 +24,7 @@
    data, not static assets.
 =================================================================== */
 
-const CACHE_NAME = 'qubit-sandbox-v3';
+const CACHE_NAME = 'qubit-sandbox-v4';
 
 const PRECACHE_URLS = [
   '/',
@@ -81,15 +81,46 @@ self.addEventListener('fetch', (event) => {
   if (req.method !== 'GET') return; // never intercept POSTs (the API endpoints)
   if (req.url.includes('/api/')) return; // never cache the Qiskit/progress APIs — always hit the network
 
+  // Bug fixed here: every HTML page's sidebar/topbar/lesson-locking
+  // reflects Flask-Login's server-side auth state, re-rendered fresh
+  // on every request (current_user.is_authenticated, account name,
+  // lock chips, etc.). The old cache-first strategy below returned
+  // whatever HTML was cached from BEFORE your most recent sign-in or
+  // sign-out instantly, while the real (correct) network response was
+  // only used to silently refresh the cache for NEXT time — so right
+  // after signing out you'd still see your name in the sidebar and
+  // "unlocked" lessons until a second navigation (which then showed
+  // the PREVIOUS request's now-stale-in-the-other-direction result),
+  // and right after signing in you had to hit refresh to see it take.
+  // Fix: navigation/document requests (actual page loads — an HTML
+  // page, not a stylesheet or script) go network-first, so a
+  // just-changed auth state is reflected the moment you load a page.
+  // The cache is still populated as a fallback for offline use; it
+  // just never wins a race against a live network response. Static
+  // assets (CSS/JS/images), which don't depend on who's signed in,
+  // keep the original cache-first strategy for speed.
+  const isNavigation = req.mode === 'navigate' ||
+    (req.destination === '' && req.headers.get('accept') && req.headers.get('accept').includes('text/html'));
+
+  if (isNavigation) {
+    event.respondWith(
+      fetch(req)
+        .then((res) => {
+          if (res && res.status === 200 && !res.redirected) {
+            const copy = res.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+          }
+          return res;
+        })
+        .catch(() => caches.match(req).then((cached) => cached || Promise.reject('offline, not cached')))
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(req).then((cached) => {
       const networkFetch = fetch(req)
         .then((res) => {
-          // Only cache successful, non-redirected responses — a followed
-          // redirect (e.g. an @login_required page bouncing to /login)
-          // still resolves with status 200, so checking status alone
-          // isn't enough; `res.redirected` is what actually catches it.
-          // See the top-of-file note for why this matters here.
           if (res && res.status === 200 && !res.redirected) {
             const copy = res.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));

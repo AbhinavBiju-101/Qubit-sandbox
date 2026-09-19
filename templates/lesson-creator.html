@@ -7,7 +7,7 @@
 {% if current_user.is_authenticated and current_user.can_create_lessons %}
 
 <h2 style="margin-bottom:4px;" id="lc-form-heading">Write a lesson</h2>
-<p class="muted" style="margin-bottom:24px;">Publishes immediately, open to everyone (no sign-in needed to read it — same as QM Basics/Single Qubit), and shows up in a "Community lessons" section on <a href="{{ url_for('lessons') }}">/lessons</a>. Steps are plain text — line breaks are kept, but no HTML/markdown formatting yet (see <span class="mono">futureplans.md</span> #11).</p>
+<p class="muted" style="margin-bottom:24px;">Publishes immediately, open to everyone (no sign-in needed to read it — same as QM Basics/Single Qubit), and shows up on <a href="{{ url_for('lessons') }}">/lessons</a> — either standalone or grouped into one of your Modules. Step bodies support <strong>Markdown</strong> (headings, `code`, **bold**, lists, links) — no raw HTML. Manage everything you've published (edit/delete/publish, modules, widgets) on <a href="{{ url_for('creator_submissions') }}">My Submissions</a>.</p>
 
 <div class="panel" id="lc-form-panel" data-editing-id="">
   <div class="panel-label" id="lc-form-label">NEW LESSON</div>
@@ -17,6 +17,15 @@
 
   <label class="field-label" for="lc-description">Short description</label>
   <textarea id="lc-description" style="min-height:3.5em;" placeholder="One or two sentences — shows on the lesson card."></textarea>
+
+  <label class="field-label" for="lc-module">Module (optional)</label>
+  <select id="lc-module">
+    <option value="">— Standalone (no module) —</option>
+    {% for m in my_modules %}
+    <option value="{{ m.id }}">{{ m.title }}{% if not m.published %} (draft){% endif %}</option>
+    {% endfor %}
+  </select>
+  <p class="muted" style="font-size:0.78rem; margin-top:4px;">Create new modules from <a href="{{ url_for('creator_submissions') }}" target="_blank" rel="noopener">My Submissions</a>.</p>
 
   <label class="field-label">Steps</label>
   <div id="lc-steps"></div>
@@ -28,30 +37,6 @@
     <span class="mono muted" id="lc-status" style="font-size:0.82rem;"></span>
   </div>
 </div>
-
-{% if my_lessons %}
-<div class="section-title" style="margin-top:32px;"><h2>Your lessons</h2></div>
-<div class="panel" style="margin-top:14px;">
-  {% for l in my_lessons %}
-  <div class="lesson-step-head" style="padding:14px 0; {% if not loop.last %}border-bottom:1px solid var(--line);{% endif %}"
-       data-lesson-id="{{ l.id }}" data-slug="{{ l.slug }}" data-title="{{ l.title }}"
-       data-description="{{ l.description or '' }}" data-steps="{{ l.steps_json }}"
-       data-published="{{ l.published }}">
-    <div style="flex:1; min-width:0;">
-      <strong>{{ l.title }}</strong>
-      {% if not l.published %}<span class="lock-chip" style="margin:0 0 0 8px; vertical-align:middle;">Unpublished</span>{% endif %}
-      <div class="muted" style="font-size:0.8rem;">{{ l.description }}</div>
-    </div>
-    <div style="display:flex; gap:8px; flex-shrink:0; align-items:center;">
-      <a href="{{ url_for('custom_lesson', slug=l.slug) }}" target="_blank" rel="noopener" style="font-size:0.82rem;">View →</a>
-      <button class="small ghost" data-edit-lesson>Edit</button>
-      <button class="small ghost" data-toggle-publish>{{ 'Unpublish' if l.published else 'Republish' }}</button>
-      <button class="small ghost" data-delete-lesson style="color:var(--red, #e0523f); border-color:var(--red, #e0523f);">Delete</button>
-    </div>
-  </div>
-  {% endfor %}
-</div>
-{% endif %}
 
 {% elif current_user.is_authenticated and current_user.account_type == 'creator' and current_user.creator_status == 'pending' %}
 
@@ -118,10 +103,10 @@
 </div>
 
 <div class="panel" style="margin-top:8px;">
-  <div class="panel-label">NOT YET BUILT</div>
+  <div class="panel-label">WHAT'S INCLUDED</div>
   <div class="lesson-step">
-    <div class="lesson-step-head"><div class="lesson-step-num">A</div><h3>Rich text / markdown in step bodies</h3></div>
-    <div class="lesson-step-body"><p class="muted">Steps are plain text on purpose (line breaks kept, no HTML) — safe by construction, no formatting though.</p></div>
+    <div class="lesson-step-head"><div class="lesson-step-num">✓</div><h3>Markdown step bodies, custom checklists, your own widgets, and Modules</h3></div>
+    <div class="lesson-step-body"><p class="muted">Steps support Markdown formatting, extra custom checkbox prompts beyond "mark step complete", embeddable widgets you build yourself from a restricted Qiskit snippet, and grouping a set of your lessons into a named Module published together.</p></div>
   </div>
 </div>
 
@@ -132,11 +117,76 @@
 {% block scripts %}
 {% if current_user.is_authenticated and current_user.can_create_lessons %}
 <script>
-  const WIDGET_OPTIONS = [
-    { value: '', label: 'No widget — text only' },
-    { value: 'coin-flip', label: 'Coin Flip widget (single qubit)' },
-    { value: 'two-qubit', label: 'Two Qubit / Bell state widget' },
-  ];
+  // Server-rendered edit payload for `?edit=<id>` (see app.py's
+  // lesson_creator() route) — null when this is a fresh "new lesson"
+  // load. Avoids a second fetch just to populate the form.
+  const LESSON_EDIT_DATA = {{ edit_lesson_data | tojson }};
+
+  // My saved widgets (Python IDE × Lesson Creator crossover) — kept in
+  // JS state so a freshly-created one (via the inline "+ New widget"
+  // flow below) can be appended to every step's dropdown without a
+  // full page reload.
+  let MY_WIDGETS = {{ my_widgets | map(attribute='id') | list | tojson }}.map((id, i) => ({
+    id, title: {{ my_widgets | map(attribute='title') | list | tojson }}[i]
+  }));
+
+  function widgetOptionsHtml(selected) {
+    const base = [
+      { value: '', label: 'No widget — text only' },
+      { value: 'coin-flip', label: 'Coin Flip widget (single qubit)' },
+      { value: 'two-qubit', label: 'Two Qubit / Bell state widget' },
+    ];
+    const custom = MY_WIDGETS.map(w => ({ value: `custom-${w.id}`, label: `★ ${w.title} (your widget)` }));
+    const all = base.concat(custom, [{ value: '__new__', label: '+ Create new widget…' }]);
+    return all.map(o => `<option value="${o.value}" ${o.value === selected ? 'selected' : ''}>${o.label}</option>`).join('');
+  }
+
+  function refreshAllWidgetSelects() {
+    document.querySelectorAll('.lc-step-widget').forEach(sel => {
+      const current = sel.value;
+      sel.innerHTML = widgetOptionsHtml(current === '__new__' ? '' : current);
+    });
+  }
+
+  async function createWidgetInline(sel) {
+    const title = prompt('Widget title (e.g. "GHZ state prep"):');
+    if (!title) { sel.value = ''; return; }
+    const code = prompt(
+      'Paste the restricted Qiskit code (same rules as the Python IDE — ' +
+      'QuantumCircuit + h/x/y/z/ry/rx/rz/cx/measure/measure_all/barrier only, ' +
+      'must assign to `qc`, must call measure):',
+      'qc = QuantumCircuit(1, 1)\nqc.h(0)\nqc.measure(0, 0)'
+    );
+    if (!code) { sel.value = ''; return; }
+    try {
+      const res = await fetch('/api/widgets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': window.QS_CSRF_TOKEN },
+        body: JSON.stringify({ title, code })
+      });
+      const data = await res.json();
+      if (!res.ok) { alert(data.message || 'Could not save widget.'); sel.value = ''; return; }
+      MY_WIDGETS.push({ id: data.id, title: data.title });
+      refreshAllWidgetSelects();
+      sel.value = data.widget_ref;
+    } catch (e) {
+      alert('Could not reach the server.');
+      sel.value = '';
+    }
+  }
+
+  function lcChecklistRow(text) {
+    const row = document.createElement('div');
+    row.className = 'lc-checklist-row';
+    row.style.cssText = 'display:flex; gap:8px; margin-top:6px; align-items:center;';
+    row.innerHTML = `
+      <input type="text" class="lc-checklist-text" maxlength="200" placeholder="e.g. I identified the |+⟩ state on the Bloch sphere" style="flex:1;">
+      <button type="button" class="small ghost lc-remove-checklist-item" style="flex-shrink:0;">✕</button>
+    `;
+    row.querySelector('.lc-checklist-text').value = text || '';
+    row.querySelector('.lc-remove-checklist-item').addEventListener('click', () => row.remove());
+    return row;
+  }
 
   function lcStepRow(index, data) {
     data = data || {};
@@ -147,18 +197,27 @@
       <div class="lesson-step-body" style="padding:16px 18px;">
         <label class="field-label" style="margin-top:0;">Step ${index + 1} title</label>
         <input type="text" class="lc-step-title" maxlength="120" placeholder="e.g. What superposition means">
-        <label class="field-label">Step body</label>
-        <textarea class="lc-step-body" maxlength="4000" placeholder="Plain text — line breaks are kept."></textarea>
+        <label class="field-label">Step body <span class="muted" style="font-weight:400;">(Markdown: **bold**, *italic*, &#96;code&#96;, lists, headings)</span></label>
+        <textarea class="lc-step-body" maxlength="4000" placeholder="Markdown supported. No raw HTML."></textarea>
         <label class="field-label">Widget (optional)</label>
-        <select class="lc-step-widget">
-          ${WIDGET_OPTIONS.map(o => `<option value="${o.value}">${o.label}</option>`).join('')}
-        </select>
-        <button type="button" class="small ghost lc-remove-step" style="margin-top:12px;">Remove step</button>
+        <select class="lc-step-widget">${widgetOptionsHtml(data.widget || '')}</select>
+        <label class="field-label">Custom checklist items <span class="muted" style="font-weight:400;">(extra checkboxes beyond "mark step complete", up to 6)</span></label>
+        <div class="lc-checklist-list"></div>
+        <button type="button" class="small ghost lc-add-checklist-item" style="margin-top:8px;">+ Add checklist item</button>
+        <button type="button" class="small ghost lc-remove-step" style="margin-top:12px; margin-left:10px;">Remove step</button>
       </div>
     `;
     div.querySelector('.lc-step-title').value = data.title || '';
     div.querySelector('.lc-step-body').value = data.body || '';
-    div.querySelector('.lc-step-widget').value = data.widget || '';
+    const checklistList = div.querySelector('.lc-checklist-list');
+    (data.checklist || []).forEach(item => checklistList.appendChild(lcChecklistRow(item)));
+    div.querySelector('.lc-add-checklist-item').addEventListener('click', () => {
+      if (checklistList.children.length >= 6) { document.getElementById('lc-status').textContent = 'Max 6 checklist items per step.'; return; }
+      checklistList.appendChild(lcChecklistRow(''));
+    });
+    div.querySelector('.lc-step-widget').addEventListener('change', (e) => {
+      if (e.target.value === '__new__') createWidgetInline(e.target);
+    });
     div.querySelector('.lc-remove-step').addEventListener('click', () => {
       if (document.querySelectorAll('#lc-steps .lesson-step').length <= 1) {
         document.getElementById('lc-status').textContent = 'A lesson needs at least one step.';
@@ -178,9 +237,6 @@
     stepsEl.appendChild(lcStepRow(stepsEl.children.length));
   });
 
-  // Start with one empty step so the form isn't empty on first load.
-  document.getElementById('lc-steps').appendChild(lcStepRow(0));
-
   function resetForm() {
     document.getElementById('lc-form-panel').dataset.editingId = '';
     document.getElementById('lc-form-label').textContent = 'NEW LESSON';
@@ -189,29 +245,39 @@
     document.getElementById('lc-cancel-edit').style.display = 'none';
     document.getElementById('lc-title').value = '';
     document.getElementById('lc-description').value = '';
+    document.getElementById('lc-module').value = '';
     document.getElementById('lc-steps').innerHTML = '';
     document.getElementById('lc-steps').appendChild(lcStepRow(0));
     document.getElementById('lc-status').textContent = '';
+    if (window.history.replaceState) window.history.replaceState({}, '', window.location.pathname);
   }
 
-  function loadForEdit(row) {
-    const id = row.dataset.lessonId;
-    document.getElementById('lc-form-panel').dataset.editingId = id;
+  function loadForEdit(data) {
+    document.getElementById('lc-form-panel').dataset.editingId = data.id;
     document.getElementById('lc-form-label').textContent = 'EDITING LESSON';
-    document.getElementById('lc-form-heading').textContent = 'Edit "' + row.dataset.title + '"';
+    document.getElementById('lc-form-heading').textContent = 'Edit "' + data.title + '"';
     document.getElementById('lc-publish').textContent = 'Save changes';
     document.getElementById('lc-cancel-edit').style.display = '';
-    document.getElementById('lc-title').value = row.dataset.title;
-    document.getElementById('lc-description').value = row.dataset.description;
-    const steps = JSON.parse(row.dataset.steps || '[]');
+    document.getElementById('lc-title').value = data.title;
+    document.getElementById('lc-description').value = data.description || '';
+    document.getElementById('lc-module').value = data.module_id || '';
     const stepsEl = document.getElementById('lc-steps');
     stepsEl.innerHTML = '';
-    (steps.length ? steps : [{}]).forEach((s, i) => stepsEl.appendChild(lcStepRow(i, s)));
+    const steps = (data.steps && data.steps.length) ? data.steps : [{}];
+    steps.forEach((s, i) => stepsEl.appendChild(lcStepRow(i, s)));
     document.getElementById('lc-status').textContent = '';
     document.getElementById('lc-form-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   document.getElementById('lc-cancel-edit').addEventListener('click', resetForm);
+
+  // Start with one empty step, unless `?edit=<id>` handed us an
+  // existing lesson to load instead (LESSON_EDIT_DATA, from app.py).
+  if (LESSON_EDIT_DATA) {
+    loadForEdit(LESSON_EDIT_DATA);
+  } else {
+    document.getElementById('lc-steps').appendChild(lcStepRow(0));
+  }
 
   document.getElementById('lc-publish').addEventListener('click', async () => {
     const statusEl = document.getElementById('lc-status');
@@ -219,14 +285,17 @@
     const editingId = document.getElementById('lc-form-panel').dataset.editingId;
     const title = document.getElementById('lc-title').value.trim();
     const description = document.getElementById('lc-description').value.trim();
+    const module_id = document.getElementById('lc-module').value || null;
     const steps = Array.from(document.querySelectorAll('#lc-steps .lesson-step')).map(row => ({
       title: row.querySelector('.lc-step-title').value.trim(),
       body: row.querySelector('.lc-step-body').value.trim(),
       widget: row.querySelector('.lc-step-widget').value || null,
+      checklist: Array.from(row.querySelectorAll('.lc-checklist-text')).map(i => i.value.trim()).filter(Boolean),
     }));
 
     if (!title) { statusEl.textContent = 'Title is required.'; return; }
     if (steps.some(s => !s.title)) { statusEl.textContent = 'Every step needs a title.'; return; }
+    if (steps.some(s => s.widget === '__new__')) { statusEl.textContent = 'Finish creating the new widget on that step first.'; return; }
 
     btn.disabled = true;
     statusEl.textContent = editingId ? 'Saving…' : 'Publishing…';
@@ -234,60 +303,20 @@
       const res = await fetch(editingId ? `/api/lessons/${editingId}` : '/api/lessons', {
         method: editingId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': window.QS_CSRF_TOKEN },
-        body: JSON.stringify({ title, description, steps })
+        body: JSON.stringify({ title, description, steps, module_id })
       });
       const data = await res.json();
       if (!res.ok) {
         statusEl.textContent = data.message || 'Could not save.';
         return;
       }
-      statusEl.innerHTML = `Saved → <a href="${data.url}" target="_blank" rel="noopener">${data.url}</a>. Reloading…`;
-      setTimeout(() => window.location.reload(), 700);
+      statusEl.innerHTML = `Saved → <a href="${data.url}" target="_blank" rel="noopener">${data.url}</a>. Redirecting to My Submissions…`;
+      setTimeout(() => window.location.href = '{{ url_for("creator_submissions") }}', 800);
     } catch (e) {
       statusEl.textContent = 'Could not reach the server — is app.py running?';
     } finally {
       btn.disabled = false;
     }
-  });
-
-  document.querySelectorAll('[data-edit-lesson]').forEach(btn => {
-    btn.addEventListener('click', () => loadForEdit(btn.closest('[data-lesson-id]')));
-  });
-
-  document.querySelectorAll('[data-toggle-publish]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const row = btn.closest('[data-lesson-id]');
-      const id = row.dataset.lessonId;
-      const nowPublished = row.dataset.published === 'True' || row.dataset.published === 'true' || row.dataset.published === '1';
-      btn.disabled = true;
-      try {
-        const res = await fetch(`/api/lessons/${id}/publish`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': window.QS_CSRF_TOKEN },
-          body: JSON.stringify({ published: !nowPublished })
-        });
-        if (res.ok) window.location.reload();
-      } finally {
-        btn.disabled = false;
-      }
-    });
-  });
-
-  document.querySelectorAll('[data-delete-lesson]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const row = btn.closest('[data-lesson-id]');
-      if (!confirm(`Delete "${row.dataset.title}" permanently? This can't be undone.`)) return;
-      btn.disabled = true;
-      try {
-        const res = await fetch(`/api/lessons/${row.dataset.lessonId}`, {
-          method: 'DELETE',
-          headers: { 'X-CSRF-Token': window.QS_CSRF_TOKEN }
-        });
-        if (res.ok) window.location.reload();
-      } finally {
-        btn.disabled = false;
-      }
-    });
   });
 </script>
 {% endif %}

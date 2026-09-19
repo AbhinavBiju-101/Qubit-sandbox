@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% block title %}My Submissions — Qubit Sandbox{% endblock %}
+{% block page_title %}My Submissions{% endblock %}
+
+{% block content %}
+
+<p class="muted" style="margin-bottom:28px;">Everything you've published: modules, lessons, and saved widgets. Write a new lesson from the <a href="{{ url_for('lesson_creator') }}">Lesson Creator</a>; build a new widget from the <a href="{{ url_for('python_ide') }}">Python IDE</a> ("Save as widget"), then assign it to a step here or in the editor.</p>
+
+<div class="section-title" style="display:flex; align-items:baseline; justify-content:space-between;">
+  <h2>Modules</h2>
+</div>
+<p class="muted" style="margin-bottom:14px; font-size:0.85rem;">A module is a named set of your lessons, published together. Assign a lesson to a module from its row below, then publish the module here.</p>
+
+<div class="panel" id="new-module-panel" style="margin-bottom:18px;">
+  <div class="panel-label">NEW MODULE</div>
+  <label class="field-label" for="nm-title" style="margin-top:0;">Title</label>
+  <input type="text" id="nm-title" maxlength="200" placeholder="e.g. Quantum Error Correction, Step by Step">
+  <label class="field-label" for="nm-desc">Description</label>
+  <textarea id="nm-desc" style="min-height:3em;" maxlength="500" placeholder="One or two sentences — shows on /lessons."></textarea>
+  <div style="margin-top:14px;">
+    <button class="primary small" id="nm-create">Create module</button>
+    <span class="mono muted" id="nm-status" style="font-size:0.82rem; margin-left:10px;"></span>
+  </div>
+</div>
+
+{% if my_modules %}
+<div class="panel" style="margin-bottom:32px;">
+  {% for m in my_modules %}
+  <div class="lesson-step-head" style="padding:14px 0; {% if not loop.last %}border-bottom:1px solid var(--line);{% endif %}" data-module-row="{{ m.id }}">
+    <div style="flex:1; min-width:0;">
+      <strong>{{ m.title }}</strong>
+      {% if m.published %}<span class="pill green" style="margin-left:8px;">Published</span>{% else %}<span class="lock-chip" style="margin:0 0 0 8px; vertical-align:middle;">Draft</span>{% endif %}
+      <div class="muted" style="font-size:0.8rem;">{{ m.description or 'No description.' }}</div>
+    </div>
+    <div style="display:flex; gap:8px; flex-shrink:0; align-items:center;">
+      <button class="small ghost" data-toggle-module-publish="{{ m.id }}" data-published="{{ m.published }}">{{ 'Unpublish' if m.published else 'Publish (+ its lessons)' }}</button>
+      <button class="small ghost" data-delete-module="{{ m.id }}" style="color:var(--red, #e0523f); border-color:var(--red, #e0523f);">Delete</button>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<p class="muted" style="margin-bottom:32px; font-size:0.85rem;">No modules yet — create one above, or leave lessons standalone.</p>
+{% endif %}
+
+<div class="section-title"><h2>Lessons</h2></div>
+{% if my_lessons %}
+<div class="panel" style="margin-top:14px; margin-bottom:32px;">
+  {% for l in my_lessons %}
+  <div class="lesson-step-head" style="padding:14px 0; flex-wrap:wrap; {% if not loop.last %}border-bottom:1px solid var(--line);{% endif %}" data-lesson-row="{{ l.id }}">
+    <div style="flex:1; min-width:220px;">
+      <strong>{{ l.title }}</strong>
+      {% if not l.published %}<span class="lock-chip" style="margin:0 0 0 8px; vertical-align:middle;">Unpublished</span>{% endif %}
+      <div class="muted" style="font-size:0.8rem;">{{ l.description }}</div>
+    </div>
+    <select class="lesson-module-select" data-lesson-id="{{ l.id }}" style="max-width:200px;">
+      <option value="">— No module —</option>
+      {% for m in my_modules %}
+      <option value="{{ m.id }}" {% if l.module_id == m.id %}selected{% endif %}>{{ m.title }}</option>
+      {% endfor %}
+    </select>
+    <div style="display:flex; gap:8px; flex-shrink:0; align-items:center;">
+      <a href="{{ url_for('custom_lesson', slug=l.slug) }}" target="_blank" rel="noopener" style="font-size:0.82rem;">View →</a>
+      <a href="{{ url_for('lesson_creator') }}?edit={{ l.id }}" class="small ghost btn" style="text-decoration:none;">Edit</a>
+      <button class="small ghost" data-toggle-publish="{{ l.id }}" data-published="{{ l.published }}">{{ 'Unpublish' if l.published else 'Republish' }}</button>
+      <button class="small ghost" data-delete-lesson="{{ l.id }}" data-title="{{ l.title }}" style="color:var(--red, #e0523f); border-color:var(--red, #e0523f);">Delete</button>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<p class="muted" style="margin-top:14px; margin-bottom:32px; font-size:0.85rem;">Nothing published yet — <a href="{{ url_for('lesson_creator') }}">write your first lesson</a>.</p>
+{% endif %}
+
+<div class="section-title"><h2>Saved widgets</h2></div>
+<p class="muted" style="margin-bottom:14px; font-size:0.85rem;">Restricted-grammar Qiskit snippets you've saved (from the Python IDE) that can be embedded in any lesson step, in addition to the built-in Coin Flip / Two Qubit widgets.</p>
+{% if my_widgets %}
+<div class="panel" style="margin-top:14px;">
+  {% for w in my_widgets %}
+  <div class="lesson-step-head" style="padding:14px 0; {% if not loop.last %}border-bottom:1px solid var(--line);{% endif %}" data-widget-row="{{ w.id }}">
+    <div style="flex:1; min-width:0;">
+      <strong>{{ w.title }}</strong>
+      <div class="mono muted" style="font-size:0.76rem; white-space:pre-line; margin-top:4px;">{{ w.code[:120] }}{% if w.code|length > 120 %}…{% endif %}</div>
+    </div>
+    <button class="small ghost" data-delete-widget="{{ w.id }}" style="color:var(--red, #e0523f); border-color:var(--red, #e0523f);">Delete</button>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<p class="muted" style="font-size:0.85rem;">No saved widgets yet — build a circuit in the <a href="{{ url_for('python_ide') }}">Python IDE</a>'s code editor and hit "Save as widget".</p>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.getElementById('nm-create').addEventListener('click', async () => {
+    const statusEl = document.getElementById('nm-status');
+    const title = document.getElementById('nm-title').value.trim();
+    const description = document.getElementById('nm-desc').value.trim();
+    if (!title) { statusEl.textContent = 'Title is required.'; return; }
+    statusEl.textContent = 'Creating…';
+    try {
+      const res = await fetch('/api/creator-modules', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': window.QS_CSRF_TOKEN },
+        body: JSON.stringify({ title, description })
+      });
+      const data = await res.json();
+      if (!res.ok) { statusEl.textContent = data.message || 'Could not create module.'; return; }
+      window.location.reload();
+    } catch (e) {
+      statusEl.textContent = 'Could not reach the server.';
+    }
+  });
+
+  document.querySelectorAll('[data-toggle-module-publish]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.toggleModulePublish;
+      const nowPublished = btn.dataset.published === 'True' || btn.dataset.published === 'true';
+      btn.disabled = true;
+      try {
+        const res = await fetch(`/api/creator-modules/${id}/publish`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': window.QS_CSRF_TOKEN },
+          body: JSON.stringify({ published: !nowPublished })
+        });
+        if (res.ok) window.location.reload();
+      } finally { btn.disabled = false; }
+    });
+  });
+
+  document.querySelectorAll('[data-delete-module]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('Delete this module? Lessons in it are kept, just detached.')) return;
+      btn.disabled = true;
+      try {
+        const res = await fetch(`/api/creator-modules/${btn.dataset.deleteModule}`, {
+          method: 'DELETE', headers: { 'X-CSRF-Token': window.QS_CSRF_TOKEN }
+        });
+        if (res.ok) window.location.reload();
+      } finally { btn.disabled = false; }
+    });
+  });
+
+  document.querySelectorAll('.lesson-module-select').forEach(sel => {
+    sel.addEventListener('change', async () => {
+      sel.disabled = true;
+      try {
+        await fetch(`/api/lessons/${sel.dataset.lessonId}/module`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': window.QS_CSRF_TOKEN },
+          body: JSON.stringify({ module_id: sel.value || null })
+        });
+      } finally { sel.disabled = false; }
+    });
+  });
+
+  document.querySelectorAll('[data-toggle-publish]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.togglePublish;
+      const nowPublished = btn.dataset.published === 'True' || btn.dataset.published === 'true';
+      btn.disabled = true;
+      try {
+        const res = await fetch(`/api/lessons/${id}/publish`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': window.QS_CSRF_TOKEN },
+          body: JSON.stringify({ published: !nowPublished })
+        });
+        if (res.ok) window.location.reload();
+      } finally { btn.disabled = false; }
+    });
+  });
+
+  document.querySelectorAll('[data-delete-lesson]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!confirm(`Delete "${btn.dataset.title}" permanently? This can't be undone.`)) return;
+      btn.disabled = true;
+      try {
+        const res = await fetch(`/api/lessons/${btn.dataset.deleteLesson}`, {
+          method: 'DELETE', headers: { 'X-CSRF-Token': window.QS_CSRF_TOKEN }
+        });
+        if (res.ok) window.location.reload();
+      } finally { btn.disabled = false; }
+    });
+  });
+
+  document.querySelectorAll('[data-delete-widget]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('Delete this widget? Any lesson step embedding it will show "no longer available".')) return;
+      btn.disabled = true;
+      try {
+        const res = await fetch(`/api/widgets/${btn.dataset.deleteWidget}`, {
+          method: 'DELETE', headers: { 'X-CSRF-Token': window.QS_CSRF_TOKEN }
+        });
+        if (res.ok) window.location.reload();
+      } finally { btn.disabled = false; }
+    });
+  });
+</script>
+{% endblock %}
