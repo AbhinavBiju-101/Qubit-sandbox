@@ -6,6 +6,12 @@
 #
 # This runs the app with gunicorn (production WSGI server), not
 # Flask's built-in dev server — that's the point of containerizing it.
+#
+# Needs DATABASE_URL (Supabase Postgres connection string) and the
+# other vars in .env.example passed in at `docker run` time, e.g.:
+#   docker run -p 5000:5000 --env-file .env qubit-sandbox
+# (there's no local database file to volume-mount anymore — Postgres
+# lives on Supabase, outside the container.)
 
 FROM python:3.12-slim
 

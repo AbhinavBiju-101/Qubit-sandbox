@@ -11,7 +11,11 @@
 <div class="pill" style="margin-bottom:14px;">COMMUNITY LESSON &middot; BY {{ author_name.upper() }}</div>
 {% if not lesson.published %}
 <div class="callout" style="margin-bottom:18px; border-left-color:var(--red, #e0523f); background:var(--red-soft, #fdece9);">
+  {% if is_preview %}
+  <strong>Draft preview.</strong> This lesson isn't published yet — you're viewing it via a private preview link.
+  {% else %}
   <strong>Unpublished — only you can see this.</strong> Everyone else gets a 404. Republish or edit it from the <a href="{{ url_for('lesson_creator') }}">Lesson Creator</a>.
+  {% endif %}
 </div>
 {% endif %}
 <h1 style="margin-bottom:6px;">{{ lesson.title }}</h1>
@@ -21,8 +25,10 @@
 
 <p class="muted" style="font-size:0.82rem; margin-top:10px;">
   Written with the <a href="{{ url_for('lesson_creator') }}">Lesson Creator</a>.
-  {% if is_own %}<a href="{{ url_for('lesson_creator') }}" style="margin-left:6px;">Edit this lesson →</a>{% endif %}
+  {% if is_own %}<a href="{{ url_for('lesson_creator') }}?edit={{ lesson.id }}" style="margin-left:6px;">Edit this lesson →</a>{% endif %}
+  {% if can_fork %}<button type="button" class="small ghost" id="fork-btn" style="margin-left:6px;">Fork this lesson</button>{% endif %}
 </p>
+<div class="mono muted" id="fork-status" style="font-size:0.8rem;"></div>
 
 <div class="lesson-progress-row" style="margin-top:16px;">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -97,6 +103,27 @@
   // @login_required), but like every open lesson, tracking itself is
   // still signed-in-only — initLessonProgress() handles that already.
   initLessonProgress('custom-{{ lesson.slug }}');
+
+  {% if can_fork %}
+  document.getElementById('fork-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('fork-btn');
+    const statusEl = document.getElementById('fork-status');
+    btn.disabled = true;
+    statusEl.textContent = 'Forking…';
+    try {
+      const res = await fetch('/api/lessons/{{ lesson.id }}/fork', {
+        method: 'POST',
+        headers: { 'X-CSRF-Token': window.QS_CSRF_TOKEN }
+      });
+      const data = await res.json();
+      if (!res.ok) { statusEl.textContent = data.message || 'Could not fork this lesson.'; btn.disabled = false; return; }
+      statusEl.innerHTML = `Forked — <a href="${data.url}">continue editing your copy →</a>`;
+    } catch (e) {
+      statusEl.textContent = 'Could not reach the server.';
+      btn.disabled = false;
+    }
+  });
+  {% endif %}
 
   // ---- Creator widget embeds (Lesson Creator × Python IDE) ----
   document.querySelectorAll('.custom-widget-embed').forEach(async (panel) => {

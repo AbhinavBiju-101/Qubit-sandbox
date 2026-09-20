@@ -62,9 +62,13 @@
     <div style="display:flex; gap:8px; flex-shrink:0; align-items:center;">
       <a href="{{ url_for('custom_lesson', slug=l.slug) }}" target="_blank" rel="noopener" style="font-size:0.82rem;">View →</a>
       <a href="{{ url_for('lesson_creator') }}?edit={{ l.id }}" class="small ghost btn" style="text-decoration:none;">Edit</a>
+      <button class="small ghost" data-preview-link="{{ l.id }}">Get preview link</button>
+      <button class="small ghost" data-toggle-analytics="{{ l.id }}">Analytics</button>
       <button class="small ghost" data-toggle-publish="{{ l.id }}" data-published="{{ l.published }}">{{ 'Unpublish' if l.published else 'Republish' }}</button>
       <button class="small ghost" data-delete-lesson="{{ l.id }}" data-title="{{ l.title }}" style="color:var(--red, #e0523f); border-color:var(--red, #e0523f);">Delete</button>
     </div>
+    <div class="analytics-panel" id="analytics-{{ l.id }}" style="display:none; width:100%; margin-top:12px; padding-top:12px; border-top:1px dashed var(--line);"></div>
+    <div class="preview-link-result mono muted" id="preview-link-{{ l.id }}" style="width:100%; font-size:0.8rem; display:none;"></div>
   </div>
   {% endfor %}
 </div>
@@ -195,6 +199,65 @@
         });
         if (res.ok) window.location.reload();
       } finally { btn.disabled = false; }
+    });
+  });
+
+  document.querySelectorAll('[data-toggle-analytics]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.toggleAnalytics;
+      const panel = document.getElementById(`analytics-${id}`);
+      if (panel.style.display !== 'none') { panel.style.display = 'none'; return; }
+      panel.style.display = 'block';
+      panel.innerHTML = '<span class="mono muted" style="font-size:0.8rem;">Loading…</span>';
+      try {
+        const res = await fetch(`/api/lessons/${id}/analytics`, { headers: { 'X-CSRF-Token': window.QS_CSRF_TOKEN } });
+        const data = await res.json();
+        if (!res.ok) { panel.innerHTML = `<span class="mono muted" style="font-size:0.8rem;">${data.message || 'Could not load analytics.'}</span>`; return; }
+        if (!data.total_visitors) {
+          panel.innerHTML = '<span class="mono muted" style="font-size:0.8rem;">No one has opened this lesson yet.</span>';
+          return;
+        }
+        const rows = data.steps.map(s => {
+          const pct = Math.round(s.count / data.total_visitors * 100);
+          return `
+            <div style="display:flex; align-items:center; gap:10px; margin-top:6px;">
+              <span style="width:140px; flex-shrink:0; font-size:0.8rem;" class="muted">${s.title}</span>
+              <div class="lesson-progress-track" style="flex:1;"><div class="lesson-progress-fill" style="width:${pct}%;"></div></div>
+              <span class="mono muted" style="font-size:0.78rem; width:100px; text-align:right; flex-shrink:0;">${s.count}/${data.total_visitors} (${pct}%)</span>
+            </div>
+          `;
+        }).join('');
+        panel.innerHTML = `<div class="muted" style="font-size:0.78rem; margin-bottom:6px;">${data.total_visitors} visitor${data.total_visitors === 1 ? '' : 's'} with any progress on this lesson — how many reached each step:</div>${rows}`;
+      } catch (e) {
+        panel.innerHTML = '<span class="mono muted" style="font-size:0.8rem;">Could not reach the server.</span>';
+      }
+    });
+  });
+
+  document.querySelectorAll('[data-preview-link]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.previewLink;
+      const resultEl = document.getElementById(`preview-link-${id}`);
+      resultEl.style.display = 'block';
+      resultEl.textContent = 'Generating link…';
+      btn.disabled = true;
+      try {
+        const res = await fetch(`/api/lessons/${id}/preview-link`, {
+          method: 'POST', headers: { 'X-CSRF-Token': window.QS_CSRF_TOKEN }
+        });
+        const data = await res.json();
+        if (!res.ok) { resultEl.textContent = data.message || 'Could not generate a preview link.'; return; }
+        const fullUrl = window.location.origin + data.preview_url;
+        resultEl.innerHTML = `Preview link: <a href="${data.preview_url}" target="_blank" rel="noopener">${fullUrl}</a> <button type="button" class="small ghost" id="copy-preview-${id}">Copy</button>`;
+        document.getElementById(`copy-preview-${id}`).addEventListener('click', (e) => {
+          navigator.clipboard.writeText(fullUrl);
+          e.target.textContent = 'Copied!';
+        });
+      } catch (e) {
+        resultEl.textContent = 'Could not reach the server.';
+      } finally {
+        btn.disabled = false;
+      }
     });
   });
 </script>

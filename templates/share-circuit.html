@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}{{ shared.title or "Shared circuit" }} — Qubit Sandbox{% endblock %}
+{% block page_title %}Shared circuit{% endblock %}
+
+{% block content %}
+
+<h2 style="margin-bottom:4px;">{{ shared.title or "Untitled circuit" }}</h2>
+<p class="muted" style="margin-bottom:24px;">
+  {% if author_name %}Shared by {{ author_name }}{% else %}Shared anonymously{% endif %}
+  &middot; {{ shared.view_count }} view{{ 's' if shared.view_count != 1 }}
+  &middot; <a href="{{ url_for('gallery') }}">Browse the gallery →</a>
+</p>
+
+<div class="grid-2" style="align-items:start;">
+  <div class="panel">
+    <div class="panel-label">CODE</div>
+    <pre class="code-block mono" style="font-size:0.82rem; margin-top:6px; max-height:400px; overflow:auto;">{{ shared.code }}</pre>
+    <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+      <button class="primary" id="run-btn">Run on Qiskit Aer</button>
+      <button class="small ghost" id="open-editor-btn">Open in full IDE</button>
+      <label class="mono muted" style="font-size:0.82rem; display:flex; align-items:center; gap:6px;">shots <input type="number" id="shots" value="1000" min="1" max="20000" style="width:80px;"></label>
+    </div>
+    <div class="mono muted" id="status" style="font-size:0.82rem; margin-top:10px;"></div>
+    <div class="snippet-result" id="result"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-label">SHARE</div>
+    <label class="field-label" for="share-link" style="margin-top:0;">Link</label>
+    <div style="display:flex; gap:8px;">
+      <input type="text" id="share-link" readonly value="{{ request.url }}" style="flex:1;">
+      <button class="small ghost" id="copy-link">Copy</button>
+    </div>
+    <label class="field-label" for="embed-code">Embed on another site</label>
+    <textarea id="embed-code" readonly style="width:100%; min-height:70px; font-family:var(--font-mono); font-size:0.78rem; box-sizing:border-box;">&lt;iframe src="{{ embed_url }}" width="100%" height="360" style="border:1px solid #e6e9f2; border-radius:12px;"&gt;&lt;/iframe&gt;</textarea>
+    <button class="small ghost" id="copy-embed" style="margin-top:8px;">Copy embed code</button>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const code = {{ shared.code | tojson }};
+
+  document.getElementById('run-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('run-btn');
+    const statusEl = document.getElementById('status');
+    const resultEl = document.getElementById('result');
+    const shots = document.getElementById('shots').value;
+    btn.disabled = true;
+    statusEl.textContent = 'Calling qiskit-aer…';
+    resultEl.textContent = '';
+    try {
+      const res = await fetch('/api/run-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, shots })
+      });
+      const data = await res.json();
+      if (!res.ok) { statusEl.textContent = data.message || 'Could not run this circuit.'; return; }
+      statusEl.textContent = `Ran on ${data.backend} — ${data.num_qubits} qubit${data.num_qubits === 1 ? '' : 's'}.`;
+      const entries = Object.entries(data.counts);
+      const total = entries.reduce((sum, [, v]) => sum + v, 0) || 1;
+      resultEl.innerHTML = entries.map(([k, v]) => `<span class="mono">'${k}': ${v}</span> (${(v/total*100).toFixed(1)}%)`).join(' &nbsp;·&nbsp; ');
+    } catch (e) {
+      statusEl.textContent = 'Could not reach the server.';
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  document.getElementById('open-editor-btn').addEventListener('click', () => {
+    sessionStorage.setItem('qs_ide_pending_code', code);
+    window.location.href = '{{ url_for("python_ide_editor") }}';
+  });
+
+  function copyToClipboard(text, btn) {
+    navigator.clipboard.writeText(text).then(() => {
+      const original = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.textContent = original; }, 1500);
+    });
+  }
+  document.getElementById('copy-link').addEventListener('click', (e) => copyToClipboard(document.getElementById('share-link').value, e.target));
+  document.getElementById('copy-embed').addEventListener('click', (e) => copyToClipboard(document.getElementById('embed-code').value, e.target));
+</script>
+{% endblock %}

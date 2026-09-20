@@ -1,18 +1,51 @@
 """
-db.py — tiny SQLite persistence layer for real accounts.
+db.py — Postgres (Supabase) persistence layer for real accounts.
 
-Replaces the old localStorage-only mock (static/js/auth.js, deleted —
-see futureplans.md #10). No ORM on purpose: this is a handful of small
-tables and queries, SQLAlchemy would be more ceremony than the app
-needs right now.
+Migrated from SQLite (see git history for the pre-migration version)
+once the data outgrew what a single-file, single-writer SQLite DB
+comfortably handles — SQLite's whole-database write lock becomes a
+real bottleneck once you have concurrent app instances/workers, and a
+single file on local disk doesn't survive a redeploy on most hosts
+without a mounted volume. Supabase is just managed Postgres underneath
+(plus auth/storage/etc. this app doesn't use) — connecting is a normal
+`psycopg2` connection to a Postgres connection string, not a special
+SDK, so nearly every query below is unchanged SQL.
 
-The database file lives in Flask's `instance/` folder (already
-gitignored — see .gitignore) so it never accidentally gets committed
-or shipped in the Docker image via COPY . . — actually it WILL get
-copied into the image if it exists at build time, which is fine for a
-demo (single-container, single SQLite file) but means restarting the
-container from a fresh image resets accounts. Fine for now; a real
-deploy would mount a volume for instance/ or move to a hosted DB.
+No ORM on purpose, same reasoning as before the migration: this is a
+couple dozen small tables and queries, SQLAlchemy would be more
+ceremony than the app needs. To keep the migration itself low-risk,
+`get_db()` returns a thin wrapper (`_PGConn`) whose `.execute(sql,
+params)` mimics sqlite3's connection-level `.execute()` — most
+functions below are completely unchanged from the SQLite version;
+what *did* need real changes, function by function, was:
+  - `?` placeholders -> `%s` (handled automatically by `_PGConn.execute`)
+  - `cur.lastrowid` (SQLite-only) -> `INSERT ... RETURNING id` + `.lastrowid`
+    property on the wrapper that reads it off the RETURNING row
+  - `INSERT OR IGNORE` -> `INSERT ... ON CONFLICT (...) DO NOTHING`
+  - `PRAGMA table_info(...)` (used for idempotent migrations) ->
+    `information_schema.columns`
+  - `INTEGER PRIMARY KEY AUTOINCREMENT` -> `SERIAL PRIMARY KEY`
+Row access (`row["col"]`) is unchanged throughout — `psycopg2.extras.
+RealDictCursor` (set in `_PGConn.execute`) returns dict-like rows, the
+same ergonomics `sqlite3.Row` had.
+
+Connects via a small connection pool (`psycopg2.pool`), one connection
+checked out per request (`flask.g`, same lifecycle as before) and
+returned (not closed) on teardown — cheap enough for this app's
+traffic, and avoids a fresh TCP+TLS handshake to Supabase on every
+request, which SQLite obviously never needed since it was a local file.
+
+Required environment variable: DATABASE_URL (or SUPABASE_DB_URL as a
+fallback name) — the Postgres connection string from Supabase's
+dashboard: Project Settings -> Database -> Connection string -> URI.
+Use the **direct connection** string (port 5432), not the pgbouncer
+transaction-pooler string (port 6543) — this app holds a small pool of
+long-lived connections itself (see above), which is exactly the
+pattern the pooler string is meant to replace for serverless/
+short-lived-function deploys; mixing the two just adds a second,
+redundant pooling layer. If you deploy this as serverless functions
+instead of a long-running process, switch to the pooler string AND
+drop the pool size down to 1 (see register_app below).
 
 Account types (futureplans.md #10/#11): every user picks one at signup
 —  'student' (default, instant), 'educator' (instant, just a label —
@@ -42,33 +75,95 @@ Usage from app.py:
 import json
 import os
 import re
-import sqlite3
+import secrets
 import time
+
+import psycopg2
+import psycopg2.extras
+import psycopg2.pool
 
 from flask import g
 
-_DB_PATH = None  # set once by register_app()
+_POOL = None  # set once by register_app()
+
+
+class _PGConn:
+    """Thin wrapper so the rest of this file can keep calling
+    `db.execute(sql, params).fetchone()` exactly like it did against
+    sqlite3 — psycopg2 connections don't have a connection-level
+    `.execute()` (you go through a cursor), so this adds one. Also
+    auto-converts `?` placeholders to psycopg2's `%s` so none of the
+    ~80 queries below needed hand-editing for that alone."""
+
+    def __init__(self, raw_conn):
+        self.raw = raw_conn
+
+    def execute(self, sql, params=()):
+        cur = self.raw.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(sql.replace("?", "%s"), tuple(params))
+        return _PGCursor(cur)
+
+    def commit(self):
+        self.raw.commit()
+
+    def rollback(self):
+        self.raw.rollback()
+
+
+class _PGCursor:
+    """Wraps a psycopg2 cursor; adds `.lastrowid`, reading it off an
+    `INSERT ... RETURNING id` row (SQLite's cur.lastrowid has no
+    Postgres equivalent — every INSERT that used it below now has an
+    explicit RETURNING id clause instead)."""
+
+    def __init__(self, cur):
+        self._cur = cur
+
+    def fetchone(self):
+        return self._cur.fetchone()
+
+    def fetchall(self):
+        return self._cur.fetchall()
+
+    @property
+    def rowcount(self):
+        return self._cur.rowcount
+
+    @property
+    def lastrowid(self):
+        row = self._cur.fetchone()
+        return row["id"] if row else None
 
 
 def get_db():
-    """Per-request connection, stashed on flask.g. Call only inside an
-    app/request context (which is always true from route handlers)."""
+    """Per-request connection (checked out of the pool), stashed on
+    flask.g. Call only inside an app/request context (which is always
+    true from route handlers)."""
     if "db" not in g:
-        g.db = sqlite3.connect(_DB_PATH)
-        g.db.row_factory = sqlite3.Row
-        g.db.execute("PRAGMA foreign_keys = ON")
+        g.db = _PGConn(_POOL.getconn())
     return g.db
 
 
 def close_db(e=None):
-    db = g.pop("db", None)
-    if db is not None:
-        db.close()
+    """Returns the connection to the pool rather than closing it
+    outright. Always rolls back first: if the request errored out
+    mid-transaction, a pooled connection with a dangling failed
+    transaction would poison the NEXT request that checks it out
+    (Postgres refuses further queries on an aborted transaction until
+    it's rolled back) — rollback() is a harmless no-op if everything
+    was already committed cleanly."""
+    conn = g.pop("db", None)
+    if conn is not None:
+        try:
+            conn.rollback()
+        except Exception:
+            pass
+        _POOL.putconn(conn.raw)
 
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     provider TEXT NOT NULL,        -- 'google'
     provider_sub TEXT NOT NULL,    -- Google's stable 'sub' claim
     email TEXT,
@@ -89,8 +184,29 @@ CREATE TABLE IF NOT EXISTS lesson_progress (
     PRIMARY KEY (user_id, lesson_id)
 );
 
+-- Modules (scaling past a flat lesson list): a named, ordered
+-- collection of lessons. author_user_id IS NULL for the one built-in
+-- system module ("Module 1", seeded by _migrate() below, holding the
+-- 6 original built-in lessons + the two embeddable widgets) — every
+-- other row is a creator-authored module holding a subset of that
+-- creator's own custom_lessons, published together as a set.
+-- Created before custom_lessons below since custom_lessons.module_id
+-- references it — Postgres validates FK target tables exist at
+-- CREATE TABLE time, unlike SQLite which only checks at DML time, so
+-- table creation order in this file actually matters here.
+CREATE TABLE IF NOT EXISTS modules (
+    id SERIAL PRIMARY KEY,
+    slug TEXT NOT NULL UNIQUE,
+    title TEXT NOT NULL,
+    description TEXT,
+    author_user_id INTEGER REFERENCES users(id),  -- NULL = built-in system module
+    published INTEGER NOT NULL DEFAULT 0,
+    order_index INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS custom_lessons (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     author_user_id INTEGER NOT NULL REFERENCES users(id),
     slug TEXT NOT NULL UNIQUE,
     title TEXT NOT NULL,
@@ -98,23 +214,8 @@ CREATE TABLE IF NOT EXISTS custom_lessons (
     steps_json TEXT NOT NULL DEFAULT '[]',   -- JSON array of {title, body, widget, checklist}
     published INTEGER NOT NULL DEFAULT 1,
     module_id INTEGER REFERENCES modules(id),
-    created_at INTEGER NOT NULL
-);
-
--- Modules (scaling past a flat lesson list): a named, ordered
--- collection of lessons. author_user_id IS NULL for the one built-in
--- system module ("Module 1", seeded by _migrate() below, holding the
--- 6 original built-in lessons + the two embeddable widgets) — every
--- other row is a creator-authored module holding a subset of that
--- creator's own custom_lessons, published together as a set.
-CREATE TABLE IF NOT EXISTS modules (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    slug TEXT NOT NULL UNIQUE,
-    title TEXT NOT NULL,
-    description TEXT,
-    author_user_id INTEGER REFERENCES users(id),  -- NULL = built-in system module
-    published INTEGER NOT NULL DEFAULT 0,
-    order_index INTEGER NOT NULL DEFAULT 0,
+    preview_token TEXT,                      -- unguessable link to view while unpublished (draft mode)
+    forked_from_id INTEGER REFERENCES custom_lessons(id),  -- set when created via "Fork this lesson"
     created_at INTEGER NOT NULL
 );
 
@@ -126,7 +227,7 @@ CREATE TABLE IF NOT EXISTS modules (
 -- a "Run" button hitting /api/run-code with the saved code — no new
 -- execution surface, same restricted grammar and sandboxing.
 CREATE TABLE IF NOT EXISTS custom_widgets (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     author_user_id INTEGER NOT NULL REFERENCES users(id),
     title TEXT NOT NULL,
     code TEXT NOT NULL,
@@ -155,6 +256,39 @@ CREATE TABLE IF NOT EXISTS badges (
     earned_at INTEGER NOT NULL,
     PRIMARY KEY (user_id, badge_key)
 );
+
+-- Shareable circuits (anonymous-visitor branch): a permanent link to
+-- one restricted-grammar snippet (same grammar/validator as
+-- /api/run-code and custom widgets). author_user_id is NULL for an
+-- anonymous share (no account needed to build and share something).
+-- `public` opts a share into the /gallery listing; a share is always
+-- viewable directly by its hash regardless of `public` — that flag
+-- only controls whether it's *discoverable* by browsing, not whether
+-- the link works, matching how an unlisted YouTube video behaves.
+CREATE TABLE IF NOT EXISTS shared_circuits (
+    id SERIAL PRIMARY KEY,
+    hash TEXT NOT NULL UNIQUE,
+    title TEXT,
+    code TEXT NOT NULL,
+    author_user_id INTEGER REFERENCES users(id),
+    public INTEGER NOT NULL DEFAULT 0,
+    view_count INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL
+);
+
+-- "Confused here" button (student-learning branch): a lightweight,
+-- no-routing-anywhere signal. lesson_id is the same string key
+-- progress uses (a built-in id like "single-qubit", or "custom-<slug>")
+-- so this works on every lesson type without per-type wiring — see
+-- the generic hookup in lesson-progress.js. user_id is nullable (an
+-- anonymous visitor on an open lesson can still flag confusion).
+CREATE TABLE IF NOT EXISTS step_confusion_reports (
+    id SERIAL PRIMARY KEY,
+    lesson_id TEXT NOT NULL,
+    step_key TEXT NOT NULL,
+    user_id INTEGER REFERENCES users(id),
+    created_at INTEGER NOT NULL
+);
 """
 
 
@@ -162,9 +296,19 @@ def _migrate(conn):
     """Handles schema changes made after the initial release — safe to
     call on every startup, checks what's there before altering anything.
     `CREATE TABLE IF NOT EXISTS` above only covers brand-new databases;
-    an `instance/qubit_sandbox.db` from an earlier version needs
-    explicit ALTER TABLEs to pick up new columns."""
-    cols = {row[1] for row in conn.execute("PRAGMA table_info(users)")}
+    a database from an earlier version needs explicit ALTER TABLEs to
+    pick up new columns. `conn` is a `_PGConn`-wrapped connection, same
+    as everywhere else in this file — column existence is checked via
+    `information_schema.columns` (Postgres) instead of SQLite's
+    `PRAGMA table_info(...)`."""
+
+    def _cols(table_name):
+        rows = conn.execute(
+            "SELECT column_name FROM information_schema.columns WHERE table_name = ?", (table_name,)
+        ).fetchall()
+        return {r["column_name"] for r in rows}
+
+    cols = _cols("users")
     if "role" not in cols:
         conn.execute("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'student'")
         conn.commit()
@@ -181,9 +325,15 @@ def _migrate(conn):
         )
         conn.commit()
 
-    lesson_cols = {row[1] for row in conn.execute("PRAGMA table_info(custom_lessons)")}
+    lesson_cols = _cols("custom_lessons")
     if lesson_cols and "module_id" not in lesson_cols:
         conn.execute("ALTER TABLE custom_lessons ADD COLUMN module_id INTEGER REFERENCES modules(id)")
+        conn.commit()
+    if lesson_cols and "preview_token" not in lesson_cols:
+        conn.execute("ALTER TABLE custom_lessons ADD COLUMN preview_token TEXT")
+        conn.commit()
+    if lesson_cols and "forked_from_id" not in lesson_cols:
+        conn.execute("ALTER TABLE custom_lessons ADD COLUMN forked_from_id INTEGER REFERENCES custom_lessons(id)")
         conn.commit()
 
     # Seed the one built-in system module ("Module 1") if it doesn't
@@ -206,20 +356,41 @@ def _migrate(conn):
 
 
 def register_app(app):
-    """Call once at startup. Creates instance/ + the DB file/tables if
-    they don't exist yet, and wires connection cleanup into Flask's
-    request teardown."""
-    global _DB_PATH
-    os.makedirs(app.instance_path, exist_ok=True)
-    _DB_PATH = os.path.join(app.instance_path, "qubit_sandbox.db")
+    """Call once at startup. Connects to Postgres (Supabase), creates/
+    migrates tables if needed, and wires connection cleanup into
+    Flask's request teardown.
+
+    Reads DATABASE_URL (or SUPABASE_DB_URL) from the environment — see
+    the module docstring above for exactly which connection string to
+    use from the Supabase dashboard. Pool size (1-10) is sized for a
+    single long-running app process with modest traffic; bump the
+    upper bound if you're running multiple worker processes and start
+    seeing "pool exhausted" errors under load, or switch to the
+    pgbouncer pooler string + a pool of 1 if you move to a
+    serverless/multi-instance deploy (see module docstring)."""
+    global _POOL
+    database_url = os.environ.get("DATABASE_URL") or os.environ.get("SUPABASE_DB_URL")
+    if not database_url:
+        raise RuntimeError(
+            "DATABASE_URL (or SUPABASE_DB_URL) environment variable is required. "
+            "Get this from your Supabase project: Project Settings -> Database -> "
+            "Connection string -> URI (use the direct/session connection string, "
+            "port 5432, not the pgbouncer transaction-pooler string on 6543 — "
+            "see the top of db.py for why)."
+        )
 
     app.teardown_appcontext(close_db)
 
-    conn = sqlite3.connect(_DB_PATH)
-    conn.executescript(SCHEMA)
-    conn.commit()
-    _migrate(conn)
-    conn.close()
+    _POOL = psycopg2.pool.SimpleConnectionPool(1, 10, dsn=database_url)
+
+    raw = _POOL.getconn()
+    conn = _PGConn(raw)
+    try:
+        conn.execute(SCHEMA)
+        conn.commit()
+        _migrate(conn)
+    finally:
+        _POOL.putconn(raw)
 
 
 # --------------------------------------------------------------------
@@ -252,7 +423,7 @@ def get_or_create_user(provider, provider_sub, email=None, name=None, avatar_url
 
     cur = db.execute(
         "INSERT INTO users (provider, provider_sub, email, name, avatar_url, created_at) "
-        "VALUES (?, ?, ?, ?, ?, ?)",
+        "VALUES (?, ?, ?, ?, ?, ?) RETURNING id",
         (provider, provider_sub, email, name, avatar_url, int(time.time())),
     )
     db.commit()
@@ -293,16 +464,53 @@ def list_pending_creators():
 
 
 def delete_user(user_id):
-    """Deletes a user and everything that references them: their
-    lesson_progress rows, and any custom_lessons they authored (an
-    account-deletion flow leaving orphaned public content around would
-    be confusing, and PRAGMA foreign_keys=ON — set in get_db() — would
-    block the users-row delete otherwise anyway unless dependents go
-    first). Irreversible; the caller (app.py's /account/delete) is
-    responsible for confirming intent before calling this."""
+    """Deletes a user and cleans up everything that references them,
+    in dependency order (foreign keys are enforced — always, in
+    Postgres; this was ALSO true before the Postgres migration whenever
+    SQLite's `PRAGMA foreign_keys = ON` was set, so this was a latent
+    bug even then — it just never got exercised by a user who'd
+    authored a module/widget/shared circuit before being deleted).
+    Content ownership after deletion:
+      - lesson_progress, activity_log, badges: deleted outright (all
+        strictly personal, nothing else references them)
+      - custom_lessons, custom_widgets, modules they authored: deleted
+        outright too (an account-deletion flow leaving orphaned public
+        content around, attributed to a user who no longer exists,
+        would be confusing)
+      - shared_circuits, step_confusion_reports: anonymized (author_
+        user_id / user_id set to NULL) rather than deleted — both
+        tables already support a NULL author/user (an anonymous share,
+        an anonymous confusion report), so this just moves the row
+        into that same "anonymous" state instead of destroying data
+        someone else might still be relying on (e.g. a shared link)
+    Irreversible; the caller (app.py's /account/delete) is responsible
+    for confirming intent before calling this."""
     db = get_db()
     db.execute("DELETE FROM lesson_progress WHERE user_id = ?", (user_id,))
+    db.execute("DELETE FROM activity_log WHERE user_id = ?", (user_id,))
+    db.execute("DELETE FROM badges WHERE user_id = ?", (user_id,))
+    db.execute("UPDATE step_confusion_reports SET user_id = NULL WHERE user_id = ?", (user_id,))
+    db.execute("UPDATE shared_circuits SET author_user_id = NULL WHERE author_user_id = ?", (user_id,))
+    # Clear any OTHER user's fork attribution pointing at a lesson
+    # this user is about to lose, so that delete doesn't itself fail
+    # on custom_lessons.forked_from_id's foreign key.
+    db.execute(
+        "UPDATE custom_lessons SET forked_from_id = NULL "
+        "WHERE forked_from_id IN (SELECT id FROM custom_lessons WHERE author_user_id = ?)",
+        (user_id,),
+    )
     db.execute("DELETE FROM custom_lessons WHERE author_user_id = ?", (user_id,))
+    db.execute("DELETE FROM custom_widgets WHERE author_user_id = ?", (user_id,))
+    # Same reasoning as the forked_from_id clear above, for modules —
+    # nothing in the app actually lets a lesson reference another
+    # user's module today, but the schema doesn't forbid it, so this
+    # stays defensive rather than assuming that invariant holds.
+    db.execute(
+        "UPDATE custom_lessons SET module_id = NULL "
+        "WHERE module_id IN (SELECT id FROM modules WHERE author_user_id = ?)",
+        (user_id,),
+    )
+    db.execute("DELETE FROM modules WHERE author_user_id = ?", (user_id,))
     db.execute("DELETE FROM users WHERE id = ?", (user_id,))
     db.commit()
 
@@ -391,16 +599,19 @@ def slugify(title):
     return s or "lesson"
 
 
-def create_custom_lesson(author_user_id, title, description, steps, module_id=None):
+def create_custom_lesson(author_user_id, title, description, steps, module_id=None, published=True):
     """`steps` is a list of {"title", "body", "widget", "checklist"}
     dicts — `widget` is None, "coin-flip", "two-qubit", or
     "custom-<id>" (a creator's own saved widget — see custom_widgets).
     `checklist` is an optional list of extra plain-text checkbox
     prompts for that step, beyond the built-in "mark step complete"
     checkbox — each renders as its own progress-tracked checkbox.
-    Returns the created row. Auto-generates a unique slug from the
-    title; does not let the author pick one directly, to avoid
-    slug-squatting/collision-handling complexity in the UI for v1."""
+    `published=False` creates a draft (see preview_token/draft mode —
+    app.py generates and attaches a preview token right after this
+    call when a draft is requested). Returns the created row.
+    Auto-generates a unique slug from the title; does not let the
+    author pick one directly, to avoid slug-squatting/collision-
+    handling complexity in the UI for v1."""
     db = get_db()
     base_slug = slugify(title)
     slug = base_slug
@@ -410,8 +621,8 @@ def create_custom_lesson(author_user_id, title, description, steps, module_id=No
         n += 1
     cur = db.execute(
         "INSERT INTO custom_lessons (author_user_id, slug, title, description, steps_json, published, module_id, created_at) "
-        "VALUES (?, ?, ?, ?, ?, 1, ?, ?)",
-        (author_user_id, slug, title, description, json.dumps(steps), module_id, int(time.time())),
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id",
+        (author_user_id, slug, title, description, json.dumps(steps), 1 if published else 0, module_id, int(time.time())),
     )
     db.commit()
     return get_custom_lesson_by_id(cur.lastrowid)
@@ -502,10 +713,10 @@ def create_module(author_user_id, title, description):
     while db.execute("SELECT 1 FROM modules WHERE slug = ?", (slug,)).fetchone():
         slug = f"{base_slug}-{n}"
         n += 1
-    order_index = db.execute("SELECT COALESCE(MAX(order_index), 0) + 1 FROM modules").fetchone()[0]
+    order_index = db.execute("SELECT COALESCE(MAX(order_index), 0) + 1 AS n FROM modules").fetchone()["n"]
     cur = db.execute(
         "INSERT INTO modules (slug, title, description, author_user_id, published, order_index, created_at) "
-        "VALUES (?, ?, ?, ?, 0, ?, ?)",
+        "VALUES (?, ?, ?, ?, 0, ?, ?) RETURNING id",
         (slug, title, description, author_user_id, order_index, int(time.time())),
     )
     db.commit()
@@ -575,7 +786,7 @@ def set_lesson_module(lesson_id, module_id):
 def create_custom_widget(author_user_id, title, code):
     db = get_db()
     cur = db.execute(
-        "INSERT INTO custom_widgets (author_user_id, title, code, created_at) VALUES (?, ?, ?, ?)",
+        "INSERT INTO custom_widgets (author_user_id, title, code, created_at) VALUES (?, ?, ?, ?) RETURNING id",
         (author_user_id, title, code, int(time.time())),
     )
     db.commit()
@@ -612,7 +823,7 @@ def record_activity(user_id, date_str, minutes=1):
     db.execute(
         """
         INSERT INTO activity_log (user_id, activity_date, minutes) VALUES (?, ?, ?)
-        ON CONFLICT(user_id, activity_date) DO UPDATE SET minutes = minutes + excluded.minutes
+        ON CONFLICT(user_id, activity_date) DO UPDATE SET minutes = activity_log.minutes + excluded.minutes
         """,
         (user_id, date_str, minutes),
     )
@@ -642,13 +853,15 @@ def get_user_badges(user_id):
 
 
 def award_badge_if_new(user_id, badge_key):
-    """Idempotent — INSERT OR IGNORE keyed on (user_id, badge_key), so
-    calling this repeatedly for a badge someone already has is a no-op
-    and earned_at never moves. Returns True the first time (freshly
+    """Idempotent — INSERT ... ON CONFLICT DO NOTHING keyed on
+    (user_id, badge_key) (the table's primary key), so calling this
+    repeatedly for a badge someone already has is a no-op and
+    earned_at never moves. Returns True the first time (freshly
     earned), False if they already had it."""
     db = get_db()
     cur = db.execute(
-        "INSERT OR IGNORE INTO badges (user_id, badge_key, earned_at) VALUES (?, ?, ?)",
+        "INSERT INTO badges (user_id, badge_key, earned_at) VALUES (?, ?, ?) "
+        "ON CONFLICT (user_id, badge_key) DO NOTHING",
         (user_id, badge_key, int(time.time())),
     )
     db.commit()
@@ -672,3 +885,145 @@ BADGE_CATALOG = {
     "early-bird":     {"label": "Early Bird",        "emoji": "🌅", "desc": "Studied before 7am (your local time)."},
     "night-owl":      {"label": "Night Owl",         "emoji": "🦉", "desc": "Studied after 11pm (your local time)."},
 }
+
+
+# ======================================================================
+# Shareable circuits + Playground gallery
+# ======================================================================
+
+def create_shared_circuit(code, title=None, author_user_id=None, public=False):
+    """Generates a short, URL-safe hash (not sequential — an
+    autoincrement id would let people enumerate other people's shares
+    by just counting up) and stores the circuit under it. Anonymous
+    shares are fully supported (author_user_id=None) — sharing
+    something you built doesn't require an account."""
+    db = get_db()
+    h = secrets.token_urlsafe(6).rstrip("=-_")[:8] or secrets.token_hex(4)
+    while db.execute("SELECT 1 FROM shared_circuits WHERE hash = ?", (h,)).fetchone():
+        h = secrets.token_urlsafe(6).rstrip("=-_")[:8] or secrets.token_hex(4)
+    db.execute(
+        "INSERT INTO shared_circuits (hash, title, code, author_user_id, public, view_count, created_at) "
+        "VALUES (?, ?, ?, ?, ?, 0, ?)",
+        (h, title, code, author_user_id, 1 if public else 0, int(time.time())),
+    )
+    db.commit()
+    return get_shared_circuit(h)
+
+
+def get_shared_circuit(hash_):
+    return get_db().execute("SELECT * FROM shared_circuits WHERE hash = ?", (hash_,)).fetchone()
+
+
+def bump_shared_circuit_views(hash_):
+    db = get_db()
+    db.execute("UPDATE shared_circuits SET view_count = view_count + 1 WHERE hash = ?", (hash_,))
+    db.commit()
+
+
+def list_public_shared_circuits(limit=48):
+    """Newest first — the /gallery listing. Only circuits explicitly
+    marked public at share time; the hash still works for anyone with
+    the direct link regardless of this flag (see `shared_circuits`
+    table comment)."""
+    return get_db().execute(
+        "SELECT * FROM shared_circuits WHERE public = 1 ORDER BY created_at DESC LIMIT ?", (limit,)
+    ).fetchall()
+
+
+# ======================================================================
+# Lesson step-completion analytics (creator's own lessons only) —
+# derived from existing lesson_progress rows rather than a separate
+# tracking table: every step checkbox toggle already writes into
+# `done_steps`, so "how many people reached step N" is just an
+# aggregate query over data that exists for progress-tracking anyway,
+# with no extra writes or new tracking surface needed.
+# ======================================================================
+
+def get_lesson_step_completion_counts(lesson_id):
+    """{ step_key: distinct_user_count } for one lesson_id (e.g.
+    "custom-bell-states-101") — counts, across every user who has ANY
+    progress on this lesson, how many have each individual step key
+    (a "stepN" or a "stepN-cM" checklist item) marked done. Aggregate
+    only — no per-user data is exposed."""
+    rows = get_db().execute(
+        "SELECT done_steps FROM lesson_progress WHERE lesson_id = ?", (lesson_id,)
+    ).fetchall()
+    counts = {}
+    total_visitors = len(rows)
+    for r in rows:
+        try:
+            done = json.loads(r["done_steps"])
+        except (TypeError, ValueError):
+            done = []
+        for step_key in done:
+            counts[step_key] = counts.get(step_key, 0) + 1
+    return counts, total_visitors
+
+
+# ======================================================================
+# "Confused here" step reports
+# ======================================================================
+
+def record_confusion_report(lesson_id, step_key, user_id=None):
+    db = get_db()
+    db.execute(
+        "INSERT INTO step_confusion_reports (lesson_id, step_key, user_id, created_at) VALUES (?, ?, ?, ?)",
+        (lesson_id, step_key, user_id, int(time.time())),
+    )
+    db.commit()
+
+
+def get_confusion_counts(lesson_id):
+    """{ step_key: count } for one lesson — used by creator analytics
+    (only the lesson's own author sees this, enforced in app.py)."""
+    rows = get_db().execute(
+        "SELECT step_key, COUNT(*) AS n FROM step_confusion_reports WHERE lesson_id = ? GROUP BY step_key",
+        (lesson_id,),
+    ).fetchall()
+    return {r["step_key"]: r["n"] for r in rows}
+
+
+# ======================================================================
+# Draft/preview mode + forking
+# ======================================================================
+
+def set_lesson_preview_token(lesson_id, token):
+    """token=None clears it (e.g. once a lesson is published, the
+    preview link is no longer the only way to see it, but it's left
+    valid rather than invalidated — simplest behavior, and a preview
+    link leaking is no worse than the lesson being published)."""
+    db = get_db()
+    db.execute("UPDATE custom_lessons SET preview_token = ? WHERE id = ?", (token, lesson_id))
+    db.commit()
+
+
+def get_custom_lesson_by_preview_token(slug, token):
+    return get_db().execute(
+        "SELECT * FROM custom_lessons WHERE slug = ? AND preview_token = ? AND preview_token IS NOT NULL",
+        (slug, token),
+    ).fetchone()
+
+
+def fork_custom_lesson(source_lesson, new_author_user_id):
+    """Clones a published lesson's content (title, description, steps —
+    NOT its module, since the fork almost certainly doesn't belong to
+    the new author's module) under the new author, published as a
+    draft (published=0) so they can review/edit before it goes live,
+    and records forked_from_id for attribution."""
+    db = get_db()
+    base_slug = slugify(f"{source_lesson['title']}-fork")
+    slug = base_slug
+    n = 2
+    while db.execute("SELECT 1 FROM custom_lessons WHERE slug = ?", (slug,)).fetchone():
+        slug = f"{base_slug}-{n}"
+        n += 1
+    cur = db.execute(
+        "INSERT INTO custom_lessons (author_user_id, slug, title, description, steps_json, published, "
+        "module_id, forked_from_id, created_at) VALUES (?, ?, ?, ?, ?, 0, NULL, ?, ?) RETURNING id",
+        (
+            new_author_user_id, slug, f"{source_lesson['title']} (fork)", source_lesson["description"],
+            source_lesson["steps_json"], source_lesson["id"], int(time.time()),
+        ),
+    )
+    db.commit()
+    return get_custom_lesson_by_id(cur.lastrowid)

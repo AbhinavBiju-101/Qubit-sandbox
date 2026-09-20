@@ -31,7 +31,12 @@
   <div id="lc-steps"></div>
   <button type="button" class="small ghost" id="lc-add-step" style="margin-top:6px;">+ Add step</button>
 
-  <div style="margin-top:22px; display:flex; align-items:center; gap:12px;">
+  <label class="mark-done-check" id="lc-publish-now-row" style="margin-top:18px;">
+    <input type="checkbox" id="lc-publish-now" checked> Publish immediately (visible to everyone right away)
+  </label>
+  <p class="muted" style="font-size:0.78rem; margin:4px 0 0;" id="lc-publish-now-hint">Uncheck to save as a draft instead — you'll get a private preview link to share for feedback before it goes live.</p>
+
+  <div style="margin-top:16px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
     <button class="primary" id="lc-publish">Publish lesson</button>
     <button class="small ghost" id="lc-cancel-edit" style="display:none;">Cancel edit</button>
     <span class="mono muted" id="lc-status" style="font-size:0.82rem;"></span>
@@ -241,6 +246,9 @@
     document.getElementById('lc-form-panel').dataset.editingId = '';
     document.getElementById('lc-form-label').textContent = 'NEW LESSON';
     document.getElementById('lc-form-heading').textContent = 'Write a lesson';
+    document.getElementById('lc-publish-now-row').style.display = '';
+    document.getElementById('lc-publish-now-hint').style.display = '';
+    document.getElementById('lc-publish-now').checked = true;
     document.getElementById('lc-publish').textContent = 'Publish lesson';
     document.getElementById('lc-cancel-edit').style.display = 'none';
     document.getElementById('lc-title').value = '';
@@ -256,6 +264,8 @@
     document.getElementById('lc-form-panel').dataset.editingId = data.id;
     document.getElementById('lc-form-label').textContent = 'EDITING LESSON';
     document.getElementById('lc-form-heading').textContent = 'Edit "' + data.title + '"';
+    document.getElementById('lc-publish-now-row').style.display = 'none';
+    document.getElementById('lc-publish-now-hint').style.display = 'none';
     document.getElementById('lc-publish').textContent = 'Save changes';
     document.getElementById('lc-cancel-edit').style.display = '';
     document.getElementById('lc-title').value = data.title;
@@ -297,21 +307,28 @@
     if (steps.some(s => !s.title)) { statusEl.textContent = 'Every step needs a title.'; return; }
     if (steps.some(s => s.widget === '__new__')) { statusEl.textContent = 'Finish creating the new widget on that step first.'; return; }
 
+    const payload = { title, description, steps, module_id };
+    if (!editingId) payload.published = document.getElementById('lc-publish-now').checked;
+
     btn.disabled = true;
     statusEl.textContent = editingId ? 'Saving…' : 'Publishing…';
     try {
       const res = await fetch(editingId ? `/api/lessons/${editingId}` : '/api/lessons', {
         method: editingId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': window.QS_CSRF_TOKEN },
-        body: JSON.stringify({ title, description, steps, module_id })
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       if (!res.ok) {
         statusEl.textContent = data.message || 'Could not save.';
         return;
       }
-      statusEl.innerHTML = `Saved → <a href="${data.url}" target="_blank" rel="noopener">${data.url}</a>. Redirecting to My Submissions…`;
-      setTimeout(() => window.location.href = '{{ url_for("creator_submissions") }}', 800);
+      if (!editingId && data.published === false) {
+        statusEl.innerHTML = `Saved as a draft. Share this preview link for feedback: <a href="${data.preview_url}" target="_blank" rel="noopener">${data.preview_url}</a>. Redirecting to My Submissions…`;
+      } else {
+        statusEl.innerHTML = `Saved → <a href="${data.url}" target="_blank" rel="noopener">${data.url}</a>. Redirecting to My Submissions…`;
+      }
+      setTimeout(() => window.location.href = '{{ url_for("creator_submissions") }}', editingId ? 800 : 2200);
     } catch (e) {
       statusEl.textContent = 'Could not reach the server — is app.py running?';
     } finally {

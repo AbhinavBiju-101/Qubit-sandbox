@@ -20,7 +20,7 @@ streaks, study-hours tracking, unlockable badges), an **Admin** page
 for reviewing creator requests, and an **Account** page (profile,
 stats, per-module/per-lesson progress, badges, account deletion).
 **Sign-in is real** — Google OAuth + server sessions, backed by
-SQLite, with separate **Sign in** (`/login`) and **Create account**
+Postgres (Supabase), with separate **Sign in** (`/login`) and **Create account**
 (`/signup`, picks student/educator/creator) flows — see "Accounts"
 below.
 
@@ -32,6 +32,13 @@ below.
 pip install -r requirements.txt
 python app.py
 ```
+
+Requires a Postgres database — see "Accounts" below for the
+`DATABASE_URL` you need from Supabase before `app.py` will even boot
+(it calls `db.register_app(app)` at import time, which needs to
+connect). A free Supabase project takes about two minutes to create if
+you don't have one yet: supabase.com -> New project -> once it's
+provisioned, Project Settings -> Database -> Connection string -> URI.
 
 Open **http://localhost:5000**. `debug=True` is on in `app.py`, so
 editing a template or static file and refreshing picks up the change
@@ -64,13 +71,12 @@ the image — check size before deploying somewhere with a tight limit.
 ```
 qubit-flask/
 ├── app.py                     ← routes + nav data (NAV_ITEMS) + OAuth/session wiring + API
-├── db.py                      ← SQLite: users, lesson progress, custom_lessons, modules, custom_widgets, activity_log, badges
+├── db.py                      ← Postgres (Supabase): users, lesson progress, custom_lessons, modules, custom_widgets, shared_circuits, activity_log, badges
 ├── requirements.txt
 ├── Dockerfile
 ├── .dockerignore
 ├── .gitignore
-├── .env.example                ← SECRET_KEY / GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET / CREATOR_EMAILS / ADMIN_EMAILS
-├── instance/                   ← gitignored; qubit_sandbox.db (SQLite) lives here, created on first run
+├── .env.example                ← SECRET_KEY / DATABASE_URL / GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET / CREATOR_EMAILS / ADMIN_EMAILS
 ├── futureplans.md             ← what's shipped, what's deferred, in detail
 ├── templates/
 │   ├── base.html              ← sidebar app-shell, extended by every page below
@@ -133,9 +139,9 @@ Every page except `landing.html` and `login.html` does
 ## Accounts
 
 Real Google OAuth (via `Authlib`) + real server sessions (via
-`Flask-Login`), backed by a small SQLite database (`db.py`: `users`,
-`lesson_progress`, and `custom_lessons` tables, created automatically
-in `instance/qubit_sandbox.db` on first run).
+`Flask-Login`), backed by Postgres via Supabase (`db.py`: `users`,
+`lesson_progress`, `custom_lessons`, and friends — see `db.py`'s
+module docstring for the required `DATABASE_URL`).
 
 **Sign in vs. create account.** `/login` is for returning visitors —
 straight through to wherever they were headed. `/signup` is for new
@@ -206,10 +212,12 @@ hand-rolled double-submit check (`app.py`'s `csrf_protect` decorator).
 
 **Account deletion.** The Account page has a "Danger zone" with a
 real, irreversible delete — removes the user row, their lesson
-progress, and any lessons they've published. `db.delete_user()`
-handles the cascade manually since `PRAGMA foreign_keys = ON` is set
-(SQLite won't enforce FK constraints without it, but won't let you
-violate them once it's on either).
+progress, and any lessons/modules/widgets they've published (public
+shared circuits and confusion reports are anonymized rather than
+deleted, so a link someone else has doesn't break). `db.delete_user()`
+handles the cascade manually — foreign keys are always enforced in
+Postgres (no equivalent of SQLite's opt-in `PRAGMA foreign_keys`), so
+dependent rows have to go first, in dependency order.
 
 ## Modules
 

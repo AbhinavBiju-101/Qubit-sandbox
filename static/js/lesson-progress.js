@@ -58,6 +58,42 @@ async function initLessonProgress(lessonId) {
   const fill = document.getElementById('lp-fill');
   const pctLabel = document.getElementById('lp-pct');
 
+  // "Confused here" (student-learning branch, futureplans.md) — one
+  // small button per step block, works everywhere for free (built-in
+  // AND custom lessons) since every lesson template already marks its
+  // step containers with data-step="stepN", not something added
+  // per-lesson-type. Signed-out visitors can use this too (an open
+  // lesson doesn't need an account to say "this part lost me") — no
+  // auth gate on this one, unlike the checkbox progress below it.
+  document.querySelectorAll('.lesson-step[data-step]').forEach(stepEl => {
+    if (stepEl.querySelector('.confusion-btn')) return; // don't double-inject on re-init
+    const stepKey = stepEl.dataset.step;
+    const anchor = stepEl.querySelector('.mark-done-check') || stepEl.querySelector('.lesson-step-body') || stepEl;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'confusion-btn';
+    btn.style.cssText = 'display:block; margin-top:10px; background:none; border:none; padding:0; font-size:0.78rem; color:var(--text-faint); cursor:pointer; text-decoration:underline; text-underline-offset:2px;';
+    btn.textContent = '🤔 Confused by this step?';
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+      try {
+        const res = await fetch('/api/confusion', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': window.QS_CSRF_TOKEN },
+          body: JSON.stringify({ lesson_id: lessonId, step_key: stepKey })
+        });
+        btn.textContent = res.ok ? "Thanks — flagged for the creator." : 'Could not send — try again?';
+        if (res.ok) setTimeout(() => { btn.disabled = false; btn.textContent = '🤔 Confused by this step?'; }, 4000);
+        else btn.disabled = false;
+      } catch (e) {
+        btn.textContent = 'Could not reach the server.';
+        btn.disabled = false;
+      }
+    });
+    anchor.insertAdjacentElement('afterend', btn);
+  });
+
   if (!window.QS_AUTHENTICATED) {
     checks.forEach(c => {
       c.checked = false;

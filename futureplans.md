@@ -7,7 +7,195 @@ reflects the single combined, current state after each merge.
 
 ---
 
-## Recently shipped (this round)
+## Recently shipped (this round — Supabase/Postgres migration)
+
+- **Migrated off SQLite to Postgres (Supabase) — done.** SQLite's
+  whole-database write lock was becoming a real bottleneck as the
+  Modules/gamification/sharing features above grew the write volume,
+  and a single on-disk file doesn't survive a redeploy on most hosts
+  without a mounted volume anyway. `db.py` now connects to Postgres via
+  `psycopg2` (see its module docstring for the required `DATABASE_URL`
+  and exactly which Supabase connection string to use). A `_PGConn`
+  wrapper mimics SQLite's connection-level `.execute()` so the large
+  majority of functions needed zero logic changes — what genuinely
+  needed per-function attention: `cur.lastrowid` (SQLite-only) ->
+  `INSERT ... RETURNING id`, `INSERT OR IGNORE` -> `ON CONFLICT DO
+  NOTHING`, `PRAGMA table_info` -> `information_schema.columns`, and
+  reordering `modules` before `custom_lessons` in the schema (Postgres
+  validates foreign-key targets at `CREATE TABLE` time; SQLite only
+  checks at write time, so the old ordering silently worked there and
+  silently failed on Postgres).
+  Tested against a real local Postgres instance (not just written and
+  assumed correct) — every function in `db.py`, plus a full app-level
+  regression pass through Flask. Two real bugs turned up along the way
+  that were independent of the migration itself: an aggregate query
+  relied on `sqlite3.Row`'s integer indexing, which `psycopg2`'s
+  dict-style rows don't support; and `delete_user` never cleaned up
+  modules/widgets/shared circuits/confusion reports a user had
+  created — a latent bug from before this migration, just never
+  exercised by a test that deleted a user who owned more than a lesson
+  or two. Both fixed, with public/shared content anonymized rather
+  than deleted so someone else's link to it doesn't break.
+- **`requirements.txt`**: `psycopg2-binary` added.
+- Docs (`README.md`, `.env.example`, `app.py`/`db.py` docstrings,
+  `account.html`) updated to describe Postgres instead of SQLite —
+  several were still describing the old SQLite-backed setup.
+
+## Recently shipped (previous round — intent-based feature branches)
+
+- **Modules — done.** A `modules` table groups lessons into named,
+  ordered sets instead of one flat list. A seeded "Module 1" holds the
+  original six built-in lessons + the two embeddable widgets;
+  verified creators can create their own module, assign their lessons
+  to it, and publish it (bulk-publishing its lessons at once). Module-
+  level progress bars on `/lessons`, Dashboard, and Account.
+- **Gamification — done.** `activity_log` (a 60s site-wide heartbeat
+  while a tab is open+focused) and `badges` tables. Streaks (current +
+  longest, computed from consecutive UTC days), total hours studied,
+  and 11 badges (3/7/30-day streak, weekend studier, 10/40-hour club,
+  first lesson, five lessons, Module 1 complete, early bird, night
+  owl), with an unlock toast and a badge grid on Account/Dashboard.
+- **Lesson Creator v2 — done.** Markdown step bodies (see below),
+  custom checklist items per step (extra progress-tracked checkboxes
+  beyond "mark step complete"), creator-saved widgets (a restricted
+  Qiskit snippet, built from the Python IDE's "Save as widget", or
+  directly in the Lesson Creator), and a dedicated **My Submissions**
+  page (`/creator/submissions`) for editing/deleting/publishing
+  lessons, modules, and widgets, separate from the "write a new
+  lesson" form.
+- **Markdown, for real — done.** Supersedes the old "plain text only"
+  decision below. `Markdown` + `pymdown-extensions` render step bodies
+  to HTML, sanitized through `bleach` before storage — headings h1–h6,
+  fenced code (syntax-highlighted client-side via highlight.js),
+  bold/italic/strikethrough/`==highlight==`, nested lists, task-list
+  checkboxes, tables, links, images, and Obsidian-style foldable
+  callouts (`> [!NOTE]`, `> [!TIP]-`, etc. — a custom Markdown
+  Treeprocessor, see `_ObsidianCalloutTreeprocessor` in `app.py`).
+  Three real parser quirks found and fixed along the way: ATX-header
+  regex backtracking on `#tag`-without-space, `nl2br` eating callout
+  bodies, and adjacent blockquotes merging into one.
+- **Python IDE — loops, branching, print/input — done.** Supersedes
+  "no loops at all" below. `for`/`while`, `if`/`elif`/`else`,
+  `print()`, and `input()` (batch-style, from an optional stdin box)
+  are now allowed. Since a static AST pass can no longer bound total
+  gate count once loops exist, `_run_validated_circuit` wraps every
+  allowed `QuantumCircuit` method with a live counter that aborts
+  mid-loop past 60 operations, plus a `sys.settrace` step counter
+  (200k steps) that kills a CPU-spinning loop almost instantly instead
+  of waiting out the 3s `SIGALRM` timeout. Both editors (quick-run
+  panel + the new full-page `/python-ide/editor`) got CodeMirror for
+  real syntax coloring and a working Tab key, plus a console panel
+  that appends every run instead of overwriting the last one.
+- **Two real bugs fixed:** the service worker was cache-first even for
+  HTML pages, so a just-completed sign-in/out wasn't reflected until a
+  second navigation — now navigation requests are network-first, only
+  static assets stay cached. `/admin/creators` had no link anywhere in
+  the UI (worked fine, just undiscoverable) — added a conditional
+  Admin sidebar item with a pending-count badge.
+- **Production cleanup.** No demo/guest account exists in the working
+  app (there's a stale reference to one below and it's now corrected —
+  it must have been removed by this project's original author before
+  this file was last touched); hackathon-era references removed from
+  the landing page and this file.
+
+## Intent-based feature roadmap (previous round's brainstorm)
+
+Organized by *who's using the app and why*, not by subsystem — the
+same feature looks different depending on which of these someone
+showed up as. Each item is tagged with its status as of this file.
+
+### "I'm curious, just let me poke at something" (anonymous visitor)
+
+- **Shareable circuit links** (`/share/<hash>`) — build something in
+  the Sandbox/Python IDE, get a permanent URL that reproduces it
+  exactly. **[Shipped this round]** — see `shared_circuits` table,
+  `/share/<hash>`, and the Share button in the Python IDE.
+- **Embeddable widgets** — an `<iframe>` snippet for someone else's
+  blog/course page. **[Shipped this round]** — `/embed/circuit/<hash>`
+  reuses the share mechanism above; a "Copy embed code" button sits
+  next to the share link.
+- **"Surprise me" on the landing page** — a random pre-built circuit
+  that runs itself on load, no signup, no lesson framing.
+  **[Shipped this round]** — see the widget on `landing.html`.
+
+### "I want to actually learn this" (student, working through a module)
+
+- **A "confused here" button on any step** — logs which step, no
+  routing anywhere, just data for creators/admins on where people get
+  stuck. **[Shipped this round]** — `step_confusion_reports` table,
+  wired generically into `lesson-progress.js` so it works on every
+  lesson (built-in and custom) for free, no per-lesson-type work.
+- **Spaced-repetition nudge** — "You did Single Qubit 9 days ago,
+  still at 60% — want to pick it back up?" on the Dashboard, computed
+  from existing progress + `activity_log`, no new tracking needed.
+  **[Shipped this round]**.
+- **Predict-then-verify step type** — some steps could ask "guess the
+  distribution" before running the widget, instead of only
+  read-then-check. **[Not started]** — needs a new step-schema field
+  (`predict: true`) and Lesson Creator UI; a real design decision
+  (where's the "reveal" line, does a wrong guess count against
+  progress) more than a coding task. Left for a dedicated round.
+- **Cross-lesson glossary** — hover a bolded term (amplitude,
+  decoherence, entanglement) for a one-line popover instead of
+  re-explaining it every lesson. **[Not started]** — needs a curated
+  term list (accuracy matters more than coverage here) and a way to
+  mark terms in both built-in (hardcoded HTML) and custom (Markdown)
+  lessons without hand-editing every existing lesson body.
+
+### "I want to prove I learned this" (motivated / gamified student)
+
+- **Shareable completion cards** — an OG-image-style card for "Module
+  1 complete," screenshot/share-able like a Duolingo streak card.
+  **[Not started]** — needs server-side image generation (Pillow),
+  doable but a heavier dependency than anything else on this list;
+  next round.
+- **Scoped, opt-in leaderboards** — per-module or "this week," not a
+  single global ranking (which mostly demotivates everyone not near
+  the top). **[Not started]** — needs a real product decision on
+  default-on-vs-opt-in and what "scoped" means exactly before it's a
+  coding task.
+- **A certificate page** — not legally meaningful, a nice static
+  summary of what someone's done, downloadable as PDF. **[Not
+  started]** — the `pdf` skill covers PDF generation technically; the
+  content/design of "what goes on it" needs deciding first.
+
+### "I want to teach with this" (creator)
+
+- **Fork a lesson** — start from someone else's published lesson
+  instead of blank, with attribution to the original. **[Shipped this
+  round]** — `POST /api/lessons/<id>/fork`, a "Fork this lesson"
+  button on any published custom lesson.
+- **Draft/preview mode** — publishing used to be immediate; now a
+  lesson can be created as a draft with a shareable, unguessable
+  preview link that works even while unpublished, instead of only
+  being visible to its own author. **[Shipped this round]** — see
+  `preview_token` on `custom_lessons`, `/lessons/custom/<slug>/preview/<token>`.
+- **Lesson analytics for creators** — aggregate (not per-user) step
+  completion counts on your own lessons only. **[Shipped this
+  round]** — derived directly from existing `lesson_progress` rows
+  (no new tracking table — every step checkbox already writes there),
+  see `db.get_lesson_step_completion_counts`; a bar-per-step view on
+  My Submissions.
+- **Co-authoring** — invite another creator to a module. **[Not
+  started]** — needs an invite/accept flow and a real permissions
+  model (can a co-author delete the module? edit others' lessons
+  inside it?) worth its own round rather than bolting on quickly.
+
+### "I want to build something, not just read" (tinkerer, post-Module-1)
+
+- **Playground gallery** — public, opt-in shared circuits, lower
+  stakes than publishing a whole lesson. **[Shipped this round]** — an
+  optional "list publicly" checkbox on the share flow above, browsable
+  at `/gallery`.
+- **OpenQASM import/export** — bring a circuit in from elsewhere, or
+  take one out. **[Shipped this round]** — Export/Import buttons in
+  the Python IDE using Qiskit's own `qasm2` support, still funneled
+  through the same AST validator on import (a pasted-in QASM file
+  isn't a trust boundary bypass).
+
+---
+
+## Older items (predate this round; kept for reference)
 
 - **Real account types — student / educator / creator — done.** `/signup`
   (distinct from `/login`) lets a new visitor pick a type before

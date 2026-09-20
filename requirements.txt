@@ -7,6 +7,11 @@ Authlib==1.3.2
 requests==2.33.1
 python-dotenv==1.0.1
 
+# Database — Supabase (managed Postgres). See db.py's module docstring
+# for the required DATABASE_URL environment variable and which
+# connection string to use from the Supabase dashboard.
+psycopg2-binary==2.9.10
+
 # For /api/compare-shots — see futureplans.md ("Recently shipped").
 # Sizeable deps (a few hundred MB combined, mostly qiskit-aer's compiled
 # simulator backends); app.py imports them lazily so local dev / the

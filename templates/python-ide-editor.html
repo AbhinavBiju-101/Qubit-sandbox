@@ -51,6 +51,19 @@ qc.measure(0, 0)</textarea>
       <textarea id="ide-stdin" placeholder="e.g.&#10;1&#10;3" style="width:100%; min-height:60px; font-family:var(--font-mono); font-size:0.82rem; box-sizing:border-box; resize:vertical;"></textarea>
     </div>
 
+    <div class="panel" style="margin-bottom:18px;">
+      <div class="panel-label">SHARE &amp; EXPORT</div>
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <button class="small ghost" id="ide-share">Get shareable link</button>
+        <button class="small ghost" id="ide-export-qasm">Export as OpenQASM</button>
+        <button class="small ghost" id="ide-import-qasm">Import from OpenQASM</button>
+      </div>
+      <label class="mark-done-check" style="margin-top:10px; font-size:0.82rem;" id="ide-share-public-row">
+        <input type="checkbox" id="ide-share-public"> List in the public <a href="{{ url_for('gallery') }}" target="_blank" rel="noopener">Gallery</a> too, not just a private link
+      </label>
+      <div id="ide-share-result" class="mono muted" style="font-size:0.82rem; margin-top:8px;"></div>
+    </div>
+
     <div class="panel">
       <div class="panel-label">CONSOLE</div>
       <div id="ide-console" class="mono" style="font-size:0.85rem; line-height:1.7; max-height:420px; overflow-y:auto;" data-empty="true">
@@ -225,6 +238,88 @@ qc.measure(0, 0)</textarea>
     }
   });
   {% endif %}
+
+  // ==================== Share, export, import ====================
+  document.getElementById('ide-share').addEventListener('click', async () => {
+    const btn = document.getElementById('ide-share');
+    const resultEl = document.getElementById('ide-share-result');
+    const title = prompt('Title for this share (optional — leave blank for untitled):') || '';
+    const isPublic = document.getElementById('ide-share-public').checked;
+    btn.disabled = true;
+    resultEl.textContent = 'Creating link…';
+    try {
+      const res = await fetch('/api/share', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': window.QS_CSRF_TOKEN },
+        body: JSON.stringify({ code: getCode(), title, public: isPublic })
+      });
+      const data = await res.json();
+      if (!res.ok) { resultEl.textContent = data.message || 'Could not create a share link.'; return; }
+      const fullUrl = window.location.origin + data.url;
+      resultEl.innerHTML = `Link ready: <a href="${data.url}" target="_blank" rel="noopener">${fullUrl}</a> <button type="button" class="small ghost" id="ide-copy-share" style="margin-left:6px;">Copy</button>`;
+      document.getElementById('ide-copy-share').addEventListener('click', (e) => {
+        navigator.clipboard.writeText(fullUrl);
+        e.target.textContent = 'Copied!';
+      });
+    } catch (e) {
+      resultEl.textContent = 'Could not reach the server.';
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  document.getElementById('ide-export-qasm').addEventListener('click', async () => {
+    const btn = document.getElementById('ide-export-qasm');
+    const resultEl = document.getElementById('ide-share-result');
+    btn.disabled = true;
+    resultEl.textContent = 'Building circuit…';
+    try {
+      const res = await fetch('/api/export-qasm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: getCode() })
+      });
+      const data = await res.json();
+      if (!res.ok) { resultEl.textContent = data.message || 'Could not export.'; return; }
+      const blob = new Blob([data.qasm], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'circuit.qasm';
+      a.click();
+      resultEl.textContent = 'Downloaded circuit.qasm.';
+    } catch (e) {
+      resultEl.textContent = 'Could not reach the server.';
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  document.getElementById('ide-import-qasm').addEventListener('click', async () => {
+    const resultEl = document.getElementById('ide-share-result');
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.qasm,text/plain';
+    input.addEventListener('change', async () => {
+      const file = input.files[0];
+      if (!file) return;
+      const qasmText = await file.text();
+      resultEl.textContent = 'Parsing QASM…';
+      try {
+        const res = await fetch('/api/import-qasm', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ qasm: qasmText })
+        });
+        const data = await res.json();
+        if (!res.ok) { resultEl.textContent = data.message || 'Could not import that QASM file.'; return; }
+        setCode(data.code);
+        resultEl.textContent = 'Imported — code loaded into the editor above.';
+      } catch (e) {
+        resultEl.textContent = 'Could not reach the server.';
+      }
+    });
+    input.click();
+  });
 </script>
 {% endblock %}
 

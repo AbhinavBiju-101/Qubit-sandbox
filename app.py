@@ -7,7 +7,7 @@ Run it with:
 Then open http://localhost:5000 in a browser.
 
 Accounts are real: Google OAuth via Authlib + server-side sessions via
-Flask-Login, backed by a small SQLite database (db.py) for users and
+Flask-Login, backed by Postgres via Supabase (db.py) for users and
 per-account lesson progress. `@login_required` is enforced
 server-side — Two Qubits, Physical Qubit, Hardware Lab, Reality Check,
 and Account actually redirect anonymous visitors to /login, rather
@@ -68,7 +68,7 @@ db.register_app(app)
 # the app still runs (and `python app.py` still boots) even if a dev
 # environment hasn't installed them yet. See futureplans.md.
 try:
-    from qiskit import QuantumCircuit
+    from qiskit import QuantumCircuit, qasm2
     from qiskit_aer import AerSimulator
 
     QISKIT_AVAILABLE = True
@@ -477,6 +477,7 @@ NAV_ITEMS = [
     {"key": "dashboard", "label": "Dashboard", "href": "/dashboard", "icon": "grid"},
     {"key": "lessons", "label": "Lessons", "href": "/lessons", "icon": "book"},
     {"key": "demos", "label": "Demos", "href": "/demos", "icon": "play"},
+    {"key": "gallery", "label": "Gallery", "href": "/gallery", "icon": "stack"},
     {"key": "creator", "label": "Lesson Creator", "href": "/lesson-creator", "icon": "pencil"},
     {"key": "ide", "label": "Python IDE", "href": "/python-ide", "icon": "code"},
     {"key": "account", "label": "Account", "href": "/account", "icon": "user"},
@@ -922,11 +923,10 @@ def _validate_lesson_payload(data, author_id):
 def api_create_lesson():
     """Creates a custom lesson — verified creator accounts only (403
     for everyone else, including regular signed-in students and
-    creators still pending approval). Steps are plain text (rendered
-    with Jinja's default autoescaping + CSS white-space:pre-line for
-    linebreaks in custom-lesson.html — no raw HTML is accepted or
-    rendered, so there's no stored-XSS surface here even though this is
-    user-submitted content shown to other users)."""
+    creators still pending approval). `published: false` in the
+    payload creates it as a draft (see draft/preview-mode below)
+    instead of going live immediately — a preview token is generated
+    automatically so the creator has a shareable link right away."""
     if not current_user.can_create_lessons:
         return jsonify({"error": "forbidden", "message": "Verified creator account required."}), 403
 
@@ -935,8 +935,19 @@ def api_create_lesson():
     if title is None:
         return steps  # _validate_lesson_payload stashed the (response, status) error tuple here on failure
 
-    lesson = db.create_custom_lesson(int(current_user.id), title, description, steps, module_id)
-    return jsonify({"slug": lesson["slug"], "url": url_for("custom_lesson", slug=lesson["slug"])})
+    publish_now = data.get("published", True) is not False
+    lesson = db.create_custom_lesson(int(current_user.id), title, description, steps, module_id, published=publish_now)
+    preview_url = None
+    if not publish_now:
+        token = secrets.token_urlsafe(16)
+        db.set_lesson_preview_token(lesson["id"], token)
+        preview_url = url_for("custom_lesson_preview", slug=lesson["slug"], token=token)
+    return jsonify({
+        "slug": lesson["slug"],
+        "url": url_for("custom_lesson", slug=lesson["slug"]),
+        "published": publish_now,
+        "preview_url": preview_url,
+    })
 
 
 def _get_own_lesson_or_403(lesson_id):
@@ -1344,17 +1355,22 @@ def custom_lesson(slug):
     # built-in open lessons — no reason to gate community content
     # behind sign-in when QM Basics/Single Qubit aren't either. An
     # unpublished lesson is visible only to its own author (so they can
-    # preview/edit it — see api_toggle_publish_lesson), 404 for anyone
+    # preview/edit it — see api_toggle_publish_lesson) or via a
+    # preview-token link (see custom_lesson_preview), 404 for anyone
     # else, same as a nonexistent slug (doesn't leak that it exists).
-    # No step-checkbox progress tracking for v1 (would need
-    # VALID_LESSON_IDS and the whole progress system to know about
-    # dynamic lesson ids — a reasonable follow-up, not done here).
     lesson = db.get_custom_lesson(slug)
     if lesson is None:
         abort(404)
     is_own = current_user.is_authenticated and lesson["author_user_id"] == int(current_user.id)
     if not lesson["published"] and not is_own:
         abort(404)
+    return _render_custom_lesson(lesson, is_own=is_own)
+
+
+def _render_custom_lesson(lesson, is_own=False, is_preview=False):
+    """Shared by the normal /lessons/custom/<slug> route and the
+    preview-token route (custom_lesson_preview) — same rendering,
+    different access-check logic in the two callers."""
     steps = json.loads(lesson["steps_json"])
     # Markdown → sanitized HTML per step (falls back to None, meaning
     # "render the old plain-text/pre-line way", if Markdown/bleach
@@ -1363,12 +1379,20 @@ def custom_lesson(slug):
         step["body_html"] = _render_markdown(step.get("body", ""))
         step.setdefault("checklist", [])
     author = db.get_user_by_id(lesson["author_user_id"])
+    can_fork = (
+        current_user.is_authenticated
+        and current_user.can_create_lessons
+        and lesson["author_user_id"] != int(current_user.id)
+        and bool(lesson["published"])
+    )
     return render_template(
         "custom-lesson.html",
         active_page="lessons",
         lesson=lesson,
         steps=steps,
         is_own=is_own,
+        is_preview=is_preview,
+        can_fork=can_fork,
         author_name=(author["name"] if author else "A Qubit Sandbox educator"),
     )
 
@@ -1914,6 +1938,126 @@ def _is_valid_lesson_id(lesson_id):
     return False
 
 
+def _build_circuit_from_code(code):
+    """Shared by /api/run-code and /api/export-qasm: validates + runs
+    restricted code and returns the resulting QuantumCircuit (raises
+    _CodeValidationError / _TooManyOperationsError / etc. same as
+    api_run_code — callers translate those to HTTP responses)."""
+    compiled = _validate_circuit_code(code)
+    safe_builtins = {
+        "range": range, "len": len, "abs": abs, "min": min, "max": max,
+        "int": int, "float": float, "str": str, "bool": bool, "enumerate": enumerate,
+        "print": lambda *a, **kw: None, "input": _make_sandboxed_input([]),
+    }
+    safe_globals = {"__builtins__": safe_builtins, "QuantumCircuit": QuantumCircuit, "pi": math.pi}
+    safe_locals = {}
+    with _RUN_CODE_LOCK:
+        if hasattr(signal, "SIGALRM"):
+            def _on_timeout(signum, frame):
+                raise TimeoutError("Code took too long to run (3s limit).")
+
+            old_handler = signal.signal(signal.SIGALRM, _on_timeout)
+            signal.alarm(3)
+            try:
+                _run_validated_circuit(compiled, safe_globals, safe_locals)
+            finally:
+                signal.alarm(0)
+                signal.signal(signal.SIGALRM, old_handler)
+        else:
+            _run_validated_circuit(compiled, safe_globals, safe_locals)
+    qc = safe_locals.get("qc")
+    if not isinstance(qc, QuantumCircuit):
+        raise _CodeValidationError("Your code needs to assign a QuantumCircuit to a variable named `qc`.")
+    if qc.num_qubits > _MAX_QUBITS:
+        raise _CodeValidationError(f"Max {_MAX_QUBITS} qubits in this playground.")
+    if len(qc.data) > _MAX_GATES:
+        raise _CodeValidationError(f"Max {_MAX_GATES} operations.")
+    return qc
+
+
+@app.route("/api/export-qasm", methods=["POST"])
+def api_export_qasm():
+    # No auth required — exporting your own in-progress editor content
+    # isn't a write, just a different serialization of what you
+    # already have on screen.
+    data = request.get_json(silent=True) or {}
+    try:
+        qc = _build_circuit_from_code(data.get("code", ""))
+        qasm_text = qasm2.dumps(qc)
+    except _CodeValidationError as e:
+        return jsonify({"error": "invalid_code", "message": str(e)}), 400
+    except (_TooManyOperationsError, _TooManyStepsError, TimeoutError, Exception) as e:
+        return jsonify({"error": "runtime_error", "message": f"{type(e).__name__}: {e}"}), 400
+    return jsonify({"qasm": qasm_text})
+
+
+# Maps a Qiskit instruction name (as it comes back from qasm2.loads())
+# to how it's written in our restricted grammar. Anything not in this
+# map means the QASM used a gate we don't support in the editor — the
+# import is rejected with a clear message rather than silently
+# dropping the gate, since dropping it would change what the circuit
+# actually does.
+_QASM_GATE_TO_METHOD = {
+    "h": "h", "x": "x", "y": "y", "z": "z", "rx": "rx", "ry": "ry", "rz": "rz",
+    "cx": "cx", "measure": "measure", "barrier": "barrier", "id": None,  # 'id' (identity) is silently dropped
+}
+
+
+@app.route("/api/import-qasm", methods=["POST"])
+def api_import_qasm():
+    # No auth required, same reasoning as export — converts pasted-in
+    # QASM into our restricted-grammar Python, which is NOT trusted
+    # output: it's placed back into the editor as plain text and, if
+    # run, goes through the exact same _validate_circuit_code AST
+    # validator as anything else typed in by hand. This endpoint's own
+    # job is just building a fair, readable translation and rejecting
+    # anything it can't safely translate — not enforcing the sandbox
+    # (that still happens on every actual run).
+    data = request.get_json(silent=True) or {}
+    qasm_text = data.get("qasm", "")
+    if not isinstance(qasm_text, str) or not qasm_text.strip():
+        return jsonify({"error": "bad_request", "message": "No QASM submitted."}), 400
+    if len(qasm_text) > 8000:
+        return jsonify({"error": "bad_request", "message": "QASM is too long (max 8000 characters)."}), 400
+    try:
+        qc = qasm2.loads(qasm_text)
+    except Exception as e:
+        return jsonify({"error": "invalid_qasm", "message": f"Could not parse QASM: {e}"}), 400
+
+    if qc.num_qubits > _MAX_QUBITS:
+        return jsonify({"error": "too_many_qubits", "message": f"Max {_MAX_QUBITS} qubits in this playground."}), 400
+    if len(qc.data) > _MAX_GATES:
+        return jsonify({"error": "too_many_gates", "message": f"Max {_MAX_GATES} operations."}), 400
+
+    lines = [f"qc = QuantumCircuit({qc.num_qubits}, {qc.num_clbits})"]
+    for instr in qc.data:
+        name = instr.operation.name
+        if name not in _QASM_GATE_TO_METHOD:
+            return jsonify({
+                "error": "unsupported_gate",
+                "message": f"This QASM uses '{name}', which isn't one of the gates this editor supports "
+                           f"({', '.join(sorted(m for m in set(_QASM_GATE_TO_METHOD.values()) if m))}).",
+            }), 400
+        method = _QASM_GATE_TO_METHOD[name]
+        if method is None:
+            continue  # identity gate — no-op, safe to drop
+        qubit_indices = [qc.find_bit(q).index for q in instr.qubits]
+        if method == "measure":
+            clbit_index = qc.find_bit(instr.clbits[0]).index
+            lines.append(f"qc.measure({qubit_indices[0]}, {clbit_index})")
+        elif method == "cx":
+            lines.append(f"qc.cx({qubit_indices[0]}, {qubit_indices[1]})")
+        elif method == "barrier":
+            lines.append("qc.barrier()")
+        elif method in ("rx", "ry", "rz"):
+            theta = instr.operation.params[0]
+            lines.append(f"qc.{method}({theta!r}, {qubit_indices[0]})")
+        else:
+            lines.append(f"qc.{method}({qubit_indices[0]})")
+
+    return jsonify({"code": "\n".join(lines)})
+
+
 @app.route("/api/progress")
 @login_required
 def api_progress_all():
@@ -1946,6 +2090,163 @@ def api_progress_visit(lesson_id):
         return jsonify({"error": "unknown_lesson"}), 404
     ts = db.record_visit(int(current_user.id), lesson_id)
     return jsonify({"last_visited": ts})
+
+
+# ======================================================================
+# Shareable circuits + embeds + Playground gallery
+# (anonymous-visitor branch — futureplans.md)
+# ======================================================================
+
+MAX_SHARE_TITLE = 120
+
+
+@app.route("/api/share", methods=["POST"])
+@csrf_protect
+def api_create_share():
+    # No @login_required — sharing something you built shouldn't
+    # require an account (matches the Sandbox/demos themselves, which
+    # are open to everyone). CSRF is still enforced: this writes data,
+    # and csrf_protect's token check doesn't require a signed-in
+    # session, just a same-origin request with the page's own token.
+    data = request.get_json(silent=True) or {}
+    code = data.get("code", "")
+    title = (data.get("title") or "").strip()[:MAX_SHARE_TITLE] or None
+    public = bool(data.get("public"))
+    try:
+        _validate_circuit_code(code)
+    except _CodeValidationError as e:
+        return jsonify({"error": "invalid_code", "message": str(e)}), 400
+    author_id = int(current_user.id) if current_user.is_authenticated else None
+    shared = db.create_shared_circuit(code, title=title, author_user_id=author_id, public=public)
+    return jsonify(
+        {
+            "hash": shared["hash"],
+            "url": url_for("view_shared_circuit", hash_=shared["hash"]),
+            "embed_url": url_for("embed_shared_circuit", hash_=shared["hash"], _external=True),
+        }
+    )
+
+
+@app.route("/share/<hash_>")
+def view_shared_circuit(hash_):
+    shared = db.get_shared_circuit(hash_)
+    if shared is None:
+        abort(404)
+    db.bump_shared_circuit_views(hash_)
+    author = db.get_user_by_id(shared["author_user_id"]) if shared["author_user_id"] else None
+    return render_template(
+        "share-circuit.html",
+        active_page="gallery",
+        shared=shared,
+        author_name=(author["name"] if author else None),
+        embed_url=url_for("embed_shared_circuit", hash_=hash_, _external=True),
+    )
+
+
+@app.route("/embed/circuit/<hash_>")
+def embed_shared_circuit(hash_):
+    # Deliberately minimal, matching /embed/coin-flip and
+    # /embed/two-qubit — no sidebar/topbar, meant to sit inside someone
+    # else's <iframe>.
+    shared = db.get_shared_circuit(hash_)
+    if shared is None:
+        abort(404)
+    db.bump_shared_circuit_views(hash_)
+    return render_template("embed-circuit.html", shared=shared)
+
+
+@app.route("/gallery")
+def gallery():
+    # Playground gallery (tinkerer branch): public, opt-in shared
+    # circuits — lower stakes than publishing a whole lesson, and
+    # doesn't require a creator account, just the "list publicly"
+    # checkbox at share time.
+    return render_template("gallery.html", active_page="gallery", circuits=db.list_public_shared_circuits())
+
+
+# ======================================================================
+# "Confused here" (student-learning branch)
+# ======================================================================
+
+@app.route("/api/confusion", methods=["POST"])
+@csrf_protect
+def api_report_confusion():
+    # No @login_required — an anonymous visitor on an open lesson
+    # (QM Basics, Single Qubit) can still flag a step; user_id is just
+    # None in that case. This is a one-way signal with no reply, so
+    # there's nothing sensitive being tied to an identity either way.
+    data = request.get_json(silent=True) or {}
+    lesson_id = data.get("lesson_id")
+    step_key = data.get("step_key")
+    if not lesson_id or not step_key or not isinstance(lesson_id, str) or not isinstance(step_key, str):
+        return jsonify({"error": "bad_request"}), 400
+    if len(lesson_id) > 100 or len(step_key) > 100:
+        return jsonify({"error": "bad_request"}), 400
+    user_id = int(current_user.id) if current_user.is_authenticated else None
+    db.record_confusion_report(lesson_id, step_key, user_id)
+    return jsonify({"ok": True})
+
+
+# ======================================================================
+# Forking + draft/preview mode (creator branch)
+# ======================================================================
+
+@app.route("/api/lessons/<int:lesson_id>/fork", methods=["POST"])
+@login_required
+@csrf_protect
+def api_fork_lesson(lesson_id):
+    if not current_user.can_create_lessons:
+        return jsonify({"error": "forbidden", "message": "Verified creator account required."}), 403
+    source = db.get_custom_lesson_by_id(lesson_id)
+    if source is None or not source["published"]:
+        return jsonify({"error": "not_found", "message": "That lesson isn't available to fork."}), 404
+    forked = db.fork_custom_lesson(source, int(current_user.id))
+    return jsonify({"slug": forked["slug"], "url": url_for("lesson_creator", edit=forked["id"])})
+
+
+@app.route("/api/lessons/<int:lesson_id>/preview-link", methods=["POST"])
+@login_required
+@csrf_protect
+def api_generate_preview_link(lesson_id):
+    """Draft/preview mode: generates (or rotates) an unguessable
+    preview link for a lesson the requester owns, so it can be shared
+    for feedback before publishing — without making it publicly
+    published or visible only to the author. Works on both drafts and
+    already-published lessons (harmless either way — see
+    set_lesson_preview_token's docstring)."""
+    lesson, err = _get_own_lesson_or_403(lesson_id)
+    if lesson is None:
+        return err
+    token = secrets.token_urlsafe(16)
+    db.set_lesson_preview_token(lesson_id, token)
+    return jsonify({"preview_url": url_for("custom_lesson_preview", slug=lesson["slug"], token=token)})
+
+
+@app.route("/lessons/custom/<slug>/preview/<token>")
+def custom_lesson_preview(slug, token):
+    lesson = db.get_custom_lesson_by_preview_token(slug, token)
+    if lesson is None:
+        abort(404)
+    return _render_custom_lesson(lesson, is_preview=True)
+
+
+# ======================================================================
+# Lesson analytics for creators (creator branch)
+# ======================================================================
+
+@app.route("/api/lessons/<int:lesson_id>/analytics")
+@login_required
+def api_lesson_analytics(lesson_id):
+    lesson, err = _get_own_lesson_or_403(lesson_id)
+    if lesson is None:
+        return err
+    steps = json.loads(lesson["steps_json"])
+    counts, total_visitors = db.get_lesson_step_completion_counts(f"custom-{lesson['slug']}")
+    per_step = []
+    for i, step in enumerate(steps):
+        key = f"step{i}"
+        per_step.append({"index": i, "title": step.get("title", f"Step {i+1}"), "count": counts.get(key, 0)})
+    return jsonify({"total_visitors": total_visitors, "steps": per_step})
 
 
 if __name__ == "__main__":

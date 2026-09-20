@@ -29,7 +29,9 @@
   </div>
 </div>
 
-<div class="grid-3" style="margin:0 0 36px;" id="dash-gamify-row"></div>
+<div class="grid-3" style="margin:0 0 24px;" id="dash-gamify-row"></div>
+
+<div id="dash-nudge-slot"></div>
 
 <div class="section-title" style="display:flex; align-items:baseline; justify-content:space-between;">
   <h2>Continue where you left off</h2>
@@ -130,6 +132,55 @@
     } else {
       inProgress.forEach(x => continueList.appendChild(renderContinueCard(x.def, x.pct)));
     }
+
+    // ---- Spaced-repetition nudge (student-learning branch, futureplans.md) ----
+    // A light "haven't touched this in a while" prompt, computed purely
+    // from data that already exists (per-lesson last_visited + pct) —
+    // no new tracking table needed. Prefers an in-progress lesson
+    // that's gone quiet (nudge to continue) over a completed one
+    // (nudge to review), and only ever shows the single most relevant
+    // one so this doesn't turn into a wall of nagging. Dismissing it
+    // silences that specific lesson for a week, not forever, so it can
+    // resurface if it's still true later.
+    (function showSpacedRepetitionNudge() {
+      const DISMISS_KEY_PREFIX = 'qs_nudge_dismissed_';
+      const now = Date.now() / 1000;
+      const daysSince = (ts) => (now - ts) / 86400;
+
+      const dismissedRecently = (lessonId) => {
+        const raw = localStorage.getItem(DISMISS_KEY_PREFIX + lessonId);
+        return raw && (now - parseFloat(raw)) < 7 * 86400;
+      };
+
+      const staleInProgress = withProgress
+        .filter(x => x.visited > 0 && x.pct > 0 && x.pct < 100 && daysSince(x.visited) >= 4 && !dismissedRecently(x.def.id))
+        .sort((a, b) => a.visited - b.visited)[0];
+      const staleCompleted = withProgress
+        .filter(x => x.visited > 0 && x.pct === 100 && daysSince(x.visited) >= 7 && !dismissedRecently(x.def.id))
+        .sort((a, b) => a.visited - b.visited)[0];
+
+      const target = staleInProgress || staleCompleted;
+      if (!target) return;
+
+      const days = Math.floor(daysSince(target.visited));
+      const verb = target.pct === 100 ? 'Want a quick recap?' : `Still at ${target.pct}% — want to pick it back up?`;
+      const slot = document.getElementById('dash-nudge-slot');
+      const div = document.createElement('div');
+      div.className = 'panel callout blue';
+      div.style.cssText = 'margin-bottom:24px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;';
+      div.innerHTML = `
+        <div>You did <strong>${target.def.title}</strong> ${days} day${days === 1 ? '' : 's'} ago. ${verb}</div>
+        <div style="display:flex; gap:10px; flex-shrink:0;">
+          <a class="btn primary small" href="${target.def.href}">${target.pct === 100 ? 'Review' : 'Continue'} →</a>
+          <button type="button" class="ghost small" id="nudge-dismiss">Not now</button>
+        </div>
+      `;
+      slot.appendChild(div);
+      document.getElementById('nudge-dismiss').addEventListener('click', () => {
+        localStorage.setItem(DISMISS_KEY_PREFIX + target.def.id, String(now));
+        div.remove();
+      });
+    })();
 
     // ---- Compact gamification row: streak / hours / badges ----
     try {

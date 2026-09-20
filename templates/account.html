@@ -20,7 +20,7 @@
 </div>
 
 <p class="muted" style="font-size:0.82rem; margin-bottom:28px;">
-  This is a real account — a row in a small SQLite database (<span class="mono">db.py</span>), with a real server session — signed in through Google OAuth. Signing out ends the session; your progress stays saved for next time you sign in.
+  This is a real account — a row in a Postgres database (<span class="mono">db.py</span>, via Supabase), with a real server session — signed in through Google OAuth. Signing out ends the session; your progress stays saved for next time you sign in.
 </p>
 
 {% if current_user.account_type == 'creator' %}
