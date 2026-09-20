@@ -8,7 +8,6 @@ venv/
 env/
 *.md
 .DS_Store
-challenge/
 instance/
 .env
 .env.*

@@ -69,8 +69,8 @@ def close_db(e=None):
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    provider TEXT NOT NULL,        -- 'google' | 'guest'
-    provider_sub TEXT NOT NULL,    -- Google's stable 'sub' claim, or a random guest id
+    provider TEXT NOT NULL,        -- 'google'
+    provider_sub TEXT NOT NULL,    -- Google's stable 'sub' claim
     email TEXT,
     name TEXT,
     avatar_url TEXT,

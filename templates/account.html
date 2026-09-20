@@ -14,13 +14,13 @@
   </div>
   <div style="flex:1; min-width:0;">
     <h2 style="margin-bottom:2px;">{{ current_user.name }}</h2>
-    <p class="muted mono" style="font-size:0.85rem; margin:0;">{{ current_user.email }} &middot; {{ current_user.provider }}{% if current_user.provider != 'google' %} (not Google-verified){% endif %} &middot; {{ current_user.account_type }}</p>
+    <p class="muted mono" style="font-size:0.85rem; margin:0;">{{ current_user.email }} &middot; {{ current_user.account_type }}</p>
   </div>
   <a class="btn small" href="{{ url_for('logout') }}">Sign out</a>
 </div>
 
 <p class="muted" style="font-size:0.82rem; margin-bottom:28px;">
-  This is a real account — a row in a small SQLite database (<span class="mono">db.py</span>), with a real server session, not a browser-only mock. {% if current_user.provider != 'google' %}It wasn't verified through Google (you signed in as a Demo Guest), so treat it as disposable — nothing here is tied to a real identity.{% else %}Signed in through Google OAuth.{% endif %} Signing out ends the session; your progress stays saved for next time you sign in the same way.
+  This is a real account — a row in a small SQLite database (<span class="mono">db.py</span>), with a real server session — signed in through Google OAuth. Signing out ends the session; your progress stays saved for next time you sign in.
 </p>
 
 {% if current_user.account_type == 'creator' %}
@@ -97,7 +97,7 @@
 
 <div class="section-title" style="margin-top:32px;"><h2>Danger zone</h2></div>
 <div class="panel" style="margin-top:14px; border-color:var(--red, #e0554a);">
-  <p class="muted" style="margin-bottom:14px;">Permanently deletes this account: your profile, all lesson progress, and (if you're an educator) any lessons you've published. Cannot be undone. {% if current_user.provider != 'google' %}Since this is a Demo Guest account, you can just make a new one instead if you'd rather.{% endif %}</p>
+  <p class="muted" style="margin-bottom:14px;">Permanently deletes this account: your profile, all lesson progress, and (if you're a creator) any lessons you've published. Cannot be undone.</p>
   <button class="small" id="account-delete-btn" style="border-color:var(--red, #e0554a); color:var(--red, #e0554a);">Delete my account</button>
   <span class="mono muted" id="account-delete-status" style="font-size:0.82rem; margin-left:10px;"></span>
 </div>

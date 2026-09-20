@@ -6,20 +6,18 @@ Run it with:
 
 Then open http://localhost:5000 in a browser.
 
-Accounts are now real (futureplans.md #10): Google OAuth via Authlib +
-server-side sessions via Flask-Login, backed by a small SQLite database
-(db.py) for users and per-account lesson progress. The old
-localStorage-only mock (static/js/auth.js) is gone. `@login_required`
-below is enforced *server-side* now — Two Qubits, Physical Qubit,
-Hardware Lab, Reality Check, and Account actually redirect anonymous
-visitors to /login, rather than just hiding content in the browser.
+Accounts are real: Google OAuth via Authlib + server-side sessions via
+Flask-Login, backed by a small SQLite database (db.py) for users and
+per-account lesson progress. `@login_required` is enforced
+server-side — Two Qubits, Physical Qubit, Hardware Lab, Reality Check,
+and Account actually redirect anonymous visitors to /login, rather
+than just hiding content in the browser.
 
 Google OAuth needs real credentials to work (GOOGLE_CLIENT_ID /
 GOOGLE_CLIENT_SECRET env vars — see .env.example and README.md for how
 to get them from Google Cloud Console). Without them, GOOGLE_OAUTH_
-CONFIGURED is False and /login falls back to a "Continue as Demo
-Guest" option (still a real server-side account, just not Google-
-verified) so the app stays demoable before credentials are set up.
+CONFIGURED is False and /login shows Google sign-in as unavailable
+until those are set.
 
 Nearly all the "quantum simulation" logic lives in static/js/ and runs
 in the visitor's browser, not here. Python's job: match a URL to a
@@ -34,7 +32,8 @@ import math
 import os
 import secrets
 import signal
-import uuid
+import sys
+import threading
 from functools import wraps
 
 # Auto-loads a local .env file (see .env.example) if python-dotenv is
@@ -85,17 +84,174 @@ except ImportError:
 try:
     import bleach
     import markdown as _markdown_lib
+    from markdown.extensions import Extension as _MdExtension
+    from markdown.treeprocessors import Treeprocessor as _MdTreeprocessor
+    import xml.etree.ElementTree as _etree
 
     MARKDOWN_AVAILABLE = True
 except ImportError:
     MARKDOWN_AVAILABLE = False
 
 _MD_ALLOWED_TAGS = [
-    "p", "br", "strong", "em", "b", "i", "u", "s", "code", "pre", "blockquote",
+    "p", "br", "strong", "em", "b", "i", "u", "s", "del", "mark", "code", "pre", "blockquote",
     "ul", "ol", "li", "h1", "h2", "h3", "h4", "h5", "h6", "a", "hr", "table", "thead",
-    "tbody", "tr", "th", "td", "span",
+    "tbody", "tr", "th", "td", "span", "div", "details", "summary", "img", "input",
 ]
-_MD_ALLOWED_ATTRS = {"a": ["href", "title", "rel"], "span": ["class"], "code": ["class"]}
+_MD_ALLOWED_ATTRS = {
+    "a": ["href", "title", "rel"],
+    "span": ["class"],
+    "code": ["class"],
+    "div": ["class"],
+    "li": ["class"],
+    "ul": ["class"],
+    "img": ["src", "alt", "title", "width", "height"],
+    "input": ["type", "checked", "disabled"],
+    "details": ["class", "open"],
+    "summary": [],
+}
+
+_CALLOUT_TYPES = {
+    "note": {"emoji": "📝", "label": "Note"}, "tip": {"emoji": "💡", "label": "Tip"},
+    "important": {"emoji": "❗", "label": "Important"}, "warning": {"emoji": "⚠️", "label": "Warning"},
+    "caution": {"emoji": "⚠️", "label": "Caution"}, "danger": {"emoji": "🔥", "label": "Danger"},
+    "info": {"emoji": "ℹ️", "label": "Info"}, "question": {"emoji": "❓", "label": "Question"},
+    "faq": {"emoji": "❓", "label": "FAQ"}, "success": {"emoji": "✅", "label": "Success"},
+    "example": {"emoji": "📋", "label": "Example"}, "quote": {"emoji": "❝", "label": "Quote"},
+    "bug": {"emoji": "🐞", "label": "Bug"}, "todo": {"emoji": "☑️", "label": "Todo"},
+    "abstract": {"emoji": "📄", "label": "Summary"}, "summary": {"emoji": "📄", "label": "Summary"},
+}
+
+if MARKDOWN_AVAILABLE:
+    import re as _re
+    from markdown.preprocessors import Preprocessor as _MdPreprocessor
+
+    _CALLOUT_RE = _re.compile(r"^\[!(?P<type>[A-Za-z]+)\](?P<fold>[-+]?)\s*(?P<title>.*)$")
+
+    class _ObsidianCalloutTreeprocessor(_MdTreeprocessor):
+        """Turns Obsidian-style `> [!NOTE] Title` blockquotes into a
+        styled callout (a foldable <details> when a +/- fold marker is
+        present, a plain <div> otherwise). Runs AFTER normal blockquote
+        parsing, so the first line's plain text is inspected for the
+        `[!TYPE]` marker rather than trying to pattern-match raw
+        markdown — simpler and correctly handles the rest of the
+        blockquote's content having its own inline formatting."""
+
+        def run(self, root):
+            for bq in root.iter("blockquote"):
+                first = bq.find("p")
+                if first is None or not (first.text or "").strip():
+                    continue
+                # nl2br (in _MD_EXTENSIONS) already turned any "\nmore
+                # text" into a <br> child + tail by this point, so
+                # first.text IS just the marker line on its own —
+                # there's no literal "\n" left to partition on. The
+                # rest of the callout body (if any) lives as the tail
+                # of that first <br> child, which we splice back in as
+                # the new first.text below rather than dropping it.
+                m = _CALLOUT_RE.match((first.text or "").strip())
+                if not m:
+                    continue
+                ctype = m.group("type").lower()
+                meta = _CALLOUT_TYPES.get(ctype, {"emoji": "📌", "label": m.group("type").capitalize()})
+                title = m.group("title").strip() or meta["label"]
+                fold = m.group("fold")
+
+                children = list(first)
+                if children and children[0].tag == "br":
+                    br = children[0]
+                    first.text = (br.tail or "").lstrip("\n")
+                    first.remove(br)
+                else:
+                    bq.remove(first)
+
+                title_el = _etree.Element("summary" if fold else "div")
+                title_el.set("class", "callout-title")
+                title_el.text = f'{meta["emoji"]} {title}'
+
+                if fold:
+                    bq.tag = "details"
+                    if fold == "+":
+                        bq.set("open", "open")
+                else:
+                    bq.tag = "div"
+                bq.set("class", f"callout callout-{ctype}")
+                bq.insert(0, title_el)
+            return root
+
+    _LIST_ITEM_RE = _re.compile(r"^\s*([-*+]|\d+[.)])\s+\S")
+    _ATX_NO_SPACE_RE = _re.compile(r"^(#{1,6})([^\s#])")  # e.g. "#epicc" — Obsidian treats this as
+    # a #tag, not a heading (a real ATX heading needs a space after the #s); core
+    # python-markdown is looser than that, so this gets escaped before block parsing.
+    _BLOCKQUOTE_RE = _re.compile(r"^\s*>")
+
+    class _ObsidianLeniencyPreprocessor(_MdPreprocessor):
+        """Three line-level fixes so this behaves closer to how Obsidian
+        (and most people's mental model of markdown) actually renders,
+        rather than strict CommonMark:
+
+        1. `#word` (no space) is left as literal text/a "tag", not
+           turned into a heading — only `# word` is a heading.
+        2. A list immediately following a plain text line (no blank
+           line between) still renders as a list, not swallowed into
+           the preceding paragraph as literal "- item 1" text — this
+           is how Obsidian's editor behaves; strict CommonMark requires
+           a blank line first.
+        3. Two `> [!TYPE]` blockquotes separated only by a blank line
+           don't get merged into one blockquote — python-markdown's
+           blockquote processor otherwise treats "blank line then more
+           '>' lines" as a lazy continuation of the SAME blockquote,
+           which would merge two different callouts into one."""
+
+        def run(self, lines):
+            out = []
+            prev_nonblank = ""
+            for i, line in enumerate(lines):
+                m = _ATX_NO_SPACE_RE.match(line)
+                if m and not line.startswith("#!"):  # keep shebang-in-code-fence-ish lines untouched
+                    line = "\\" + line
+
+                if _LIST_ITEM_RE.match(line) and prev_nonblank and not _LIST_ITEM_RE.match(prev_nonblank) \
+                        and not _BLOCKQUOTE_RE.match(prev_nonblank) and prev_nonblank.strip() != "":
+                    out.append("")  # force a blank line so the list isn't absorbed into the paragraph above
+
+                out.append(line)
+                if line.strip() != "":
+                    prev_nonblank = line
+
+            # Second pass: split blockquotes separated only by blank line(s).
+            final = []
+            in_quote = False
+            pending_blank = 0
+            for line in out:
+                is_quote = bool(_BLOCKQUOTE_RE.match(line))
+                is_blank = line.strip() == ""
+                if is_blank and in_quote:
+                    pending_blank += 1
+                    final.append(line)
+                    continue
+                if is_quote and pending_blank > 0:
+                    final.insert(len(final) - pending_blank, "<!-- -->")
+                    pending_blank = 0
+                    in_quote = True
+                    final.append(line)
+                    continue
+                if not is_blank:
+                    pending_blank = 0
+                    in_quote = is_quote
+                final.append(line)
+            return final
+
+    class _ObsidianCalloutExtension(_MdExtension):
+        def extendMarkdown(self, md):
+            md.preprocessors.register(_ObsidianLeniencyPreprocessor(md), "obsidian_leniency", 30)
+            md.treeprocessors.register(_ObsidianCalloutTreeprocessor(md), "obsidian_callout", 5)
+
+    _MD_EXTENSIONS = [
+        "fenced_code", "tables", "sane_lists", "nl2br",
+        "pymdownx.tilde", "pymdownx.mark", "pymdownx.tasklist",
+        _ObsidianCalloutExtension(),
+    ]
+    _MD_EXTENSION_CONFIGS = {"pymdownx.tasklist": {"custom_checkbox": False, "clickable_checkbox": False}}
 
 
 def _render_markdown(text):
@@ -106,10 +262,18 @@ def _render_markdown(text):
     _validate_lesson_payload) but the OUTPUT is still run through
     bleach — never trust that Markdown-the-library's HTML output is
     automatically safe, since raw <script>/<img onerror> etc. written
-    directly into markdown source passes straight through it."""
+    directly into markdown source passes straight through it.
+
+    Supports most of Obsidian's flavor: headings h1–h6, fenced code
+    blocks (syntax-highlighted client-side by highlight.js — see
+    custom-lesson.html), **bold**/*italic*/***both***/_italic_,
+    ~~strikethrough~~, ==highlight==, `inline code`, nested bullet/
+    numbered lists, links, images, horizontal rules, GFM task lists,
+    tables, blockquotes, and Obsidian-style foldable callouts
+    (`> [!NOTE]` etc. — see _ObsidianCalloutTreeprocessor above)."""
     if not MARKDOWN_AVAILABLE or not text:
         return None
-    html = _markdown_lib.markdown(text, extensions=["fenced_code", "tables"])
+    html = _markdown_lib.markdown(text, extensions=_MD_EXTENSIONS, extension_configs=_MD_EXTENSION_CONFIGS)
     return bleach.clean(html, tags=_MD_ALLOWED_TAGS, attributes=_MD_ALLOWED_ATTRS, strip=True)
 
 
@@ -121,8 +285,8 @@ GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
 GOOGLE_OAUTH_CONFIGURED = bool(GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET)
 
-# Creator verification (futureplans.md #10/#11). Two allowlists, both
-# comma-separated real email addresses in env vars:
+# Creator verification. Two allowlists, both comma-separated real
+# email addresses in env vars:
 #   CREATOR_EMAILS — signing up as 'creator' with a matching, real
 #     Google-verified email auto-verifies instantly. Anyone else who
 #     picks 'creator' at signup goes to 'pending' and needs an admin
@@ -132,10 +296,6 @@ GOOGLE_OAUTH_CONFIGURED = bool(GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET)
 #     (see User.is_admin below) rather than stored on the user row, so
 #     granting/revoking admin access is just an env var + restart, no
 #     migration needed.
-# Neither ever applies to Demo Guest sign-ins — those emails are
-# random (guest-xxx@guest.local), never Google-verified, so a guest
-# session can request 'creator' (to demo the pending-approval state)
-# but can never auto-verify or become admin.
 CREATOR_EMAILS = {
     e.strip().lower() for e in os.environ.get("CREATOR_EMAILS", "").split(",") if e.strip()
 }
@@ -149,8 +309,8 @@ def _apply_signup_account_type(user_row, account_type):
     was_created flag) right after signup, with whatever type they
     picked on /signup ('student' is the default already, so this is a
     no-op call for that case). 'creator' also sets creator_status —
-    auto-'verified' if the email matches CREATOR_EMAILS (Google sign-in
-    only; guest emails never match), otherwise 'pending'."""
+    auto-'verified' if the email matches CREATOR_EMAILS, otherwise
+    'pending'."""
     if account_type not in ("student", "educator", "creator"):
         account_type = "student"
     if account_type != "student":
@@ -257,34 +417,6 @@ def google_callback():
     next_url = session.pop("post_login_redirect", None)
     if not next_url and was_created and signup_type == "creator" and row["creator_status"] == "pending":
         next_url = url_for("lesson_creator")  # land somewhere that explains the pending state
-    return redirect(next_url or url_for("dashboard"))
-
-
-@app.route("/auth/demo-login")
-def demo_login():
-    """Local-testing / hackathon-before-credentials-exist fallback. Makes
-    a real server-side account (real row in `users`, real session — not
-    the old localStorage mock) but skips real Google verification. Each
-    click mints a FRESH, isolated guest identity (random provider_sub)
-    rather than sharing one demo row across every visitor — otherwise
-    two people demoing this at once would see each other's progress.
-    Also accepts ?type=... from /signup, same as the Google path —
-    'creator' always lands 'pending' here (see _apply_signup_account_type:
-    guest emails never match CREATOR_EMAILS), useful for demoing what
-    the pending state looks like without a real Google account."""
-    guest_sub = f"guest-{uuid.uuid4().hex[:12]}"
-    row, was_created = db.get_or_create_user(
-        provider="guest",
-        provider_sub=guest_sub,
-        email=f"{guest_sub}@guest.local",
-        name="Demo Guest",
-        avatar_url=None,
-    )
-    signup_type = request.args.get("type")
-    if was_created and signup_type in ("student", "educator", "creator"):
-        row = _apply_signup_account_type(row, signup_type)
-    login_user(User(row))
-    next_url = _safe_next(request.args.get("next"))
     return redirect(next_url or url_for("dashboard"))
 
 
@@ -542,14 +674,14 @@ def account_request_creator():
 
 @app.route("/demos")
 def demos():
-    # Open to everyone — this is the hackathon showcase page. Only
-    # Single Qubit + Demo 1 (Coin Flip) live here for now.
+    # Open to everyone, no sign-in required — quick standalone widgets
+    # with no lesson scaffolding around them.
     return render_template("demos.html", active_page="demos")
 
 
 @app.route("/demos/coin-flip")
 def demo_coin_flip():
-    # Demo 1 — the coin flip simulator. Open to everyone, not gated.
+    # The coin flip simulator. Open to everyone, not gated.
     return render_template("demo-coin-flip.html", active_page="demos")
 
 
@@ -1278,12 +1410,11 @@ def login():
 def signup():
     # Distinct from /login: this is where a NEW visitor picks an
     # account type (student/educator/creator) before authenticating.
-    # The actual auth (Google or Demo Guest) is identical to /login's —
-    # signup.html's buttons just add ?type=<picked> to the same
-    # /auth/google/login and /auth/demo-login routes, which only apply
-    # it if the resulting account is freshly created (see
-    # google_callback/demo_login above). Returning users who land here
-    # by mistake just get signed in normally, their existing type kept.
+    # The actual auth is identical to /login's — signup.html's Google
+    # button just adds ?type=<picked> to /auth/google/login, which only
+    # applies it if the resulting account is freshly created (see
+    # google_callback above). Returning users who land here by mistake
+    # just get signed in normally, their existing type kept.
     if current_user.is_authenticated:
         return redirect(_safe_next(request.args.get("next")) or url_for("dashboard"))
     return render_template("signup.html", google_oauth_configured=GOOGLE_OAUTH_CONFIGURED)
@@ -1479,37 +1610,65 @@ def compare_shots_2q():
 # string. Instead: parse the submission with Python's own `ast` module,
 # walk the tree, and reject anything that isn't in an explicit
 # allowlist — QuantumCircuit construction, a fixed set of gate/measure
-# method calls, simple variable assignment, and basic arithmetic. No
-# imports, no function/class definitions, no loops or comprehensions,
-# no attribute access beyond the allowed method names, no dunder access
-# anywhere. That last point matters even for otherwise-"safe" node
-# types: `x.__class__.__bases__` is built entirely out of Attribute/
-# Name nodes with no dangerous call at all, which is why dunder names
-# are rejected on sight rather than only checking Call targets.
+# method calls, a small set of safe builtins (range/print/input/len/
+# abs/min/max/int/float/str/bool/enumerate), variable assignment,
+# basic arithmetic/comparison/boolean logic, and for/while loops with
+# if/elif/else branching. No imports, no function/class definitions,
+# no comprehensions, no attribute access beyond the allowed method
+# names, no dunder access anywhere. That last point matters even for
+# otherwise-"safe" node types: `x.__class__.__bases__` is built
+# entirely out of Attribute/Name nodes with no dangerous call at all,
+# which is why dunder names are rejected on sight rather than only
+# checking Call targets.
 #
-# Two consequences of not allowing loops: circuits have to be written
-# out gate-by-gate (matches how every other example on this page reads
-# anyway), and it closes off the most common way "safe-looking" code
-# hangs a server (an infinite/near-infinite loop) without needing a
-# clever static analysis to prove termination — there's structurally
-# no way to loop at all. A signal-based wall-clock timeout is still in
-# place as defense in depth, in case this allowlist has a gap I haven't
-# found; it's a no-op on Windows (SIGALRM doesn't exist there), which
-# only matters if you're running app.py's dev server on Windows —
-# gunicorn/Docker deploys are Linux.
+# Loops mean the AST allowlist alone can no longer bound how many gates
+# get applied (a `for` loop can call qc.h(0) a million times) — so
+# _run_validated_circuit below also wraps every allowed QuantumCircuit
+# method with a live counter that aborts mid-loop once _MAX_GATES is
+# exceeded, rather than only checking len(qc.data) after the fact. That
+# wrap wrap is done on the QuantumCircuit class itself (process-global),
+# so _RUN_CODE_LOCK serializes concurrent /api/run-code calls — an
+# acceptable trade-off for a small educational sandbox, not a
+# high-throughput API. A signal-based wall-clock timeout is still in
+# place as defense in depth against a loop that spins CPU without ever
+# calling a qc method (e.g. `while True: x = x + 1`); it's a no-op on
+# Windows (SIGALRM doesn't exist there), which only matters if you're
+# running app.py's dev server on Windows — gunicorn/Docker deploys are
+# Linux.
 
 _ALLOWED_CODE_NODE_TYPES = (
-    ast.Module, ast.Expr, ast.Assign, ast.Call, ast.Attribute, ast.Name,
-    ast.Load, ast.Store, ast.Constant, ast.keyword, ast.List, ast.Tuple,
-    ast.UnaryOp, ast.USub, ast.UAdd, ast.BinOp, ast.Add, ast.Sub, ast.Mult, ast.Div,
+    ast.Module, ast.Expr, ast.Assign, ast.AugAssign, ast.Call, ast.Attribute, ast.Name,
+    ast.Load, ast.Store, ast.Constant, ast.keyword, ast.List, ast.Tuple, ast.Subscript, ast.Slice,
+    ast.UnaryOp, ast.USub, ast.UAdd, ast.Not, ast.BinOp, ast.Add, ast.Sub, ast.Mult, ast.Div,
+    ast.FloorDiv, ast.Mod, ast.Pow,
+    ast.Compare, ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE, ast.In, ast.NotIn, ast.Is, ast.IsNot,
+    ast.BoolOp, ast.And, ast.Or,
+    ast.If, ast.For, ast.While, ast.Break, ast.Continue, ast.Pass,
+    ast.JoinedStr, ast.FormattedValue,
 )
 _ALLOWED_QC_METHODS = {"h", "x", "y", "z", "ry", "rx", "rz", "cx", "measure", "measure_all", "barrier"}
+_ALLOWED_BARE_CALLS = {"QuantumCircuit", "range", "print", "input", "len", "abs", "min", "max", "int", "float", "str", "bool", "enumerate"}
 _MAX_CODE_CHARS = 4000
 _MAX_QUBITS = 3
 _MAX_GATES = 60
+_MAX_LOOP_STEPS = 200_000  # bounds `for`/`while` bodies unrelated to qc calls (e.g. plain counting)
+
+_RUN_CODE_LOCK = threading.Lock()
 
 
 class _CodeValidationError(ValueError):
+    pass
+
+
+class _TooManyOperationsError(RuntimeError):
+    pass
+
+
+class _TooManyStepsError(RuntimeError):
+    pass
+
+
+class _OutOfInputError(RuntimeError):
     pass
 
 
@@ -1529,9 +1688,10 @@ def _validate_circuit_code(code):
     for node in ast.walk(tree):
         if not isinstance(node, _ALLOWED_CODE_NODE_TYPES):
             raise _CodeValidationError(
-                f"'{type(node).__name__}' isn't allowed here — only QuantumCircuit construction, "
-                f"gate/measure calls ({', '.join(sorted(_ALLOWED_QC_METHODS))}), and simple "
-                f"variable assignment. No imports, loops, or function definitions."
+                f"'{type(node).__name__}' isn't allowed here — allowed: QuantumCircuit construction, "
+                f"gate/measure calls ({', '.join(sorted(_ALLOWED_QC_METHODS))}), assignment, arithmetic, "
+                f"comparisons, if/elif/else, for/while loops, and {', '.join(sorted(_ALLOWED_BARE_CALLS))}. "
+                f"Still no imports or function/class definitions."
             )
         if isinstance(node, (ast.Name, ast.Attribute)):
             dunder_name = getattr(node, "id", None) or getattr(node, "attr", None)
@@ -1540,9 +1700,9 @@ def _validate_circuit_code(code):
         if isinstance(node, ast.Call):
             func = node.func
             if isinstance(func, ast.Name):
-                if func.id != "QuantumCircuit":
+                if func.id not in _ALLOWED_BARE_CALLS:
                     raise _CodeValidationError(
-                        f"Only QuantumCircuit(...) can be called directly by name — not {func.id}(...)."
+                        f"'{func.id}(...)' isn't allowed — allowed by name: {', '.join(sorted(_ALLOWED_BARE_CALLS))}."
                     )
             elif isinstance(func, ast.Attribute):
                 if func.attr not in _ALLOWED_QC_METHODS:
@@ -1553,13 +1713,82 @@ def _validate_circuit_code(code):
                 raise _CodeValidationError("Unsupported call expression.")
         if isinstance(node, ast.Assign):
             for target in node.targets:
-                if not isinstance(target, ast.Name):
+                if not isinstance(target, (ast.Name, ast.Subscript)):
                     raise _CodeValidationError(
-                        "Only simple variable assignment (e.g. `qc = ...`) is allowed — "
-                        "no attribute, subscript, or tuple-unpacking assignment."
+                        "Only simple variable assignment (e.g. `qc = ...` or `x[0] = ...`) is allowed — "
+                        "no attribute or tuple-unpacking assignment."
                     )
+        if isinstance(node, ast.For):
+            if not isinstance(node.target, ast.Name):
+                raise _CodeValidationError("Only a single loop variable is allowed in `for x in ...:` — no tuple unpacking.")
 
     return compile(tree, "<user_circuit>", "exec")
+
+
+def _run_validated_circuit(compiled, safe_globals, safe_locals):
+    """Executes already-validated code with two live guards a static
+    AST pass can't provide once loops are allowed: a hard cap on total
+    QuantumCircuit operations (wrapping the class — see _RUN_CODE_LOCK
+    note above) and a hard cap on total loop-body iterations (via
+    sys.settrace, so a loop that never touches `qc` still can't spin
+    past _MAX_LOOP_STEPS before the SIGALRM timeout would catch it)."""
+    op_counter = {"n": 0}
+    step_counter = {"n": 0}
+    originals = {}
+
+    def _make_wrapper(name, orig_fn):
+        def wrapper(self, *a, **kw):
+            op_counter["n"] += 1
+            if op_counter["n"] > _MAX_GATES:
+                raise _TooManyOperationsError(f"Too many circuit operations (max {_MAX_GATES}).")
+            return orig_fn(self, *a, **kw)
+        return wrapper
+
+    def _tracer(frame, event, arg):
+        if event == "line":
+            step_counter["n"] += 1
+            if step_counter["n"] > _MAX_LOOP_STEPS:
+                raise _TooManyStepsError(f"Too many steps executed (max {_MAX_LOOP_STEPS}) — check for an infinite loop.")
+        return _tracer
+
+    for name in _ALLOWED_QC_METHODS:
+        originals[name] = getattr(QuantumCircuit, name)
+        setattr(QuantumCircuit, name, _make_wrapper(name, originals[name]))
+    try:
+        sys.settrace(_tracer)
+        exec(compiled, safe_globals, safe_locals)
+    finally:
+        sys.settrace(None)
+        for name, orig in originals.items():
+            setattr(QuantumCircuit, name, orig)
+
+
+def _make_sandboxed_input(stdin_lines):
+    """A batch-judge-style input(): pops the next pre-supplied line
+    instead of reading real stdin (there isn't any — this runs inside a
+    Flask request, non-interactively). The client can optionally send
+    a `stdin` string (newline-separated) in the request body; each
+    input() call consumes the next line."""
+    lines = list(stdin_lines)
+
+    def _input(prompt=""):
+        if not lines:
+            raise _OutOfInputError(
+                "input() was called but there's no more input provided — add it in the \"stdin\" box."
+            )
+        return lines.pop(0)
+
+    return _input
+
+
+def _make_sandboxed_print(buffer, max_chars=4000):
+    def _print(*args, sep=" ", end="\n"):
+        if len(buffer["text"]) >= max_chars:
+            return
+        buffer["text"] += sep.join(str(a) for a in args) + end
+        if len(buffer["text"]) > max_chars:
+            buffer["text"] = buffer["text"][:max_chars] + "\n… (output truncated)"
+    return _print
 
 
 @app.route("/api/run-code", methods=["POST"])
@@ -1589,51 +1818,68 @@ def api_run_code():
     except (TypeError, ValueError):
         shots = 1000
     shots = max(1, min(shots, 20000))
+    stdin_text = data.get("stdin", "") or ""
+    stdin_lines = stdin_text.split("\n") if stdin_text else []
 
     try:
         compiled = _validate_circuit_code(code)
     except _CodeValidationError as e:
         return jsonify({"error": "invalid_code", "message": str(e)}), 400
 
-    safe_globals = {"__builtins__": {}, "QuantumCircuit": QuantumCircuit, "pi": math.pi}
+    print_buffer = {"text": ""}
+    safe_builtins = {
+        "range": range, "len": len, "abs": abs, "min": min, "max": max,
+        "int": int, "float": float, "str": str, "bool": bool, "enumerate": enumerate,
+        "print": _make_sandboxed_print(print_buffer),
+        "input": _make_sandboxed_input(stdin_lines),
+    }
+    safe_globals = {"__builtins__": safe_builtins, "QuantumCircuit": QuantumCircuit, "pi": math.pi}
     safe_locals = {}
 
-    def _run():
-        exec(compiled, safe_globals, safe_locals)
+    with _RUN_CODE_LOCK:
+        try:
+            if hasattr(signal, "SIGALRM"):
+                def _on_timeout(signum, frame):
+                    raise TimeoutError("Code took too long to run (3s limit) — check for a runaway loop.")
 
-    try:
-        if hasattr(signal, "SIGALRM"):
-            def _on_timeout(signum, frame):
-                raise TimeoutError("Code took too long to run (3s limit).")
-
-            old_handler = signal.signal(signal.SIGALRM, _on_timeout)
-            signal.alarm(3)
-            try:
-                _run()
-            finally:
-                signal.alarm(0)
-                signal.signal(signal.SIGALRM, old_handler)
-        else:
-            _run()  # no SIGALRM (e.g. Windows dev) — grammar has no loops, so this still can't hang
-    except TimeoutError as e:
-        return jsonify({"error": "timeout", "message": str(e)}), 400
-    except Exception as e:
-        return jsonify({"error": "runtime_error", "message": f"{type(e).__name__}: {e}"}), 400
+                old_handler = signal.signal(signal.SIGALRM, _on_timeout)
+                signal.alarm(3)
+                try:
+                    _run_validated_circuit(compiled, safe_globals, safe_locals)
+                finally:
+                    signal.alarm(0)
+                    signal.signal(signal.SIGALRM, old_handler)
+            else:
+                _run_validated_circuit(compiled, safe_globals, safe_locals)  # no SIGALRM (e.g. Windows dev)
+        except TimeoutError as e:
+            return jsonify({"error": "timeout", "message": str(e), "console": print_buffer["text"]}), 400
+        except (_TooManyOperationsError, _TooManyStepsError, _OutOfInputError) as e:
+            return jsonify({"error": "runtime_error", "message": str(e), "console": print_buffer["text"]}), 400
+        except Exception as e:
+            return jsonify({"error": "runtime_error", "message": f"{type(e).__name__}: {e}", "console": print_buffer["text"]}), 400
 
     qc = safe_locals.get("qc")
     if not isinstance(qc, QuantumCircuit):
         return (
-            jsonify({"error": "no_circuit", "message": "Your code needs to assign a QuantumCircuit to a variable named `qc`."}),
+            jsonify({
+                "error": "no_circuit",
+                "message": "Your code needs to assign a QuantumCircuit to a variable named `qc`.",
+                "console": print_buffer["text"],
+            }),
             400,
         )
     if qc.num_qubits > _MAX_QUBITS:
-        return jsonify({"error": "too_many_qubits", "message": f"Max {_MAX_QUBITS} qubits in this playground."}), 400
+        return jsonify({"error": "too_many_qubits", "message": f"Max {_MAX_QUBITS} qubits in this playground.", "console": print_buffer["text"]}), 400
     if len(qc.data) > _MAX_GATES:
-        return jsonify({"error": "too_many_gates", "message": f"Max {_MAX_GATES} operations."}), 400
+        return jsonify({"error": "too_many_gates", "message": f"Max {_MAX_GATES} operations.", "console": print_buffer["text"]}), 400
     has_measurement = any(instr.operation.name == "measure" for instr in qc.data)
     if not has_measurement:
         return (
-            jsonify({"error": "no_measurement", "message": "Add qc.measure_all() or qc.measure(...) so there's something to read out."}),
+            jsonify({
+                "error": "no_measurement",
+                "message": "Add qc.measure_all() or qc.measure(...) so there's something to read out.",
+                "console": print_buffer["text"],
+            }),
             400,
         )
 
@@ -1645,6 +1891,7 @@ def api_run_code():
             "shots": shots,
             "num_qubits": qc.num_qubits,
             "backend": "qiskit-aer AerSimulator",
+            "console": print_buffer["text"],
         }
     )
 

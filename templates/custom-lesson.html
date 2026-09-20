@@ -2,6 +2,10 @@
 {% block title %}{{ lesson.title }} — Qubit Sandbox{% endblock %}
 {% block page_title %}{{ lesson.title }}{% endblock %}
 
+{% block head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+{% endblock %}
+
 {% block content %}
 
 <div class="pill" style="margin-bottom:14px;">COMMUNITY LESSON &middot; BY {{ author_name.upper() }}</div>
@@ -80,6 +84,10 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+<script>if (window.hljs) hljs.highlightAll();</script>
 <script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
 <script>
   // Community lessons weren't trackable at all before (futureplans.md

@@ -1,22 +1,28 @@
 # Qubit Sandbox
 
-A small Flask web app for a quantum computing hackathon problem set —
-built as lessons with live, real-math sandboxes instead of static
-write-ups.
+A Flask web app for learning quantum computing — lessons with live,
+real-math sandboxes instead of static write-ups.
 
 Live pages: a landing page, a personalized **Dashboard**, a full
-**Lessons** catalog (QM Basics → Single Qubit → Two Qubits → Physical
-Qubit → Hardware Lab → Reality Check, plus any published **community
-lessons**, with prev/next navigation through the whole sequence), a
-**Demos** hub for the hackathon showcase (Coin Flip + Single Qubit, no
-sign-in needed), a full-screen **Sandbox**, a **Python IDE** with a
-real (AST-restricted, not arbitrary-exec) code editor plus runnable
-Qiskit snippets, a **Lesson Creator** workspace for verified creator
-accounts (create, edit, publish/unpublish, delete), and an **Account**
-page (profile, stats, per-lesson progress, account deletion). **Sign-
-in is real** — Google OAuth + server sessions, backed by SQLite, with
-separate **Sign in** (`/login`) and **Create account** (`/signup`,
-picks student/educator/creator) flows — see "Accounts" below.
+**Lessons** catalog organized into **Modules** (Module 1 — QM Basics →
+Single Qubit → Two Qubits → Physical Qubit → Hardware Lab → Reality
+Check, plus its two widgets — followed by any published creator
+modules and standalone community lessons, with prev/next navigation
+through Module 1's sequence), a **Demos** hub (Coin Flip + Single
+Qubit, no sign-in needed), a full-screen **Sandbox**, a **Python IDE**
+with a real code editor (loops, branching, `print`, `input` — see
+"Python IDE" below) plus runnable Qiskit snippets and a full-page
+editor with an output console, a **Lesson Creator** + **My
+Submissions** workspace for verified creator accounts (write lessons
+with Markdown, custom checklists, and creator-built widgets; group
+lessons into Modules; edit/delete/publish), gamification (daily
+streaks, study-hours tracking, unlockable badges), an **Admin** page
+for reviewing creator requests, and an **Account** page (profile,
+stats, per-module/per-lesson progress, badges, account deletion).
+**Sign-in is real** — Google OAuth + server sessions, backed by
+SQLite, with separate **Sign in** (`/login`) and **Create account**
+(`/signup`, picks student/educator/creator) flows — see "Accounts"
+below.
 
 ---
 
@@ -37,9 +43,8 @@ IDE). They're imported lazily in `app.py`, so the rest of the app still
 runs even if they're not installed — that one endpoint just returns a
 501 with a clear message instead.
 
-Sign-in works out of the box with no setup — click "Continue as Demo
-Guest" on `/login` for a real (if not Google-verified) account
-immediately. See "Accounts" below to wire up real Google sign-in.
+Sign-in requires real Google OAuth credentials — see "Accounts"
+below to wire that up before `/login`/`/signup` will work.
 
 ## Or run it in Docker
 
@@ -59,7 +64,7 @@ the image — check size before deploying somewhere with a tight limit.
 ```
 qubit-flask/
 ├── app.py                     ← routes + nav data (NAV_ITEMS) + OAuth/session wiring + API
-├── db.py                      ← SQLite: users (account_type/creator_status), lesson progress, custom_lessons
+├── db.py                      ← SQLite: users, lesson progress, custom_lessons, modules, custom_widgets, activity_log, badges
 ├── requirements.txt
 ├── Dockerfile
 ├── .dockerignore
@@ -67,24 +72,18 @@ qubit-flask/
 ├── .env.example                ← SECRET_KEY / GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET / CREATOR_EMAILS / ADMIN_EMAILS
 ├── instance/                   ← gitignored; qubit_sandbox.db (SQLite) lives here, created on first run
 ├── futureplans.md             ← what's shipped, what's deferred, in detail
-├── challenge/                 ← standalone self-implementation practice (see below)
-│   ├── index.html
-│   ├── quantum-challenge.js   ← stub with TODOs — fill this in yourself
-│   ├── bloch.js               ← rendering only, given as-is
-│   ├── style.css
-│   └── CHALLENGE.md
 ├── templates/
 │   ├── base.html              ← sidebar app-shell, extended by every page below
 │   ├── landing.html           ← standalone marketing/intro page, NO sidebar
 │   ├── login.html             ← standalone sign-in page (returning users), NO sidebar
 │   ├── signup.html            ← standalone create-account page (student/educator/creator picker), NO sidebar
 │   ├── _lesson_nav.html       ← Jinja macro: prev/next lesson nav, included by every lesson template
-│   ├── dashboard.html         ← personalized: onboarding panel, stats, "continue where you left off"
-│   ├── lessons.html           ← full lesson catalog + community lessons section
-│   ├── account.html           ← @login_required: real profile, stats, per-lesson progress, danger zone
+│   ├── dashboard.html         ← personalized: onboarding panel, stats, module progress, gamification summary
+│   ├── lessons.html           ← Module 1 + community modules + standalone lessons, all with progress bars
+│   ├── account.html           ← @login_required: profile, stats, module/lesson progress, streaks, badges, danger zone
 │   ├── admin-creators.html    ← @login_required + ADMIN_EMAILS: approve/reject pending creator requests
-│   ├── demos.html             ← open-access hub: Demo 1 (Coin Flip) + Single Qubit
-│   ├── demo-coin-flip.html    ← Demo 1, a working scaffold (live widgets, sparse narrative on purpose)
+│   ├── demos.html             ← open-access hub: Coin Flip + Single Qubit
+│   ├── demo-coin-flip.html    ← a working scaffold (live widgets, sparse narrative on purpose)
 │   ├── sandbox.html           ← full-screen widgets, no lesson scaffolding, hash deep-links
 │   ├── qm-basics.html         ← Lesson 0, open access
 │   ├── single-qubit.html      ← Lesson 1, open access, full step-by-step format
@@ -92,9 +91,11 @@ qubit-flask/
 │   ├── physical-qubit.html    ← Lesson 3, gated
 │   ├── hardware-lab.html      ← Lesson 4, gated — MOSFET diagram, LC-loop demo, chip-layout diagram
 │   ├── reality-check.html     ← Lesson 5, gated
-│   ├── lesson-creator.html    ← real authoring workspace for verified creators — create/edit/publish/delete
+│   ├── lesson-creator.html    ← write/edit one lesson: Markdown, checklists, module + widget pickers
+│   ├── creator-submissions.html ← "My Submissions": manage all your modules, lessons, and widgets
 │   ├── custom-lesson.html     ← renders a published community lesson at /lessons/custom/<slug>
-│   ├── python-ide.html        ← real AST-restricted code editor + runnable snippets + Circuit Builder
+│   ├── python-ide.html        ← quick-run snippet editor + runnable presets + Circuit Builder
+│   ├── python-ide-editor.html ← full-page IDE: code area, output console, gate reference, save-as-widget
 │   ├── embed-coin-flip.html   ← chrome-less, iframeable single-qubit widget (no sidebar)
 │   └── embed-two-qubit.html   ← chrome-less, iframeable Bell-state widget (no sidebar)
 └── static/
@@ -109,8 +110,9 @@ qubit-flask/
         ├── sidebar.js         ← collapse/expand + mobile drawer
         ├── lesson-progress.js ← step-checkbox progress tracker, backed by /api/progress (real accounts)
         ├── lessons-data.js    ← QS_LESSON_DEFS — the one place lesson id/title/href/step-count lives
+        ├── gamification.js    ← site-wide activity heartbeat + badge-unlock toasts
         ├── stats.js           ← localStorage usage counters (shots run, gates applied)
-        └── sw.js              ← PWA service worker (precaches app routes)
+        └── sw.js              ← PWA service worker (network-first for pages, cache-first for assets)
 ```
 
 ## How pages are wired together
@@ -136,12 +138,12 @@ Real Google OAuth (via `Authlib`) + real server sessions (via
 in `instance/qubit_sandbox.db` on first run).
 
 **Sign in vs. create account.** `/login` is for returning visitors —
-Google or Demo Guest, straight through to wherever they were headed.
-`/signup` is for new visitors: pick an account type first (Student,
-Educator, or Creator — see below), then the same Google/Demo Guest
-buttons, which apply the chosen type only if the resulting account is
-freshly created (an existing account that lands on `/signup` by
-mistake just signs in normally, keeping its original type).
+straight through to wherever they were headed. `/signup` is for new
+visitors: pick an account type first (Student, Educator, or Creator —
+see below), then Google sign-in, which applies the chosen type only if
+the resulting account is freshly created (an existing account that
+lands on `/signup` by mistake just signs in normally, keeping its
+original type).
 
 **To enable real Google sign-in:**
 
@@ -155,12 +157,9 @@ mistake just signs in normally, keeping its original type).
 4. Restart the app. `/login`/`/signup` now show a working "Continue
    with Google" button instead of a disabled one.
 
-**Without those credentials set**, sign-in still works via "Continue
-as Demo Guest" — a real account gets created (a real row in `users`,
-a real session), just not Google-verified. Each click makes a
-*fresh, isolated* guest identity rather than sharing one account
-across visitors, so multiple people can demo this at once without
-seeing each other's progress.
+**Without those credentials set**, `/login` and `/signup` show
+Google sign-in as unavailable (with an explanation) rather than
+degrading to any other sign-in method — there isn't one.
 
 Routes marked `@login_required` in `app.py` (Two Qubits, Physical
 Qubit, Hardware Lab, Reality Check, Account, `/admin/creators`)
@@ -186,9 +185,6 @@ before `current_user.can_create_lessons` is true and
 
 - **`CREATOR_EMAILS`** env var (comma-separated) — a real,
   Google-verified sign-in with a matching email is verified instantly.
-  Demo Guest accounts can request creator (to see what the pending
-  state looks like) but can never auto-verify — there's no real email
-  to check.
 - Anyone else who requests creator access goes to `creator_status=
   'pending'` and needs a human. **`ADMIN_EMAILS`** env var
   (comma-separated) marks accounts that can see and act on pending
@@ -215,43 +211,109 @@ handles the cascade manually since `PRAGMA foreign_keys = ON` is set
 (SQLite won't enforce FK constraints without it, but won't let you
 violate them once it's on either).
 
-## Lesson Creator & community lessons
+## Modules
+
+`/lessons` groups the whole catalog into **Modules** instead of one
+flat list. **Module 1** is built-in (`db.get_builtin_module()`,
+seeded on first run) and holds the 6 original lessons plus the two
+embeddable widgets. Verified creators can create their own module
+(`POST /api/creator-modules`), assign any of their lessons to it (a
+per-lesson module picker in the Lesson Creator, or a quick-reassign
+dropdown on My Submissions), and publish it — which also bulk-publishes
+every lesson currently in it (`POST /api/creator-modules/<id>/publish`).
+`/api/modules` returns the whole catalog (built-in + published
+community modules, each with its lessons) and is what `/lessons`,
+`/dashboard`, and `/account` render their module-grouped progress bars
+from, paired with the existing `/api/progress` data.
+
+## Lesson Creator, My Submissions & creator widgets
 
 `/lesson-creator` shows one of several things depending on who's
 looking: signed-out gets the pitch + a `/signup` link; signed-in
 non-creators get a "request creator access" button; pending/rejected
 creators get a status message; **verified creators** get a real
-workspace:
+authoring form (`?edit=<id>` loads an existing lesson of theirs into
+it instead of starting fresh):
 
-- **Create**: title, short description, and up to 12 steps (each a
-  title + plain-text body + an optional embedded widget, reusing
-  `/embed/coin-flip`/`/embed/two-qubit` rather than building
-  lesson-specific ones). `POST /api/lessons` validates everything
-  server-side and writes to `custom_lessons` via
-  `db.create_custom_lesson()`, which auto-generates a unique URL slug
-  from the title (collisions get `-2`, `-3`, ... appended).
-- **Edit, unpublish/republish, delete** your own lessons — `PUT`/
-  `DELETE /api/lessons/<id>` and `POST /api/lessons/<id>/publish`, all
-  checked server-side against `lesson.author_user_id` (a non-owner's
-  attempt gets a real `403`). An unpublished lesson stays visible to
-  its own author (to preview before republishing) but 404s for
-  everyone else — same response as a nonexistent slug, so it doesn't
-  leak that an unpublished lesson exists.
+- **Create/edit**: title, short description, an optional Module, and
+  up to 12 steps. Each step has a title, a **Markdown** body (rendered
+  server-side with `Markdown` + sanitized with `bleach` before
+  storage — see "Markdown" below), an optional widget (the built-in
+  Coin Flip/Two Qubit embeds, or one of the creator's own saved
+  widgets), and up to 6 custom checklist items (extra
+  progress-tracked checkboxes beyond "mark step complete").
+  `POST`/`PUT /api/lessons(/<id>)` validate everything server-side and
+  write to `custom_lessons` via `db.create_custom_lesson()` /
+  `db.update_custom_lesson()`; slugs auto-generate from the title
+  (collisions get `-2`, `-3`, ... appended).
+- **My Submissions** (`/creator/submissions`) is the management page:
+  every module, lesson, and widget you've authored, with
+  edit/delete/publish controls and a quick lesson→module reassign
+  dropdown — separate from the Lesson Creator so that page can stay
+  focused on writing one lesson at a time.
+- **Creator widgets**: a verified creator can save a restricted Qiskit
+  snippet as a reusable widget — either from the Lesson Creator's step
+  editor ("+ Create new widget") or from the Python IDE's full-page
+  editor ("Save as widget", see below) — then pick it from any step's
+  widget dropdown. Stored in `custom_widgets`, validated with the
+  exact same `_validate_circuit_code()` AST-walker `/api/run-code`
+  uses, and rendered read-only with a "Run" button that calls
+  `/api/run-code` — no new execution surface.
+- **Publish, unpublish, delete** your own lessons/modules/widgets, all
+  checked server-side against ownership (a non-owner's attempt gets a
+  real `403`). An unpublished lesson stays visible to its own author
+  (to preview before republishing) but 404s for everyone else — same
+  response as a nonexistent slug, so it doesn't leak that an
+  unpublished lesson exists.
 
 Published lessons render at `/lessons/custom/<slug>`
-(`custom-lesson.html`) and appear in a "Community lessons" section on
-`/lessons` — open to everyone, same as the built-in open lessons, no
-sign-in needed to *read* one, though marking steps complete needs an
-account like any other lesson (`initLessonProgress('custom-<slug>')`
-— same checkboxes/progress bar as the built-in lessons, tracked under
-a `custom-`-prefixed lesson id so it can't collide with the 6 fixed
-ones). Step bodies are plain text only (Jinja autoescaping + CSS
-`white-space: pre-line` for line breaks) — no HTML or markdown is
-accepted or rendered anywhere in this feature, so there's no
-stored-XSS surface despite this being user-submitted content shown to
-every visitor. That progress isn't surfaced on Dashboard/Account yet
-(both only know about the 6 built-in lesson ids) — see
-`futureplans.md` #11 for what's left.
+(`custom-lesson.html`) and appear grouped by module (or under "Other
+community lessons" if standalone) on `/lessons` — open to everyone, no
+sign-in needed to *read* one, though marking steps/checklist items
+complete needs an account, same as any other lesson
+(`initLessonProgress('custom-<slug>')`, tracked under a
+`custom-`-prefixed lesson id so it can't collide with the 6 built-in
+ones). That progress now IS surfaced on Dashboard/Account via the
+Modules catalog above.
+
+## Markdown
+
+Lesson step bodies support most of the common Markdown feature set —
+headings (h1–h6), **bold**/*italic*/***both***, `` ~~strikethrough~~ ``,
+`==highlighted==` text, inline code and fenced code blocks (syntax-
+highlighted client-side with highlight.js, loaded from a CDN in
+`custom-lesson.html`), nested bullet/numbered lists, links, images,
+horizontal rules, task-list checkboxes, tables, blockquotes, and
+Obsidian-style callouts (`> [!NOTE]`, with an optional custom title and
+a `-`/`+` suffix for a foldable `<details>` callout, e.g.
+`> [!FAQ]- Are callouts foldable?`). Extensions used: `fenced_code`,
+`tables`, `sane_lists`, `pymdownx.tilde`, `pymdownx.mark`,
+`pymdownx.tasklist`, plus a small custom `ObsidianCalloutExtension` in
+`app.py` (a `Treeprocessor` that turns marker-prefixed blockquotes into
+styled callout blocks) since python-markdown/pymdown-extensions don't
+ship GFM/Obsidian-style blockquote callouts out of the box. Everything
+the library produces is still run through `bleach.clean()` against a
+fixed tag/attribute allowlist before it's stored — Markdown's own HTML
+output isn't trusted automatically. As with everything else here,
+markdown is a *list*, not exhaustive Obsidian parity (e.g. inline
+`[[wikilinks]]` and `#tags` aren't rendered specially).
+
+## Gamification
+
+Signed-in accounts get a lightweight activity heartbeat
+(`static/js/gamification.js`) that pings `POST /api/activity/ping`
+roughly once a minute while a tab is open and focused, logging one
+"minute studied" for today (`activity_log`, one row per user per UTC
+day) and re-checking every badge condition
+(`compute_and_sync_badges()` in `app.py`). Badges
+(`db.BADGE_CATALOG`) cover streaks (3/7/30 consecutive days), a
+weekend-studier badge, 10/40 total study hours, lesson-completion
+milestones (first lesson, 5 lessons, all of Module 1), and early-
+bird/night-owl timing — newly-earned ones pop a toast
+(`gamification.js`) and everything's summarized on Account (full badge
+grid + streak/hours stats) and Dashboard (compact version). This is a
+coarse "were you actively here" signal, not a precise or billing-grade
+timer, and is stated as such in the UI copy itself.
 
 ## The lesson / progress system
 
@@ -296,19 +358,31 @@ editor — it accepts real-looking Python source, not a gate list. Since
 running arbitrary user-submitted code server-side is a genuine
 security problem, it's never passed to `exec()` directly: `app.py`'s
 `_validate_circuit_code()` parses it with Python's own `ast` module
-and walks the tree, allowing only `QuantumCircuit` construction, a
-fixed gate/measure method allowlist, simple variable assignment, and
-basic arithmetic — no imports, loops, function/class definitions, or
-any name/attribute starting with `__` (closes classic sandbox-escape
-patterns like `().__class__.__bases__` that don't even need a
-dangerous call to work). No loops in the grammar also means there's
-structurally no way to write an infinite loop; a `SIGALRM`-based
-3-second timeout is defense in depth on top of that (a no-op on
-Windows, where `SIGALRM` doesn't exist — only matters running the dev
-server there; gunicorn/Docker deploys are Linux). Max 3 qubits, 60
-operations, 4000 characters. See the comment block above
-`/api/run-code` in `app.py` for the full reasoning, and
-`futureplans.md` #12 for what a looser version might look like later.
+and walks the tree. The allowed grammar is now broader than a
+straight-line script — `for`/`while` loops, `if`/`elif`/`else`
+branching, `print()`, and `input()` are all allowed alongside
+`QuantumCircuit` construction, the gate/measure method allowlist,
+variable assignment, and arithmetic — but imports, function/class
+definitions, and any name/attribute starting with `__` are still
+rejected (closes classic sandbox-escape patterns like
+`().__class__.__bases__` that don't even need a dangerous call to
+work). Because loops are now allowed, runaway execution is bounded
+three ways instead of relying on "no loops in the grammar" alone: a
+`SIGALRM`-based 3-second wall-clock timeout (a no-op on Windows, where
+`SIGALRM` doesn't exist — only matters running the dev server there),
+a hard cap on loop iterations enforced at `for`/`while` AST nodes
+before execution, and a *runtime* operation counter (gate/measure
+calls actually made while the code runs, not just how many appear in
+the source) that aborts once it crosses the same 60-operation ceiling
+straight-line code was already held to. `print()` output is captured
+and returned as `stdout` alongside the measurement counts, shown in
+the Python IDE's console panel. `input()` reads from an optional
+client-supplied `stdin` string (one value per line, popped in order) —
+there's no real interactive terminal server-side, so a program that
+calls `input()` past the end of the supplied lines gets an empty
+string rather than hanging. Max 3 qubits, 60 operations, 4000
+characters, 200 total loop iterations. See the comment block above
+`/api/run-code` in `app.py` for the full reasoning.
 
 All three endpoints degrade gracefully (`501` + a clear message) if
 `qiskit`/`qiskit-aer` aren't installed, and none need sign-in — none
@@ -343,17 +417,6 @@ through real `qiskit-aer` server-side, so Single Qubit's Step 5 and the
 Python IDE can show genuine agreement (and genuine shot noise) between
 this from-scratch engine and IBM's own simulator.
 
-## The `challenge/` folder
-
-A **standalone, self-contained** copy of the Single Qubit sandbox where
-the actual physics (`quantum-challenge.js`) is left as TODOs — built so
-you can implement the gate matrices and measurement logic yourself
-without looking at the finished `static/js/quantum.js`. Doesn't run
-through Flask; open `challenge/index.html` directly in a browser.
-Instructions in `challenge/CHALLENGE.md`. Excluded from the Docker
-image (`.dockerignore`) since it's a practice exercise, not part of the
-deployed app.
-
 ## Deploying beyond Docker
 
 Since this is a real (if small) Flask app, it deploys anywhere Python
@@ -379,11 +442,8 @@ apps do:
   has to remember to check `/admin/creators`; nothing pings them.
 - **No self-serve re-request after a creator rejection** — dead end
   for now, `/lesson-creator` just explains it.
-- **Custom (community) lessons have no rich text, and their progress
-  isn't surfaced outside the lesson page itself** — plain text bodies
-  only (deliberate — see "Lesson Creator" above for why), no version
-  history once edited, and Dashboard/Account don't know about
-  `custom-<slug>` lesson ids yet even though the progress API does.
+- **Custom (community) lessons have no version history** once edited —
+  an edit overwrites the previous content of that lesson.
 - **No real photographs.** Everything visual here is a hand-built SVG
   illustration/diagram — no network access in the environment this was
   built in to fetch real photos, and fabricating placeholder "photos"
@@ -391,11 +451,8 @@ apps do:
 - **Reality Check's hardware numbers** are publicly reported figures
   current as of when this was built and will go stale — worth a quick
   check before any live demo more than a few weeks out.
-- **Python IDE's code editor has no loops** — the AST-restricted
-  grammar behind `/api/run-code` allows straight-line code only (see
-  "Three ways to run a real circuit through Qiskit" above for why that
-  was the simplest safe choice for v1). Circuits have to be written out
-  gate-by-gate.
+- **Study-time/streak tracking is a coarse heartbeat**, not a precise
+  timer — see "Gamification" above.
 
 See `futureplans.md` for the complete, detailed list of what's shipped
 vs. deferred, with enough context to pick any of it back up later.

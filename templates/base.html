@@ -10,6 +10,7 @@
 <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
 <meta name="theme-color" content="#3e5cf6">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+{% block head %}{% endblock %}
 </head>
 <body>
 
@@ -90,7 +91,7 @@
       {% block content %}{% endblock %}
     </main>
     <footer class="appfooter">
-      Qubit Sandbox &mdash; built for a hackathon problem set. The quantum "simulation" is real 2&times;2 complex matrix math running in your browser, not canned numbers.
+      Qubit Sandbox &mdash; an interactive quantum computing curriculum. The quantum "simulation" is real 2&times;2 complex matrix math running in your browser, not canned numbers.
     </footer>
   </div>
 </div>

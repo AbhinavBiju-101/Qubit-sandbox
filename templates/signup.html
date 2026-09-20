@@ -67,9 +67,7 @@
     </button>
     {% endif %}
 
-    <a class="btn primary block" id="signup-guest-btn" style="justify-content:center;" href="{{ url_for('demo_login', next=request.args.get('next'), type='student') }}">Continue as Demo Guest</a>
-
-    <p class="muted" style="font-size:0.8rem; margin-top:18px; margin-bottom:0;">Creator status is only ever auto-verified through real Google sign-in — Demo Guest can request Creator to see what the pending state looks like, but can't get verified (there's no real email to check).</p>
+    <p class="muted" style="font-size:0.8rem; margin-top:18px; margin-bottom:0;">Creator accounts are auto-verified if your email is pre-approved; otherwise an admin reviews your request from the Admin page.</p>
   </section>
 </main>
 
@@ -80,16 +78,14 @@
 <script>
   const cards = document.querySelectorAll('.type-card');
   const googleBtn = document.getElementById('signup-google-btn');
-  const guestBtn = document.getElementById('signup-guest-btn');
 
   function setType(type) {
     cards.forEach(c => c.classList.toggle('selected', c.dataset.type === type));
-    [googleBtn, guestBtn].forEach(btn => {
-      if (!btn) return;
-      const url = new URL(btn.href, window.location.origin);
+    if (googleBtn) {
+      const url = new URL(googleBtn.href, window.location.origin);
       url.searchParams.set('type', type);
-      btn.href = url.pathname + url.search;
-    });
+      googleBtn.href = url.pathname + url.search;
+    }
   }
 
   cards.forEach(card => {

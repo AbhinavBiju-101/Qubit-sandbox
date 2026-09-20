@@ -2,6 +2,15 @@
 {% block title %}Python IDE — Qubit Sandbox{% endblock %}
 {% block page_title %}Python IDE{% endblock %}
 
+{% block head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+<style>
+  #editor-textarea + .CodeMirror{ min-height: 220px; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.6; border-radius: var(--radius); overflow: hidden; }
+  .ide-console-output{ background:#14172a; color:#d7dcf5; border-radius:8px; padding:8px 12px; margin-top:6px; white-space:pre-wrap; font-size:0.82rem; }
+</style>
+{% endblock %}
+
 {% block content %}
 
 <!-- Doc links below point at the general QuantumCircuit API page
@@ -13,22 +22,25 @@
 <p class="muted" style="margin-bottom:26px;">These are real <span class="mono">qiskit</span> snippets — not illustrations. Hit "Run" and it calls the same <span class="mono">/api/compare-shots</span> Flask endpoint the Single Qubit lesson's Step 5 uses, which runs your circuit on real <span class="mono">qiskit-aer</span> server-side and returns actual counts.</p>
 
 <h2 style="margin-bottom:4px;">Code editor</h2>
-<p class="muted" style="margin-bottom:16px;">A real code editor, not just fixed buttons — but running arbitrary Python server-side is a genuine security problem, so this runs a <strong>restricted subset</strong>: build a <span class="mono">QuantumCircuit</span> named <span class="mono">qc</span>, call gate methods on it (<span class="mono">h x y z ry rx rz cx measure measure_all barrier</span>), do simple arithmetic — no <span class="mono">import</span>, no loops, no function/class definitions, no other function calls. Every "Open in editor" button below opens the full-screen IDE (code area + console + gate reference) with that snippet loaded. Max 3 qubits, 60 operations, 3 second timeout.</p>
+<p class="muted" style="margin-bottom:16px;">A real code editor with syntax highlighting — but running arbitrary Python server-side is a genuine security problem, so this runs a <strong>restricted subset</strong>: build a <span class="mono">QuantumCircuit</span> named <span class="mono">qc</span>, call gate methods on it (<span class="mono">h x y z ry rx rz cx measure measure_all barrier</span>), use loops and <span class="mono">if</span>/<span class="mono">elif</span>/<span class="mono">else</span>, and call <span class="mono">print()</span>/<span class="mono">input()</span> — no <span class="mono">import</span>, no function/class definitions. Every "Open in editor" button below opens the full-screen IDE (code area + console + gate reference) with that snippet loaded. Max 3 qubits, 60 operations, 3 second timeout.</p>
 
 <div class="panel" style="margin-bottom:20px;">
   <div class="panel-label" style="display:flex; align-items:center; justify-content:space-between;">
     <span>QUICK RUN</span>
     <a href="{{ url_for('python_ide_editor') }}" class="mono" style="font-size:0.76rem; font-weight:600;">Open full-screen IDE →</a>
   </div>
-  <textarea id="editor-textarea" spellcheck="false" style="width:100%; min-height:220px; font-family:var(--font-mono); font-size:0.85rem; line-height:1.6; background:#14172a; color:#d7dcf5; border:none; border-radius:var(--radius); padding:16px 18px; box-sizing:border-box; resize:vertical;">qc = QuantumCircuit(1, 1)
+  <textarea id="editor-textarea" spellcheck="false">qc = QuantumCircuit(1, 1)
 qc.h(0)
 qc.measure(0, 0)</textarea>
+  <label class="field-label" for="editor-stdin" style="font-size:0.78rem;">stdin <span class="muted" style="font-weight:400;">(one value per line, for <span class="mono">input()</span>)</span></label>
+  <textarea id="editor-stdin" placeholder="e.g. 1" style="width:100%; min-height:44px; font-family:var(--font-mono); font-size:0.8rem; box-sizing:border-box; resize:vertical;"></textarea>
   <div style="margin-top:14px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
     <button class="primary" id="editor-run">Run</button>
     <label class="mono muted" style="font-size:0.82rem; display:flex; align-items:center; gap:6px;">shots <input type="number" id="editor-shots" value="1000" min="1" max="20000" style="width:80px;"></label>
     <span class="mono muted" id="editor-status" style="font-size:0.82rem;"></span>
   </div>
   <div class="snippet-result" id="editor-result"></div>
+  <div id="editor-console-output" class="ide-console-output" style="display:none;"></div>
 </div>
 
 <div class="callout" style="margin-top:8px; margin-bottom:8px;">
@@ -211,6 +223,8 @@ result = <span class="fn">AerSimulator</span>().<span class="fn">run</span>(qc, 
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
 <script>
   function renderResult(id, data) {
     const el = document.getElementById('result-' + id);
@@ -245,9 +259,21 @@ result = <span class="fn">AerSimulator</span>().<span class="fn">run</span>(qc, 
   }
 
   // ==================== Real code editor ====================
-  const editorTextarea = document.getElementById('editor-textarea');
+  const editorTextareaRaw = document.getElementById('editor-textarea');
   const editorResultEl = document.getElementById('editor-result');
   const editorStatusEl = document.getElementById('editor-status');
+  const editorConsoleOutputEl = document.getElementById('editor-console-output');
+
+  const editorCm = window.CodeMirror ? CodeMirror.fromTextArea(editorTextareaRaw, {
+    mode: 'python',
+    theme: 'dracula',
+    lineNumbers: true,
+    indentUnit: 2,
+    tabSize: 2,
+    indentWithTabs: false,
+    extraKeys: { Tab: (cm) => cm.replaceSelection('  ', 'end'), 'Shift-Tab': 'indentLess' },
+  }) : null;
+  function getEditorCode() { return editorCm ? editorCm.getValue() : editorTextareaRaw.value; }
 
   function renderEditorResult(data) {
     if (!data || !data.counts) { editorResultEl.textContent = ''; return; }
@@ -258,20 +284,33 @@ result = <span class="fn">AerSimulator</span>().<span class="fn">run</span>(qc, 
       .join(' &nbsp;·&nbsp; ');
   }
 
+  function renderEditorConsole(consoleText) {
+    if (consoleText) {
+      editorConsoleOutputEl.textContent = consoleText;
+      editorConsoleOutputEl.style.display = '';
+    } else {
+      editorConsoleOutputEl.textContent = '';
+      editorConsoleOutputEl.style.display = 'none';
+    }
+  }
+
   document.getElementById('editor-run').addEventListener('click', async () => {
     const btn = document.getElementById('editor-run');
-    const code = editorTextarea.value;
+    const code = getEditorCode();
     const shots = document.getElementById('editor-shots').value;
+    const stdin = document.getElementById('editor-stdin').value;
     btn.disabled = true;
     editorStatusEl.textContent = 'Validating and running…';
     editorResultEl.textContent = '';
+    renderEditorConsole('');
     try {
       const res = await fetch('/api/run-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, shots })
+        body: JSON.stringify({ code, shots, stdin })
       });
       const data = await res.json();
+      renderEditorConsole(data.console);
       if (!res.ok) {
         editorStatusEl.textContent = data.message || 'Could not run that code.';
         return;

@@ -2,13 +2,24 @@
 {% block title %}Python IDE — Editor — Qubit Sandbox{% endblock %}
 {% block page_title %}Python IDE{% endblock %}
 
+{% block head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+<style>
+  .CodeMirror{ height: auto; min-height: 340px; font-family: var(--font-mono); font-size: 0.88rem; line-height: 1.65; }
+  .ide-console-entry{ padding:10px 0; border-bottom:1px solid var(--line); }
+  .ide-console-entry:last-child{ border-bottom:none; }
+  .ide-console-output{ background:#14172a; color:#d7dcf5; border-radius:8px; padding:8px 12px; margin-top:6px; white-space:pre-wrap; font-size:0.82rem; }
+</style>
+{% endblock %}
+
 {% block content %}
 
 <div style="display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:4px; flex-wrap:wrap;">
   <h2 style="margin:0;">Full-screen editor</h2>
   <a href="{{ url_for('python_ide') }}" class="mono muted" style="font-size:0.8rem;">&larr; Back to snippets &amp; Circuit Builder</a>
 </div>
-<p class="muted" style="margin-bottom:20px;">Same restricted grammar as the quick-run box: build a <span class="mono">QuantumCircuit</span> named <span class="mono">qc</span>, call gate methods on it, no imports/loops/functions. Every run is appended to the console below instead of overwriting the last result.</p>
+<p class="muted" style="margin-bottom:20px;">Same restricted grammar as the quick-run box, now with real room to write in: build a <span class="mono">QuantumCircuit</span> named <span class="mono">qc</span>, call gate methods on it, and use loops, <span class="mono">if</span>/<span class="mono">elif</span>/<span class="mono">else</span>, <span class="mono">print()</span>, and <span class="mono">input()</span> — still no imports or function/class definitions. Every run is appended to the console below instead of overwriting the last result.</p>
 
 <div class="grid-2" id="ide-layout">
   <div>
@@ -20,14 +31,14 @@
           <button class="small ghost" id="ide-reset">Reset to default</button>
         </div>
       </div>
-      <textarea id="ide-code" spellcheck="false" style="width:100%; min-height:340px; font-family:var(--font-mono); font-size:0.88rem; line-height:1.65; background:#14172a; color:#d7dcf5; border:none; padding:18px 20px; box-sizing:border-box; resize:vertical; display:block;">qc = QuantumCircuit(1, 1)
+      <textarea id="ide-code" spellcheck="false">qc = QuantumCircuit(1, 1)
 qc.h(0)
 qc.measure(0, 0)</textarea>
     </div>
 
     <div class="panel" style="margin-bottom:18px;">
       <div class="panel-label">RUN</div>
-      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:14px;">
         <button class="primary" id="ide-run">Run circuit</button>
         <label class="mono muted" style="font-size:0.82rem; display:flex; align-items:center; gap:6px;">shots <input type="number" id="ide-shots" value="1000" min="1" max="20000" style="width:90px;"></label>
         {% if current_user.is_authenticated and current_user.can_create_lessons %}
@@ -36,11 +47,13 @@ qc.measure(0, 0)</textarea>
         <span class="mono muted" style="font-size:0.76rem;" title="Verified creator accounts can save a snippet as an embeddable lesson widget.">Save as widget (creator accounts only)</span>
         {% endif %}
       </div>
+      <label class="field-label" for="ide-stdin" style="margin-top:0;">stdin <span class="muted" style="font-weight:400;">(one value per line — each <span class="mono">input()</span> call in your code consumes the next line, since there's no real keyboard attached server-side)</span></label>
+      <textarea id="ide-stdin" placeholder="e.g.&#10;1&#10;3" style="width:100%; min-height:60px; font-family:var(--font-mono); font-size:0.82rem; box-sizing:border-box; resize:vertical;"></textarea>
     </div>
 
     <div class="panel">
       <div class="panel-label">CONSOLE</div>
-      <div id="ide-console" class="mono" style="font-size:0.85rem; line-height:1.7; max-height:420px; overflow-y:auto;">
+      <div id="ide-console" class="mono" style="font-size:0.85rem; line-height:1.7; max-height:420px; overflow-y:auto;" data-empty="true">
         <p class="muted" style="margin:0;">Nothing run yet — hit "Run circuit" above.</p>
       </div>
     </div>
@@ -60,6 +73,10 @@ qc.measure(0, 0)</textarea>
           <tr><td class="mono" style="padding:6px 8px 6px 0; color:var(--primary); white-space:nowrap;">qc.measure(q, c)</td><td class="muted">Measure qubit q into classical bit c</td></tr>
           <tr><td class="mono" style="padding:6px 8px 6px 0; color:var(--primary); white-space:nowrap;">qc.measure_all()</td><td class="muted">Measure every qubit</td></tr>
           <tr><td class="mono" style="padding:6px 8px 6px 0; color:var(--primary); white-space:nowrap;">qc.barrier()</td><td class="muted">Visual separator, no effect on results</td></tr>
+          <tr><td class="mono" style="padding:6px 8px 6px 0; color:var(--primary); white-space:nowrap;">for / while</td><td class="muted">Loops — capped at 60 total circuit operations</td></tr>
+          <tr><td class="mono" style="padding:6px 8px 6px 0; color:var(--primary); white-space:nowrap;">if / elif / else</td><td class="muted">Branching on any comparison or boolean expression</td></tr>
+          <tr><td class="mono" style="padding:6px 8px 6px 0; color:var(--primary); white-space:nowrap;">print(...)</td><td class="muted">Prints to the console panel below, not real stdout</td></tr>
+          <tr><td class="mono" style="padding:6px 8px 6px 0; color:var(--primary); white-space:nowrap;">input()</td><td class="muted">Reads the next line from the stdin box above</td></tr>
         </tbody>
       </table>
     </div>
@@ -69,8 +86,9 @@ qc.measure(0, 0)</textarea>
       <div style="display:flex; flex-direction:column; gap:8px;">
         <button class="small ghost" data-starter="h" style="text-align:left;">Single qubit — superposition (H)</button>
         <button class="small ghost" data-starter="bell" style="text-align:left;">Two qubit — Bell state (H + CNOT)</button>
-        <button class="small ghost" data-starter="ghz" style="text-align:left;">Three qubit — GHZ state</button>
+        <button class="small ghost" data-starter="ghz" style="text-align:left;">Three qubit — GHZ state, via a loop</button>
         <button class="small ghost" data-starter="flip" style="text-align:left;">Classical bit flip (X)</button>
+        <button class="small ghost" data-starter="branch" style="text-align:left;">Branch on input()</button>
       </div>
     </div>
 
@@ -78,9 +96,9 @@ qc.measure(0, 0)</textarea>
       <div class="panel-label">LIMITS</div>
       <ul class="muted" style="margin:0; padding-left:18px; font-size:0.82rem; line-height:1.8;">
         <li>Max 3 qubits</li>
-        <li>Max 60 operations</li>
-        <li>3 second run timeout</li>
-        <li>No imports, loops, or function/class definitions</li>
+        <li>Max 60 circuit operations (even across a loop)</li>
+        <li>Max 200,000 loop steps, 3 second run timeout</li>
+        <li>No imports, or function/class definitions</li>
       </ul>
     </div>
   </div>
@@ -89,12 +107,30 @@ qc.measure(0, 0)</textarea>
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
 <script>
-  const codeEl = document.getElementById('ide-code');
+  const rawTextarea = document.getElementById('ide-code');
   const consoleEl = document.getElementById('ide-console');
   const statusRunBtn = document.getElementById('ide-run');
 
   const DEFAULT_CODE = 'qc = QuantumCircuit(1, 1)\nqc.h(0)\nqc.measure(0, 0)';
+
+  // Real syntax coloring + a working Tab key (2-space indent, and
+  // Shift-Tab to outdent) instead of a plain textarea — CodeMirror is
+  // loaded from cdnjs like highlight.js elsewhere in this app.
+  const cm = window.CodeMirror ? CodeMirror.fromTextArea(rawTextarea, {
+    mode: 'python',
+    theme: 'dracula',
+    lineNumbers: true,
+    indentUnit: 2,
+    tabSize: 2,
+    indentWithTabs: false,
+    extraKeys: { Tab: (cm) => cm.replaceSelection('  ', 'end'), 'Shift-Tab': 'indentLess' },
+  }) : null;
+
+  function getCode() { return cm ? cm.getValue() : rawTextarea.value; }
+  function setCode(v) { if (cm) { cm.setValue(v); } else { rawTextarea.value = v; } }
 
   // Code handed off from /python-ide's "Open in editor" buttons (see
   // that page's openInEditor()) arrives via sessionStorage rather than
@@ -103,53 +139,62 @@ qc.measure(0, 0)</textarea>
   // here doesn't keep re-loading stale handed-off code.
   const pending = sessionStorage.getItem('qs_ide_pending_code');
   if (pending) {
-    codeEl.value = pending;
+    setCode(pending);
     sessionStorage.removeItem('qs_ide_pending_code');
   }
 
-  document.getElementById('ide-clear').addEventListener('click', () => { codeEl.value = ''; codeEl.focus(); });
-  document.getElementById('ide-reset').addEventListener('click', () => { codeEl.value = DEFAULT_CODE; codeEl.focus(); });
+  document.getElementById('ide-clear').addEventListener('click', () => { setCode(''); if (cm) cm.focus(); });
+  document.getElementById('ide-reset').addEventListener('click', () => { setCode(DEFAULT_CODE); if (cm) cm.focus(); });
 
   const STARTERS = {
     h: DEFAULT_CODE,
     flip: 'qc = QuantumCircuit(1, 1)\nqc.x(0)\nqc.measure(0, 0)',
     bell: 'qc = QuantumCircuit(2, 2)\nqc.h(0)\nqc.cx(0, 1)\nqc.measure_all()',
-    ghz: 'qc = QuantumCircuit(3, 3)\nqc.h(0)\nqc.cx(0, 1)\nqc.cx(1, 2)\nqc.measure_all()',
+    ghz: 'qc = QuantumCircuit(3, 3)\nqc.h(0)\nfor i in range(2):\n  qc.cx(i, i + 1)\nqc.measure_all()',
+    branch: 'qc = QuantumCircuit(1, 1)\nn = int(input())\nif n % 2 == 0:\n  qc.h(0)\nelse:\n  qc.x(0)\nqc.measure(0, 0)',
   };
   document.querySelectorAll('[data-starter]').forEach(btn => {
-    btn.addEventListener('click', () => { codeEl.value = STARTERS[btn.dataset.starter]; codeEl.focus(); });
+    btn.addEventListener('click', () => { setCode(STARTERS[btn.dataset.starter]); if (cm) cm.focus(); });
   });
 
-  function consoleLine(html) {
+  function consoleEntry(headerHtml, consoleOutput, resultHtml) {
     if (consoleEl.dataset.empty !== 'false') { consoleEl.innerHTML = ''; consoleEl.dataset.empty = 'false'; }
     const entry = document.createElement('div');
-    entry.style.cssText = 'padding:10px 0; border-bottom:1px solid var(--line);';
+    entry.className = 'ide-console-entry';
+    let html = headerHtml;
+    if (resultHtml) html += `<div style="margin-top:6px;">${resultHtml}</div>`;
+    if (consoleOutput) html += `<div class="ide-console-output">${consoleOutput.replace(/</g, '&lt;')}</div>`;
     entry.innerHTML = html;
     consoleEl.insertBefore(entry, consoleEl.firstChild); // newest run on top
   }
 
   document.getElementById('ide-run').addEventListener('click', async () => {
-    const code = codeEl.value;
+    const code = getCode();
     const shots = document.getElementById('ide-shots').value;
+    const stdin = document.getElementById('ide-stdin').value;
     statusRunBtn.disabled = true;
     const stamp = new Date().toLocaleTimeString();
     try {
       const res = await fetch('/api/run-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, shots })
+        body: JSON.stringify({ code, shots, stdin })
       });
       const data = await res.json();
       if (!res.ok) {
-        consoleLine(`<span class="mono muted">[${stamp}]</span> <strong style="color:var(--red,#e0523f);">Error:</strong> ${data.message || 'Could not run that code.'}`);
+        consoleEntry(`<span class="mono muted">[${stamp}]</span> <strong style="color:var(--red,#e0523f);">Error:</strong> ${data.message || 'Could not run that code.'}`, data.console);
         return;
       }
       const entries = Object.entries(data.counts);
       const total = entries.reduce((sum, [, v]) => sum + v, 0) || 1;
       const resultStr = entries.map(([k, v]) => `'${k}': ${v} (${(v/total*100).toFixed(1)}%)`).join(' &nbsp;·&nbsp; ');
-      consoleLine(`<span class="mono muted">[${stamp}]</span> Ran on ${data.backend} — ${data.num_qubits} qubit${data.num_qubits === 1 ? '' : 's'}, ${data.shots} shots<br><span style="margin-top:4px; display:inline-block;">${resultStr}</span>`);
+      consoleEntry(
+        `<span class="mono muted">[${stamp}]</span> Ran on ${data.backend} — ${data.num_qubits} qubit${data.num_qubits === 1 ? '' : 's'}, ${data.shots} shots`,
+        data.console,
+        resultStr
+      );
     } catch (e) {
-      consoleLine(`<span class="mono muted">[${stamp}]</span> <strong style="color:var(--red,#e0523f);">Error:</strong> Could not reach the server — is app.py running?`);
+      consoleEntry(`<span class="mono muted">[${stamp}]</span> <strong style="color:var(--red,#e0523f);">Error:</strong> Could not reach the server — is app.py running?`);
     } finally {
       statusRunBtn.disabled = false;
     }
@@ -165,16 +210,16 @@ qc.measure(0, 0)</textarea>
       const res = await fetch('/api/widgets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': window.QS_CSRF_TOKEN },
-        body: JSON.stringify({ title, code: codeEl.value })
+        body: JSON.stringify({ title, code: getCode() })
       });
       const data = await res.json();
       if (!res.ok) {
-        consoleLine(`<strong style="color:var(--red,#e0523f);">Could not save widget:</strong> ${data.message || 'Unknown error.'}`);
+        consoleEntry(`<strong style="color:var(--red,#e0523f);">Could not save widget:</strong> ${data.message || 'Unknown error.'}`);
         return;
       }
-      consoleLine(`<strong style="color:var(--green);">Saved widget "${data.title}".</strong> Pick it from any step's Widget dropdown in the <a href="{{ url_for('lesson_creator') }}">Lesson Creator</a>.`);
+      consoleEntry(`<strong style="color:var(--green);">Saved widget "${data.title}".</strong> Pick it from any step's Widget dropdown in the <a href="{{ url_for('lesson_creator') }}">Lesson Creator</a>.`);
     } catch (e) {
-      consoleLine('<strong style="color:var(--red,#e0523f);">Could not reach the server.</strong>');
+      consoleEntry('<strong style="color:var(--red,#e0523f);">Could not reach the server.</strong>');
     } finally {
       btn.disabled = false;
     }
@@ -182,3 +227,4 @@ qc.measure(0, 0)</textarea>
   {% endif %}
 </script>
 {% endblock %}
+

@@ -116,16 +116,12 @@ reflects the single combined, current state after each merge.
   server-side data via `/api/progress*` in `app.py`, keyed by account,
   not by browser — `lesson-progress.js` was rewritten around `fetch()`
   instead of `localStorage`. Google sign-in needs real credentials
-  (`GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` — see `.env.example`); a
-  **"Continue as Demo Guest"** option on `/login` still creates a real
-  server-side account (just not Google-verified, and a *fresh* one
-  every click, so concurrent hackathon demo visitors don't share
-  progress — verified with two parallel sessions) so the app stays
-  demoable before those credentials exist. What's deliberately **not**
-  migrated: usage stats (shots run/gates applied, `stats.js`) stay
-  local-per-browser — cosmetic counters, not account data, and
-  migrating them would mean either a network call per gate click or a
-  batching layer; a reasonable follow-up, not core to "real accounts."
+  (`GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` — see `.env.example`).
+  What's deliberately **not** migrated: usage stats (shots run/gates
+  applied, `stats.js`) stay local-per-browser — cosmetic counters, not
+  account data, and migrating them would mean either a network call
+  per gate click or a batching layer; a reasonable follow-up, not core
+  to "real accounts."
 - **CSRF protection + account deletion (#10 follow-ups) — done.** A
   lightweight double-submit CSRF token (`session['csrf_token']`,
   handed to the frontend as `window.QS_CSRF_TOKEN` via `base.html`,
@@ -169,8 +165,7 @@ reflects the single combined, current state after each merge.
   unpublishing after the fact (publish is currently one-way).
 - **Demos page** (`/demos`, open to everyone) — Demo 1 (Coin Flip,
   `/demos/coin-flip`, a working scaffold with a live Bloch sphere +
-  flip/histogram widgets) and the Single Qubit lesson. Deliberately all
-  that's shown for the hackathon demo.
+  flip/histogram widgets) and the Single Qubit lesson.
 - **Sandbox** (`/sandbox`) — full-screen widgets (Bloch sphere,
   shot-runner, two-qubit basis-state picker) with no lesson scaffolding
   around them, reusing `quantum.js`/`twoqubit.js`/`bloch.js` as-is.
@@ -323,7 +318,7 @@ genuinely left:
   explicitly (see `.env.example`) before deploying anywhere real.
 - **Admin approvals have no notification.** `/admin/creators` works,
   but an admin has to remember to go check it — no email/notification
-  tells them a request is waiting. Fine at hackathon scale.
+  tells them a request is waiting.
 - **No self-serve re-request after rejection.** `creator_status=
   'rejected'` is a dead end today — `/lesson-creator` just explains
   it, no button to try again. Reasonable v1 cut, not obviously the
