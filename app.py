@@ -491,12 +491,12 @@ NAV_ITEMS = [
 # (educator-authored) lessons aren't in this sequence — they're
 # freestanding, no prev/next between them for v1.
 LESSON_ORDER = [
-    {"id": "qm-basics", "title": "QM Basics", "href": "/qm-basics", "steps": 3},
-    {"id": "single-qubit", "title": "Single Qubit", "href": "/single-qubit", "steps": 5},
-    {"id": "two-qubit", "title": "Two Qubits", "href": "/two-qubit", "steps": 3},
-    {"id": "physical-qubit", "title": "Physical Qubit", "href": "/physical-qubit", "steps": 4},
-    {"id": "hardware-lab", "title": "Hardware Lab", "href": "/hardware-lab", "steps": 3},
-    {"id": "reality-check", "title": "Reality Check", "href": "/reality-check", "steps": 4},
+    {"id": "qm-basics", "title": "QM Basics", "href": "/qm-basics", "steps": 3, "description": "State vectors, probability amplitudes, and Born's rule — the prerequisite Single Qubit assumes you already have."},
+    {"id": "single-qubit", "title": "Single Qubit", "href": "/single-qubit", "steps": 5, "description": "Build a real qubit, apply gates, and run 1,000 measurements to see superposition collapse into statistics."},
+    {"id": "two-qubit", "title": "Two Qubits", "href": "/two-qubit", "steps": 3, "description": "Prepare and identify any of the four basis states, then see what entanglement changes about measurement."},
+    {"id": "physical-qubit", "title": "Physical Qubit", "href": "/physical-qubit", "steps": 4, "description": "Josephson junction → transmon → resonator → readout, plus a live temperature/decoherence demo."},
+    {"id": "hardware-lab", "title": "Hardware Lab", "href": "/hardware-lab", "steps": 3, "description": "A deeper look at transistor structure, the LC oscillator/zero-resistance analogy, and an actual chip-layout diagram."},
+    {"id": "reality-check", "title": "Reality Check", "href": "/reality-check", "steps": 4, "description": "Real published qubit counts, a full system architecture, and the actual scaling bottleneck at 100 qubits."},
 ]
 
 # Module 2 — "Quantum Algorithms". Every lesson reuses either the
@@ -504,10 +504,10 @@ LESSON_ORDER = [
 # engine (multiqubit.js) — real amplitude bookkeeping, not canned
 # outcomes, same as everything else in this app.
 MODULE_2_LESSONS = [
-    {"id": "quantum-teleportation", "title": "Quantum Teleportation", "href": "/quantum-teleportation", "steps": 3},
-    {"id": "superdense-coding", "title": "Superdense Coding", "href": "/superdense-coding", "steps": 3},
-    {"id": "deutsch-jozsa", "title": "Deutsch-Jozsa", "href": "/deutsch-jozsa", "steps": 3},
-    {"id": "grovers-search", "title": "Grover's Search", "href": "/grovers-search", "steps": 3},
+    {"id": "quantum-teleportation", "title": "Quantum Teleportation", "href": "/quantum-teleportation", "steps": 4, "description": "Move an unknown qubit's state to Bob using a shared Bell pair and two classical bits — no faster-than-light shortcut required."},
+    {"id": "superdense-coding", "title": "Superdense Coding", "href": "/superdense-coding", "steps": 4, "description": "Send 2 classical bits using entanglement and a single qubit's physical trip — teleportation's exact mirror image."},
+    {"id": "deutsch-jozsa", "title": "Deutsch-Jozsa", "href": "/deutsch-jozsa", "steps": 4, "description": "Draw a hidden oracle and determine constant vs. balanced in exactly one query, then check yourself against the reveal."},
+    {"id": "grovers-search", "title": "Grover's Search", "href": "/grovers-search", "steps": 4, "description": "Amplify one marked item from 25% to 100% probability in a single Grover iteration, on a real 4-item search."},
 ]
 
 # Module 3 — "The Physics and Math Underneath". Placed after Module 2
@@ -515,16 +515,16 @@ MODULE_2_LESSONS = [
 # the person already has instead of front-loading formalism. See
 # futureplans.md for the module-level rationale.
 MODULE_3_LESSONS = [
-    {"id": "complex-numbers", "title": "Complex Numbers", "href": "/complex-numbers", "steps": 3},
-    {"id": "bra-ket", "title": "Bra-Ket, Demystified", "href": "/bra-ket", "steps": 3},
-    {"id": "matrices-as-gates", "title": "Matrices as Gates", "href": "/matrices-as-gates", "steps": 3},
-    {"id": "measurement-postulate", "title": "Measurement & Stern-Gerlach", "href": "/measurement-postulate", "steps": 3},
-    {"id": "schrodinger-equation", "title": "The Schrödinger Equation", "href": "/schrodinger-equation", "steps": 3},
-    {"id": "basis-vectors", "title": "Basis Vectors & Hilbert Space", "href": "/basis-vectors", "steps": 3},
-    {"id": "tensor-products", "title": "Tensor Products", "href": "/tensor-products", "steps": 3},
-    {"id": "operator-types", "title": "Hermitian, Unitary & Projection Operators", "href": "/operator-types", "steps": 3},
-    {"id": "eigenvalues-eigenvectors", "title": "Eigenvalues and Eigenvectors", "href": "/eigenvalues-eigenvectors", "steps": 3},
-    {"id": "commutation-relations", "title": "Commutation Relations", "href": "/commutation-relations", "steps": 3},
+    {"id": "complex-numbers", "title": "Complex Numbers", "href": "/complex-numbers", "steps": 3, "description": "Apply a real phase gate to a live qubit and watch probabilities hold still while the Bloch point spins."},
+    {"id": "bra-ket", "title": "Bra-Ket, Demystified", "href": "/bra-ket", "steps": 3, "description": "Translate a state you build into ket and bra notation with real numbers, then compute live inner products."},
+    {"id": "matrices-as-gates", "title": "Matrices as Gates", "href": "/matrices-as-gates", "steps": 3, "description": "Expand a gate's matrix multiplication by hand, then watch two gates disagree about order on the Bloch sphere."},
+    {"id": "measurement-postulate", "title": "Measurement & Stern-Gerlach", "href": "/measurement-postulate", "steps": 3, "description": "Build a real Stern-Gerlach simulator, then run the sequential Z→X→Z cascade that resets a 'known' spin."},
+    {"id": "schrodinger-equation", "title": "The Schrödinger Equation", "href": "/schrodinger-equation", "steps": 3, "description": "Watch a Bloch vector precess under free evolution, then drive it with a real Rabi-flopping rotation."},
+    {"id": "basis-vectors", "title": "Basis Vectors & Hilbert Space", "href": "/basis-vectors", "steps": 3, "description": "Express one built state in two different orthonormal bases and verify orthonormality live."},
+    {"id": "tensor-products", "title": "Tensor Products", "href": "/tensor-products", "steps": 3, "description": "Build the 4-dimensional joint state of two qubits, then try — and fail — to factor a Bell state back apart."},
+    {"id": "operator-types", "title": "Hermitian, Unitary & Projection Operators", "href": "/operator-types", "steps": 3, "description": "Classify six real matrices as Hermitian, Unitary, and/or Projection by computing the properties directly."},
+    {"id": "eigenvalues-eigenvectors", "title": "Eigenvalues and Eigenvectors", "href": "/eigenvalues-eigenvectors", "steps": 3, "description": "Check whether a candidate vector is really an eigenvector of Z or X, and read off its eigenvalue."},
+    {"id": "commutation-relations", "title": "Commutation Relations", "href": "/commutation-relations", "steps": 3, "description": "Watch a state go from certain to 50/50 across a non-commuting measurement, then verify [X,Z] by hand."},
 ]
 
 # Module 4 — "Where Quantum Comes From": the historical/physical
@@ -533,27 +533,27 @@ MODULE_3_LESSONS = [
 # explain *why* nature needed quantum mechanics at all — cross-linked
 # back to Hardware Lab's Josephson-junction tunneling where relevant.
 MODULE_4_LESSONS = [
-    {"id": "wave-particle-duality", "title": "Wave-Particle Duality", "href": "/wave-particle-duality", "steps": 3},
-    {"id": "blackbody-radiation", "title": "Blackbody Radiation", "href": "/blackbody-radiation", "steps": 3},
-    {"id": "de-broglie", "title": "The de Broglie Wavelength", "href": "/de-broglie", "steps": 3},
-    {"id": "particle-in-a-box", "title": "Particle in a Box", "href": "/particle-in-a-box", "steps": 3},
-    {"id": "quantum-tunneling", "title": "Quantum Tunneling", "href": "/quantum-tunneling", "steps": 3},
-    {"id": "three-dimensional-box", "title": "The 3D Box", "href": "/three-dimensional-box", "steps": 3},
+    {"id": "wave-particle-duality", "title": "Wave-Particle Duality", "href": "/wave-particle-duality", "steps": 3, "description": "Fire particles one at a time through a double slit and watch the interference pattern build, dot by dot."},
+    {"id": "blackbody-radiation", "title": "Blackbody Radiation", "href": "/blackbody-radiation", "steps": 3, "description": "Plot Planck's law against the classical Rayleigh-Jeans prediction and watch the peak shift with temperature."},
+    {"id": "de-broglie", "title": "The de Broglie Wavelength", "href": "/de-broglie", "steps": 3, "description": "Compare an electron's and a thrown baseball's wavelength on one log-scale ruler."},
+    {"id": "particle-in-a-box", "title": "Particle in a Box", "href": "/particle-in-a-box", "steps": 3, "description": "Watch quantized standing-wave energy levels appear from nothing but 'the wavefunction must fit.'"},
+    {"id": "quantum-tunneling", "title": "Quantum Tunneling", "href": "/quantum-tunneling", "steps": 3, "description": "Shape a barrier and fire particles at it — some tunnel through, at exactly the rate the math predicts."},
+    {"id": "three-dimensional-box", "title": "The 3D Box", "href": "/three-dimensional-box", "steps": 3, "description": "Search for real degenerate energy levels in a 3D box, computed live from quantum numbers up to 6."},
 ]
 
 # Module 5 — "Error Correction & Noise". The bit-flip code lesson
 # reuses multiqubit.js at n=5 (3 data + 2 syndrome ancillas) — a real
 # non-demolition syndrome measurement, not a scripted animation.
 MODULE_5_LESSONS = [
-    {"id": "decoherence", "title": "Why Qubits Decohere", "href": "/decoherence", "steps": 3},
-    {"id": "bit-flip-code", "title": "Bit-Flip and Phase-Flip Codes", "href": "/bit-flip-code", "steps": 3},
-    {"id": "nisq", "title": "NISQ", "href": "/nisq", "steps": 3},
+    {"id": "decoherence", "title": "Why Qubits Decohere", "href": "/decoherence", "steps": 3, "description": "Watch a Bloch vector's length actually shrink as a qubit loses coherence over a tunable T2."},
+    {"id": "bit-flip-code", "title": "Bit-Flip and Phase-Flip Codes", "href": "/bit-flip-code", "steps": 3, "description": "Encode, corrupt, and correct a hidden bit-flip error across 5 real qubits, without ever measuring the secret."},
+    {"id": "nisq", "title": "NISQ", "href": "/nisq", "steps": 3, "description": "Plot how fast circuit success probability collapses as gate count grows, at a realistic per-gate error rate."},
 ]
 
 # Module 6 — "Quantum Cryptography".
 MODULE_6_LESSONS = [
-    {"id": "bb84", "title": "BB84 Key Distribution", "href": "/bb84", "steps": 3},
-    {"id": "shors-algorithm", "title": "Why Factoring Matters", "href": "/shors-algorithm", "steps": 3},
+    {"id": "bb84", "title": "BB84 Key Distribution", "href": "/bb84", "steps": 3, "description": "Run a 16-qubit BB84 key exchange with an Eve toggle, and watch the error rate reveal eavesdropping."},
+    {"id": "shors-algorithm", "title": "Why Factoring Matters", "href": "/shors-algorithm", "steps": 3, "description": "Find a hidden period in aˣ mod 15 and watch it hand you the factors, 3 × 5, via ordinary gcd."},
 ]
 
 # One continuous sequence across every built-in module, in display
@@ -656,7 +656,7 @@ def _module_catalog():
             "author": None,
             "published": True,
             "lessons": [
-                {"id": l["id"], "title": l["title"], "href": l["href"], "steps": l["steps"], "kind": "builtin"}
+                {"id": l["id"], "title": l["title"], "href": l["href"], "steps": l["steps"], "description": l.get("description", ""), "kind": "builtin"}
                 for l in LESSON_ORDER
             ],
             "widgets": BUILTIN_WIDGETS,
@@ -671,7 +671,7 @@ def _module_catalog():
             "author": None,
             "published": True,
             "lessons": [
-                {"id": l["id"], "title": l["title"], "href": l["href"], "steps": l["steps"], "kind": "builtin"}
+                {"id": l["id"], "title": l["title"], "href": l["href"], "steps": l["steps"], "description": l.get("description", ""), "kind": "builtin"}
                 for l in MODULE_2_LESSONS
             ],
             "widgets": [],
@@ -686,7 +686,7 @@ def _module_catalog():
             "author": None,
             "published": True,
             "lessons": [
-                {"id": l["id"], "title": l["title"], "href": l["href"], "steps": l["steps"], "kind": "builtin"}
+                {"id": l["id"], "title": l["title"], "href": l["href"], "steps": l["steps"], "description": l.get("description", ""), "kind": "builtin"}
                 for l in MODULE_3_LESSONS
             ],
             "widgets": [],
@@ -701,7 +701,7 @@ def _module_catalog():
             "author": None,
             "published": True,
             "lessons": [
-                {"id": l["id"], "title": l["title"], "href": l["href"], "steps": l["steps"], "kind": "builtin"}
+                {"id": l["id"], "title": l["title"], "href": l["href"], "steps": l["steps"], "description": l.get("description", ""), "kind": "builtin"}
                 for l in MODULE_4_LESSONS
             ],
             "widgets": [],
@@ -716,7 +716,7 @@ def _module_catalog():
             "author": None,
             "published": True,
             "lessons": [
-                {"id": l["id"], "title": l["title"], "href": l["href"], "steps": l["steps"], "kind": "builtin"}
+                {"id": l["id"], "title": l["title"], "href": l["href"], "steps": l["steps"], "description": l.get("description", ""), "kind": "builtin"}
                 for l in MODULE_5_LESSONS
             ],
             "widgets": [],
@@ -731,7 +731,7 @@ def _module_catalog():
             "author": None,
             "published": True,
             "lessons": [
-                {"id": l["id"], "title": l["title"], "href": l["href"], "steps": l["steps"], "kind": "builtin"}
+                {"id": l["id"], "title": l["title"], "href": l["href"], "steps": l["steps"], "description": l.get("description", ""), "kind": "builtin"}
                 for l in MODULE_6_LESSONS
             ],
             "widgets": [],

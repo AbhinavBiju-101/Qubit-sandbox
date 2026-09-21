@@ -77,6 +77,21 @@
   </div>
 </div>
 
+<!-- ===================== STEP 4 — THE COST OF THE CAPACITY ===================== -->
+<div class="lesson-step" data-step="step4">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">4</div>
+    <h3>It isn't free bandwidth</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">The "2 bits from 1 qubit" headline hides a real cost: the Bell pair had to be created and shared <em>in advance</em>, which itself took a full qubit's worth of quantum communication (plus keeping it coherent until Alice was ready to use it — Decoherence, in Module 5, is exactly the enemy here). Count that setup qubit and the total quantum communication is 2 qubits for 2 bits — no better than sending them classically.</p>
+    <p class="muted">The actual advantage shows up when the entanglement can be distributed <em>ahead of time</em>, during idle capacity, and then spent later exactly when a burst of classical communication is needed — pre-shared entanglement as a stockpiled resource, not a per-message cost. That timing-shift, not a raw bit-count trick, is superdense coding's real practical angle in proposed quantum-network protocols.</p>
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step4"> The entanglement setup is a real cost, just a pre-paid one
+    </label>
+  </div>
+</div>
+
 {{ lesson_nav(prev_lesson, next_lesson) }}
 
 {% endblock %}

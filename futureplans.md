@@ -7,7 +7,63 @@ reflects the single combined, current state after each merge.
 
 ---
 
-## Recently shipped (this round — filling VIT syllabus gaps in Modules 3 & 4)
+## Recently shipped (this round — card bugs fixed; Module 2 deepened)
+
+- **Bug fix: per-lesson descriptions were missing on Module 2-6 cards.**
+  `_module_catalog()`'s list comprehensions only carried id/title/href/
+  steps — no `description` — so `/lessons`' community-module-loop cards
+  (which every Module 2-6 lesson renders through) had nothing to put in
+  the `<p>` tag Module 1's hand-written cards always had. Added a
+  `description` field to every lesson dict in `LESSON_ORDER` and every
+  `MODULE_N_LESSONS` list (Module 1's text copied verbatim from its
+  existing hardcoded cards, for consistency), propagated through all 6
+  catalog list comprehensions, and added `<p>{{ l.description }}</p>`
+  to the community-loop card template.
+- **Bug fix: per-lesson progress bars were missing on Module 2-6 cards
+  (reported as a mobile issue, but it was missing everywhere — mobile
+  is just where it's more obviously wrong with no desktop sidebar for
+  contrast).** The community-loop cards only ever had a *module-level*
+  aggregate bar; Module 1's cards each have their own bar wired to a
+  fixed DOM id. Rather than hardcode 25 more ids, gave each card a
+  generic `.lesson-progress-row[data-lesson-id][data-lesson-steps]`
+  and extended the existing `QS_LESSON_DEFS.forEach` progress loop
+  (which already fetches real per-lesson step-completion data) to
+  populate any element matching that selector — exact step-level
+  percentages, same `qsComputePct` Module 1 uses, not the coarser
+  "touched at all" approximation the module-level bars still use.
+  Also gave Module 2-6 cards `data-lockable="true"` + `.lock-pill`/
+  `.lock-progress` classes so the signed-out state (hide progress,
+  show "sign in to unlock") now works on them exactly like Two Qubits
+  onward already did for Module 1.
+- **Module 2 deepened — 4th step added to all 4 lessons**, as a first
+  installment of "add more steps, explain more, cover more" (too large
+  to do for all ~37 lessons in one pass — see note below). Teleportation
+  gained a real-world-grounding step (quantum repeaters, the 2017
+  Micius satellite demonstration, chip-to-chip teleportation); Superdense
+  Coding gained an honest "this isn't free bandwidth" cost discussion
+  (the Bell-pair setup is a real, just pre-paid, cost); Deutsch-Jozsa
+  gained a "why does anyone care about a fake problem" framing (1992,
+  first *provable* quantum speedup, historically decisive despite zero
+  direct practical use); Grover's Search gained a real classical-vs-
+  quantum query-count calculator at N up to 1,048,576, plus the
+  "quadratically optimal, provably" note. All step counts (3→4) updated
+  in `app.py`, `lessons-data.js`, and each template.
+- **Not done yet, flagged rather than silently skipped:** the same
+  "one more step, real-world grounding" treatment for Modules 3, 4, 5,
+  and 6 (27 more lessons) — Module 2 was chosen first as the newest,
+  most-recently-built module. Whether to sweep the same treatment
+  through the rest, and in what order, is an open question for the
+  next round rather than something assumed here.
+- **VIT syllabus re-check (asked again this round):** re-scanned the
+  original four-module syllabus topic-by-topic against what's now
+  built. No further gaps found beyond the 6 filled in last round —
+  if a specific term is still missing, it should be named explicitly
+  rather than assumed, since guessing further without a concrete gap
+  risks inventing lessons that don't map to anything real.
+
+---
+
+## Recently shipped (previous round — filling VIT syllabus gaps in Modules 3 & 4)
 
 - **Module 3 gained 5 lessons** (`basis-vectors`, `tensor-products`,
   `operator-types`, `eigenvalues-eigenvectors`, `commutation-relations`),

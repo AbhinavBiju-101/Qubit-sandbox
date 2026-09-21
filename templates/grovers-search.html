@@ -89,6 +89,36 @@
   </div>
 </div>
 
+<!-- ===================== STEP 4 — SCALING PAST 4 ITEMS ===================== -->
+<div class="lesson-step" data-step="step4">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">4</div>
+    <h3>The gap that actually matters: large N</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">For N items with 1 marked, Grover needs about <span class="mono">⌈(π/4)√N⌉</span> iterations — each one an oracle-plus-diffusion pair, just like the single round you ran. Classically, checking items one at a time takes N/2 tries on average. Pick a database size and compare the two directly.</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · SCALING</div>
+      <div class="tag-list" id="scale-buttons">
+        <div class="tag" data-n="16">N = 16</div>
+        <div class="tag" data-n="256">N = 256</div>
+        <div class="tag" data-n="65536">N = 65,536</div>
+        <div class="tag" data-n="1048576">N = 1,048,576</div>
+      </div>
+      <div class="grid-2" style="margin-top:16px;">
+        <div class="stat"><span class="num" id="classical-tries">—</span><span class="label">Classical: average tries (N/2)</span></div>
+        <div class="stat"><span class="num" id="grover-tries">—</span><span class="label">Grover: iterations (≈π/4·√N)</span></div>
+      </div>
+    </div>
+
+    <p class="muted" style="margin-top:14px;">This quadratic speedup is also <em>provably the best possible</em> for unstructured search — unlike Shor's algorithm's exponential speedup, no future cleverer quantum algorithm will ever beat √N here. That limit was proven, not just unachieved yet.</p>
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step4"> I compared classical vs. Grover scaling at real database sizes
+    </label>
+  </div>
+</div>
+
 {{ lesson_nav(prev_lesson, next_lesson) }}
 
 {% endblock %}
@@ -152,6 +182,16 @@
     document.getElementById('grover-result').textContent = `|${r0}${r1}⟩`;
     document.getElementById('grover-measure').disabled = true;
     refreshBars();
+  });
+
+  document.querySelectorAll('#scale-buttons .tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+      document.querySelectorAll('#scale-buttons .tag').forEach(t => t.classList.remove('active'));
+      tag.classList.add('active');
+      const N = +tag.dataset.n;
+      document.getElementById('classical-tries').textContent = Math.round(N / 2).toLocaleString();
+      document.getElementById('grover-tries').textContent = Math.ceil(Math.PI / 4 * Math.sqrt(N)).toLocaleString();
+    });
   });
 
   initLessonProgress('grovers-search');

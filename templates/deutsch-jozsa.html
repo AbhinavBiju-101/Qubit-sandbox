@@ -75,6 +75,21 @@
   </div>
 </div>
 
+<!-- ===================== STEP 4 — WHY THIS ONE ANYWAY ===================== -->
+<div class="lesson-step" data-step="step4">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">4</div>
+    <h3>Nobody runs this for a real problem — and that's the point</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Be honest about what you just built: "is this specific contrived function constant or balanced" isn't a problem anyone actually has. Deutsch-Jozsa's real importance is historical and structural, not practical — published in 1992, it was the first algorithm to give a rigorous, provable case where a quantum computer needs exponentially fewer queries than any possible classical algorithm, for any input size. Before it, "quantum speedup" was a hope; after it, it was a theorem.</p>
+    <p class="muted">Every algorithm since has built on the same trick you just ran: superposition, an oracle, then interference to cancel out everything except the one bit of global information you actually wanted. Grover's Search (next lesson) and Shor's Algorithm (Module 6) are both, at their core, more sophisticated versions of exactly this pattern.</p>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step4"> A proof-of-concept algorithm, not a practical one — and still historically decisive
+    </label>
+  </div>
+</div>
+
 {{ lesson_nav(prev_lesson, next_lesson) }}
 
 {% endblock %}
