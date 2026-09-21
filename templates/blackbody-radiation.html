@@ -1,0 +1,178 @@
+{% from "_lesson_nav.html" import lesson_nav %}
+{% extends "base.html" %}
+{% block title %}Blackbody Radiation — Qubit Sandbox{% endblock %}
+{% block page_title %}Module 4 · Blackbody Radiation{% endblock %}
+
+{% block content %}
+
+<div class="pill amber" style="margin-bottom:14px;">MODULE 4 · WHERE QUANTUM COMES FROM</div>
+<h1 style="margin-bottom:6px;">The curve that forced quantization.</h1>
+<p class="lede muted" style="font-size:1.05rem;">Classical physics predicted infinite energy from a hot object. Planck's fix — energy comes in discrete chunks — is where "quantum" got its name.</p>
+
+<div class="lesson-progress-row">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+<!-- ===================== STEP 1 — THEORY ===================== -->
+<div class="lesson-step" data-step="step1">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">1</div>
+    <h3>The ultraviolet catastrophe</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Any hot object glows across a spread of wavelengths — that spread is its blackbody spectrum. Classical physics (the Rayleigh-Jeans law) predicted that spectrum should keep <em>rising</em> forever as wavelength shrinks toward ultraviolet — meaning a warm object should radiate infinite energy. Real objects obviously don't do that.</p>
+    <p class="muted">Planck's fix, in 1900, was a hypothesis with no classical justification at the time: an oscillator can only emit or absorb energy in discrete packets, <span class="mono">E = hf</span>, never a continuous amount. That single assumption tames the curve exactly where experiment says it should bend over — and <span class="mono">h</span>, Planck's constant, has been load-bearing in physics ever since.</p>
+    <div class="callout blue">"Energy comes in discrete packets" is the same idea as "a qubit only ever measures 0 or 1" — Planck's hypothesis is discreteness showing up for energy, a century before it showed up for you as a qubit.</div>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step1"> Classical physics diverges; Planck's quantization fixes it
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 2 — THE CURVE ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
+    <h3>Planck's curve vs. the classical prediction</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Drag the temperature. The solid curve is Planck's law (what real objects do); the dashed curve is the classical Rayleigh-Jeans prediction, which only agrees at long wavelengths and diverges everywhere to the left.</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · SPECTRAL RADIANCE</div>
+      <canvas id="bb-canvas" width="560" height="260" style="width:100%; max-width:560px; display:block; margin:0 auto; background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-sm);"></canvas>
+      <div style="margin-top:14px; max-width:420px;">
+        <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.85rem;"><span class="muted">Temperature</span><span id="temp-val">4000 K</span></div>
+        <input type="range" id="temp-slider" min="1500" max="9000" step="50" value="4000">
+      </div>
+      <div class="grid-2" style="margin-top:16px;">
+        <div class="stat"><span class="num" id="peak-wavelength">—</span><span class="label">Peak wavelength (Wien's law)</span></div>
+        <div class="stat"><span class="num" id="peak-color">—</span><span class="label">Roughly this color</span></div>
+      </div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step2"> I watched the peak shift with temperature (Wien's law)
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — BONUS ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
+    <h3>Bonus: why the classical curve explodes</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">The classical Rayleigh-Jeans law has no <span class="mono">h</span> in it at all — nothing stops short wavelengths from contributing more and more energy, without limit. Planck's law divides by <span class="mono">e^{hc/λkT} − 1</span> instead, and for small <span class="mono">λ</span> that denominator explodes fast enough to crush the curve back to zero. One constant, one division, no more catastrophe.</p>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step3"> I see why h is what fixes the divergence
+    </label>
+  </div>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script>
+  const H_CONST = 6.626e-34, C_CONST = 2.998e8, K_CONST = 1.381e-23;
+
+  function planck(lambdaM, T) {
+    const x = (H_CONST * C_CONST) / (lambdaM * K_CONST * T);
+    if (x > 700) return 0; // avoid overflow, contribution is ~0 anyway
+    return (2 * H_CONST * C_CONST * C_CONST) / (Math.pow(lambdaM, 5) * (Math.exp(x) - 1));
+  }
+  function rayleighJeans(lambdaM, T) {
+    return (2 * C_CONST * K_CONST * T) / Math.pow(lambdaM, 4);
+  }
+
+  const canvas = document.getElementById('bb-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height, pad = 36;
+  const lineCol = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#7dd3fc';
+  const lineCol2 = getComputedStyle(document.documentElement).getPropertyValue('--amber').trim() || '#f0b429';
+  const gridCol = getComputedStyle(document.documentElement).getPropertyValue('--line').trim() || '#333';
+
+  function wavelengthToColor(nm) {
+    if (nm < 450) return 'Violet/blue';
+    if (nm < 500) return 'Blue';
+    if (nm < 570) return 'Green';
+    if (nm < 590) return 'Yellow';
+    if (nm < 620) return 'Orange';
+    if (nm < 750) return 'Red';
+    return 'Infrared';
+  }
+
+  function draw() {
+    const T = +document.getElementById('temp-slider').value;
+    const maxLambdaNm = 3000;
+    ctx.clearRect(0, 0, W, H);
+
+    // sample Planck curve to find its max for auto-scaling
+    let maxVal = 0;
+    const nmToM = nm => nm * 1e-9;
+    const N = 300;
+    const planckVals = [], rjVals = [];
+    for (let i = 0; i <= N; i++) {
+      const nm = 20 + (maxLambdaNm - 20) * i / N;
+      const p = planck(nmToM(nm), T);
+      const rj = rayleighJeans(nmToM(nm), T);
+      planckVals.push(p); rjVals.push(rj);
+      if (p > maxVal) maxVal = p;
+    }
+
+    // grid
+    ctx.strokeStyle = gridCol; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pad, H - pad); ctx.lineTo(W - 10, H - pad);
+    ctx.moveTo(pad, 10); ctx.lineTo(pad, H - pad);
+    ctx.stroke();
+    ctx.fillStyle = gridCol; ctx.font = '11px var(--font-mono)';
+    ctx.fillText('0 nm', pad - 4, H - pad + 16);
+    ctx.fillText(maxLambdaNm + ' nm', W - 60, H - pad + 16);
+
+    // Rayleigh-Jeans (dashed), clipped to chart
+    ctx.strokeStyle = lineCol2; ctx.setLineDash([4, 4]); ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    for (let i = 0; i <= N; i++) {
+      const x = pad + (W - pad - 10) * i / N;
+      const yVal = Math.min(rjVals[i] / maxVal, 1.3);
+      const y = (H - pad) - yVal * (H - pad - 20);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Planck curve (solid)
+    ctx.strokeStyle = lineCol; ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    for (let i = 0; i <= N; i++) {
+      const x = pad + (W - pad - 10) * i / N;
+      const y = (H - pad) - (planckVals[i] / maxVal) * (H - pad - 20);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // Wien's law peak
+    const peakNm = (2.898e-3 / T) * 1e9;
+    document.getElementById('peak-wavelength').textContent = peakNm.toFixed(0) + ' nm';
+    document.getElementById('peak-color').textContent = wavelengthToColor(peakNm);
+  }
+
+  document.getElementById('temp-slider').addEventListener('input', () => {
+    document.getElementById('temp-val').textContent = document.getElementById('temp-slider').value + ' K';
+    draw();
+  });
+  document.getElementById('temp-val').textContent = document.getElementById('temp-slider').value + ' K';
+  draw();
+
+  initLessonProgress('blackbody-radiation');
+</script>
+{% endblock %}

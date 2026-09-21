@@ -1,0 +1,106 @@
+{% from "_lesson_nav.html" import lesson_nav %}
+{% extends "base.html" %}
+{% block title %}Commutation Relations — Qubit Sandbox{% endblock %}
+{% block page_title %}Module 3 · Commutation Relations{% endblock %}
+
+{% block content %}
+
+<div class="pill" style="margin-bottom:14px;">MODULE 3 · THE MATH UNDERNEATH</div>
+<h1 style="margin-bottom:6px;">Certain about one means uncertain about the other.</h1>
+<p class="lede muted" style="font-size:1.05rem;">Matrices as Gates showed H and Z landing in different places depending on order. This lesson turns that into the actual physical statement: some pairs of observables can never both be definite at once.</p>
+
+<div class="lesson-progress-row">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+<!-- ===================== STEP 1 — THEORY ===================== -->
+<div class="lesson-step" data-step="step1">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">1</div>
+    <h3>[A, B] = AB − BA</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">The <strong>commutator</strong> of two operators, <span class="mono">[A, B] = AB − BA</span>, measures exactly how much order matters. If <span class="mono">[A, B] = 0</span>, applying them in either order gives the same result — they <em>commute</em>. If not, order matters, and there's a real physical consequence: non-commuting observables can't both have a definite value on the same state at the same time.</p>
+    <p class="muted">For the Pauli matrices, <span class="mono">[X, Z] = XZ − ZX = −2iY</span> — nonzero, computed directly from matrices you already know. That single nonzero commutator is the algebraic root of every "measuring one basis disturbs the other" result you've already seen experimentally.</p>
+    <div class="callout blue">This is the qubit-sized version of Heisenberg's uncertainty principle. The famous <span class="mono">ΔxΔp ≥ ħ/2</span> comes from position and momentum's commutator being nonzero — same mechanism, continuous variables instead of a two-level system.</div>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step1"> Nonzero commutator = can't both be definite at once
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 2 — SEE IT ON A STATE ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
+    <h3>Definite in one basis, maximally uncertain in the other</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Pick a state that's a definite eigenstate of one operator. Watch what happens when you check both Z and X statistics on it.</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · CERTAINTY TRADE-OFF</div>
+      <div class="tag-list" id="commute-state-buttons">
+        <div class="tag active" data-state="0">|0⟩ (Z-eigenstate)</div>
+        <div class="tag" data-state="plus">|+⟩ (X-eigenstate)</div>
+      </div>
+      <div class="grid-2" style="margin-top:16px;">
+        <div class="stat"><span class="num" id="commute-z-stat">100% / 0%</span><span class="label">Z measurement: P(0) / P(1)</span></div>
+        <div class="stat"><span class="num" id="commute-x-stat">50% / 50%</span><span class="label">X measurement: P(+) / P(−)</span></div>
+      </div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step2"> Certain in one basis always means 50/50 in the other, here
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — BONUS ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
+    <h3>Bonus: [X, Z], computed out</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted"><span class="mono">XZ = [[0,-1],[1,0]]</span>, and <span class="mono">ZX = [[0,1],[-1,0]]</span> — subtract them and you get <span class="mono">[[0,-2],[2,0]] = -2iY</span>, exactly as claimed in Step 1. Not asserted, just ordinary 2×2 matrix multiplication, the same operation Matrices as Gates walked through by hand.</p>
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step3"> [X,Z] = −2iY, checked by direct matrix multiplication
+    </label>
+  </div>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script>
+  function refreshCommute() {
+    const state = document.querySelector('#commute-state-buttons .tag.active').dataset.state;
+    const q = new Qubit();
+    if (state === 'plus') q.H();
+    const pZ0 = q.prob0(), pZ1 = q.prob1();
+    const clone = new Qubit(); clone.a = q.a; clone.b = q.b; clone.H();
+    const pX0 = clone.prob0(), pX1 = clone.prob1();
+    document.getElementById('commute-z-stat').textContent = `${(pZ0*100).toFixed(0)}% / ${(pZ1*100).toFixed(0)}%`;
+    document.getElementById('commute-x-stat').textContent = `${(pX0*100).toFixed(0)}% / ${(pX1*100).toFixed(0)}%`;
+  }
+
+  document.querySelectorAll('#commute-state-buttons .tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+      document.querySelectorAll('#commute-state-buttons .tag').forEach(t => t.classList.remove('active'));
+      tag.classList.add('active');
+      refreshCommute();
+    });
+  });
+
+  refreshCommute();
+  initLessonProgress('commutation-relations');
+</script>
+{% endblock %}

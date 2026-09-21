@@ -1,0 +1,165 @@
+{% from "_lesson_nav.html" import lesson_nav %}
+{% extends "base.html" %}
+{% block title %}Bra-Ket, Demystified — Qubit Sandbox{% endblock %}
+{% block page_title %}Module 3 · Bra-Ket{% endblock %}
+
+{% block content %}
+
+<div class="pill" style="margin-bottom:14px;">MODULE 3 · THE MATH UNDERNEATH</div>
+<h1 style="margin-bottom:6px;">Bra-ket is a label, not new math.</h1>
+<p class="lede muted" style="font-size:1.05rem;">You've been writing states as (α, β) since Single Qubit. Bra-ket notation is just a naming convention for the exact same column vector — this lesson translates, it doesn't introduce.</p>
+
+<div class="lesson-progress-row">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+<!-- ===================== STEP 1 — THEORY ===================== -->
+<div class="lesson-step" data-step="step1">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">1</div>
+    <h3>Ket, bra, and the thing between them</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">A <strong>ket</strong> <span class="mono">|ψ⟩</span> is just a column vector — for one qubit, that's the pair <span class="mono">(α, β)</span> you already know. A <strong>bra</strong> <span class="mono">⟨ψ|</span> is the same vector laid on its side and complex-conjugated (flip the sign of every imaginary part): <span class="mono">⟨ψ| = (α*, β*)</span>.</p>
+    <p class="muted">Put a bra in front of a ket and you get their <strong>inner product</strong>, a single complex number: <span class="mono">⟨φ|ψ⟩ = φ<sub>0</sub>*ψ<sub>0</sub> + φ<sub>1</sub>*ψ<sub>1</sub></span>. You've already used the special case of this constantly — <span class="mono">⟨ψ|ψ⟩ = |α|² + |β|² = 1</span> is exactly the normalization rule from QM Basics.</p>
+    <div class="callout blue">General rule, one case you already knew: <span class="mono">⟨ψ|ψ⟩</span> is a state's inner product with itself, which is why normalizing a state and computing <span class="mono">⟨ψ|ψ⟩ = 1</span> are the same sentence.</div>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step1"> Ket = column, bra = row + conjugate
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 2 — BUILD A STATE, SEE BOTH NOTATIONS ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
+    <h3>Build a state, watch both notations update</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Same gates as Single Qubit. This time, the readout shows the ket and its matching bra side by side, with real numbers — not just the word "bra-ket."</p>
+
+    <div class="grid-2" style="margin-top:18px;">
+      <div class="panel">
+        <div class="panel-label">SANDBOX · BUILD |ψ⟩</div>
+        <svg id="bloch2" viewBox="0 0 300 300" style="width:100%; max-width:280px; display:block; margin:0 auto;"></svg>
+        <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:14px;">
+          <button data-gate="H">H</button>
+          <button data-gate="X">X</button>
+          <button data-gate="Y">Y</button>
+          <button data-gate="Z">Z</button>
+          <button id="reset-btn2" class="small ghost">Reset to |0⟩</button>
+        </div>
+      </div>
+      <div class="mono" style="font-size:0.88rem; color:var(--text-muted); background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-sm); padding:16px;">
+        <div class="muted" style="font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em;">Ket |ψ⟩</div>
+        <div id="ket-readout" style="color:var(--text); margin-bottom:14px;">[1, 0]</div>
+        <div class="muted" style="font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em;">Bra ⟨ψ|</div>
+        <div id="bra-readout" style="color:var(--text); margin-bottom:14px;">[1, 0]</div>
+        <div class="muted" style="font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em;">⟨ψ|ψ⟩</div>
+        <div id="norm-readout" style="color:var(--primary);">1.000</div>
+      </div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step2"> I built a state and matched it to its bra
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — INNER PRODUCT CALCULATOR ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
+    <h3>⟨φ|ψ⟩ — the number that predicts measurement</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Pick a reference state <span class="mono">|φ⟩</span> below. We'll compute <span class="mono">⟨φ|ψ⟩</span> against the <span class="mono">|ψ⟩</span> you built in Step 2, and — this is the payoff — <span class="mono">|⟨φ|ψ⟩|²</span> is exactly the probability of getting outcome φ if you measured in a basis that includes it. Born's rule was always this formula in disguise.</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · INNER PRODUCT</div>
+      <div class="tag-list" id="ref-buttons">
+        <div class="tag" data-ref="0">|0⟩</div>
+        <div class="tag" data-ref="1">|1⟩</div>
+        <div class="tag" data-ref="plus">|+⟩</div>
+        <div class="tag" data-ref="minus">|−⟩</div>
+      </div>
+      <div class="mono" style="font-size:0.9rem; margin-top:14px;">
+        <div>⟨φ|ψ⟩ = <span id="inner-readout" style="color:var(--primary);">— select |φ⟩ —</span></div>
+        <div style="margin-top:6px;">|⟨φ|ψ⟩|² = <span id="inner-sq-readout" style="color:var(--text);">—</span></div>
+      </div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step3"> I computed an inner product and matched it to a probability
+    </label>
+  </div>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bloch.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script>
+  const conj = z => ({ re: z.re, im: -z.im });
+  const innerProduct = (phi, psi) => C.add(C.mul(conj(phi.a), psi.a), C.mul(conj(phi.b), psi.b));
+
+  const q2 = new Qubit();
+  const widget2 = createBlochWidget(document.getElementById('bloch2'));
+
+  function vecStr(a, b) {
+    return `[${C.fmt(a, 2)}, ${C.fmt(b, 2)}]`;
+  }
+
+  function refresh2() {
+    const bl = q2.bloch();
+    widget2.set(bl.theta, bl.phi);
+    document.getElementById('ket-readout').textContent = vecStr(q2.a, q2.b);
+    document.getElementById('bra-readout').textContent = vecStr(conj(q2.a), conj(q2.b));
+    const nrm = innerProduct(q2, q2);
+    document.getElementById('norm-readout').textContent = nrm.re.toFixed(3);
+    updateInner();
+  }
+
+  document.querySelectorAll('#bloch2').forEach(() => {}); // no-op, keeps section symmetry
+  document.querySelectorAll('button[data-gate]').forEach(btn => {
+    btn.addEventListener('click', () => { q2[btn.dataset.gate](); refresh2(); });
+  });
+  document.getElementById('reset-btn2').addEventListener('click', () => { q2.reset(); refresh2(); });
+
+  const S = 1 / Math.sqrt(2);
+  const REF_STATES = {
+    '0': { a: C.make(1), b: C.make(0) },
+    '1': { a: C.make(0), b: C.make(1) },
+    'plus': { a: C.make(S), b: C.make(S) },
+    'minus': { a: C.make(S), b: C.make(-S) },
+  };
+  let selectedRef = null;
+
+  document.querySelectorAll('#ref-buttons .tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+      document.querySelectorAll('#ref-buttons .tag').forEach(t => t.classList.remove('active'));
+      tag.classList.add('active');
+      selectedRef = tag.dataset.ref;
+      updateInner();
+    });
+  });
+
+  function updateInner() {
+    if (!selectedRef) return;
+    const phi = REF_STATES[selectedRef];
+    const ip = innerProduct(phi, q2);
+    document.getElementById('inner-readout').textContent = C.fmt(ip, 3);
+    document.getElementById('inner-sq-readout').textContent = (C.abs2(ip) * 100).toFixed(1) + '%';
+  }
+
+  refresh2();
+  initLessonProgress('bra-ket');
+</script>
+{% endblock %}

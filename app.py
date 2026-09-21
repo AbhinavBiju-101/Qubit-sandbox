@@ -499,6 +499,72 @@ LESSON_ORDER = [
     {"id": "reality-check", "title": "Reality Check", "href": "/reality-check", "steps": 4},
 ]
 
+# Module 2 — "Quantum Algorithms". Every lesson reuses either the
+# single-qubit engine (quantum.js) or the small N-qubit register
+# engine (multiqubit.js) — real amplitude bookkeeping, not canned
+# outcomes, same as everything else in this app.
+MODULE_2_LESSONS = [
+    {"id": "quantum-teleportation", "title": "Quantum Teleportation", "href": "/quantum-teleportation", "steps": 3},
+    {"id": "superdense-coding", "title": "Superdense Coding", "href": "/superdense-coding", "steps": 3},
+    {"id": "deutsch-jozsa", "title": "Deutsch-Jozsa", "href": "/deutsch-jozsa", "steps": 3},
+    {"id": "grovers-search", "title": "Grover's Search", "href": "/grovers-search", "steps": 3},
+]
+
+# Module 3 — "The Physics and Math Underneath". Placed after Module 2
+# so every lesson here can lean on gate/Bloch/entanglement intuition
+# the person already has instead of front-loading formalism. See
+# futureplans.md for the module-level rationale.
+MODULE_3_LESSONS = [
+    {"id": "complex-numbers", "title": "Complex Numbers", "href": "/complex-numbers", "steps": 3},
+    {"id": "bra-ket", "title": "Bra-Ket, Demystified", "href": "/bra-ket", "steps": 3},
+    {"id": "matrices-as-gates", "title": "Matrices as Gates", "href": "/matrices-as-gates", "steps": 3},
+    {"id": "measurement-postulate", "title": "Measurement & Stern-Gerlach", "href": "/measurement-postulate", "steps": 3},
+    {"id": "schrodinger-equation", "title": "The Schrödinger Equation", "href": "/schrodinger-equation", "steps": 3},
+    {"id": "basis-vectors", "title": "Basis Vectors & Hilbert Space", "href": "/basis-vectors", "steps": 3},
+    {"id": "tensor-products", "title": "Tensor Products", "href": "/tensor-products", "steps": 3},
+    {"id": "operator-types", "title": "Hermitian, Unitary & Projection Operators", "href": "/operator-types", "steps": 3},
+    {"id": "eigenvalues-eigenvectors", "title": "Eigenvalues and Eigenvectors", "href": "/eigenvalues-eigenvectors", "steps": 3},
+    {"id": "commutation-relations", "title": "Commutation Relations", "href": "/commutation-relations", "steps": 3},
+]
+
+# Module 4 — "Where Quantum Comes From": the historical/physical
+# origin story (wave-particle duality, blackbody radiation, de
+# Broglie) plus the applications (particle in a box, tunneling) that
+# explain *why* nature needed quantum mechanics at all — cross-linked
+# back to Hardware Lab's Josephson-junction tunneling where relevant.
+MODULE_4_LESSONS = [
+    {"id": "wave-particle-duality", "title": "Wave-Particle Duality", "href": "/wave-particle-duality", "steps": 3},
+    {"id": "blackbody-radiation", "title": "Blackbody Radiation", "href": "/blackbody-radiation", "steps": 3},
+    {"id": "de-broglie", "title": "The de Broglie Wavelength", "href": "/de-broglie", "steps": 3},
+    {"id": "particle-in-a-box", "title": "Particle in a Box", "href": "/particle-in-a-box", "steps": 3},
+    {"id": "quantum-tunneling", "title": "Quantum Tunneling", "href": "/quantum-tunneling", "steps": 3},
+    {"id": "three-dimensional-box", "title": "The 3D Box", "href": "/three-dimensional-box", "steps": 3},
+]
+
+# Module 5 — "Error Correction & Noise". The bit-flip code lesson
+# reuses multiqubit.js at n=5 (3 data + 2 syndrome ancillas) — a real
+# non-demolition syndrome measurement, not a scripted animation.
+MODULE_5_LESSONS = [
+    {"id": "decoherence", "title": "Why Qubits Decohere", "href": "/decoherence", "steps": 3},
+    {"id": "bit-flip-code", "title": "Bit-Flip and Phase-Flip Codes", "href": "/bit-flip-code", "steps": 3},
+    {"id": "nisq", "title": "NISQ", "href": "/nisq", "steps": 3},
+]
+
+# Module 6 — "Quantum Cryptography".
+MODULE_6_LESSONS = [
+    {"id": "bb84", "title": "BB84 Key Distribution", "href": "/bb84", "steps": 3},
+    {"id": "shors-algorithm", "title": "Why Factoring Matters", "href": "/shors-algorithm", "steps": 3},
+]
+
+# One continuous sequence across every built-in module, in display
+# order — powers prev/next nav so it flows Module 1 -> 2 -> 3 -> 4 ->
+# 5 -> 6 without per-template changes (mirrors LESSON_ORDER's role
+# for Module 1 alone, generalized once more than one module existed).
+ALL_BUILTIN_LESSONS = (
+    LESSON_ORDER + MODULE_2_LESSONS + MODULE_3_LESSONS + MODULE_4_LESSONS
+    + MODULE_5_LESSONS + MODULE_6_LESSONS
+)
+
 # Module 1's two embeddable widgets (they aren't lessons — no steps/
 # progress — but the person asked for them grouped visually alongside
 # Module 1's lessons on /lessons and in the Python IDE / Lesson
@@ -511,12 +577,13 @@ BUILTIN_WIDGETS = [
 
 def _lesson_nav(lesson_id):
     """Returns (prev_lesson, next_lesson) dicts (or None at either end
-    of the sequence) for the given lesson id, per LESSON_ORDER above."""
-    idx = next((i for i, l in enumerate(LESSON_ORDER) if l["id"] == lesson_id), None)
+    of the sequence) for the given lesson id, per ALL_BUILTIN_LESSONS
+    above (Module 1, then Module 3, then Module 4, in that order)."""
+    idx = next((i for i, l in enumerate(ALL_BUILTIN_LESSONS) if l["id"] == lesson_id), None)
     if idx is None:
         return None, None
-    prev_l = LESSON_ORDER[idx - 1] if idx > 0 else None
-    next_l = LESSON_ORDER[idx + 1] if idx < len(LESSON_ORDER) - 1 else None
+    prev_l = ALL_BUILTIN_LESSONS[idx - 1] if idx > 0 else None
+    next_l = ALL_BUILTIN_LESSONS[idx + 1] if idx < len(ALL_BUILTIN_LESSONS) - 1 else None
     return prev_l, next_l
 
 
@@ -593,7 +660,82 @@ def _module_catalog():
                 for l in LESSON_ORDER
             ],
             "widgets": BUILTIN_WIDGETS,
-        }
+        },
+        {
+            "id": None,
+            "slug": "module-2",
+            "title": "Quantum Algorithms",
+            "description": "Teleportation, superdense coding, Deutsch-Jozsa, and Grover's search — the first payoff lessons where quantum provably beats classical.",
+            "kind": "builtin",
+            "badge": "MODULE 2",
+            "author": None,
+            "published": True,
+            "lessons": [
+                {"id": l["id"], "title": l["title"], "href": l["href"], "steps": l["steps"], "kind": "builtin"}
+                for l in MODULE_2_LESSONS
+            ],
+            "widgets": [],
+        },
+        {
+            "id": None,
+            "slug": "module-3",
+            "title": "The Physics and Math Underneath",
+            "description": "Complex numbers, bra-ket, matrices by hand, Stern-Gerlach, Schrödinger's equation, basis vectors, tensor products, operator types, eigenvalues, and commutation relations.",
+            "kind": "builtin",
+            "badge": "MODULE 3",
+            "author": None,
+            "published": True,
+            "lessons": [
+                {"id": l["id"], "title": l["title"], "href": l["href"], "steps": l["steps"], "kind": "builtin"}
+                for l in MODULE_3_LESSONS
+            ],
+            "widgets": [],
+        },
+        {
+            "id": None,
+            "slug": "module-4",
+            "title": "Where Quantum Comes From",
+            "description": "Wave-particle duality, blackbody radiation, de Broglie's wavelength, particle in a box (1D and 3D, with real degeneracy), and tunneling.",
+            "kind": "builtin",
+            "badge": "MODULE 4",
+            "author": None,
+            "published": True,
+            "lessons": [
+                {"id": l["id"], "title": l["title"], "href": l["href"], "steps": l["steps"], "kind": "builtin"}
+                for l in MODULE_4_LESSONS
+            ],
+            "widgets": [],
+        },
+        {
+            "id": None,
+            "slug": "module-5",
+            "title": "Error Correction & Noise",
+            "description": "Why qubits decohere, the 3-qubit bit-flip/phase-flip code with real syndrome measurement, and what NISQ means for circuit depth.",
+            "kind": "builtin",
+            "badge": "MODULE 5",
+            "author": None,
+            "published": True,
+            "lessons": [
+                {"id": l["id"], "title": l["title"], "href": l["href"], "steps": l["steps"], "kind": "builtin"}
+                for l in MODULE_5_LESSONS
+            ],
+            "widgets": [],
+        },
+        {
+            "id": None,
+            "slug": "module-6",
+            "title": "Quantum Cryptography",
+            "description": "BB84 key distribution with an Eve toggle, and why Shor's algorithm makes factoring-based cryptography quantum-vulnerable.",
+            "kind": "builtin",
+            "badge": "MODULE 6",
+            "author": None,
+            "published": True,
+            "lessons": [
+                {"id": l["id"], "title": l["title"], "href": l["href"], "steps": l["steps"], "kind": "builtin"}
+                for l in MODULE_6_LESSONS
+            ],
+            "widgets": [],
+        },
     ]
     for m in db.list_published_community_modules():
         author = db.get_user_by_id(m["author_user_id"])
@@ -745,6 +887,201 @@ def hardware_lab():
 def reality_check():
     prev_l, next_l = _lesson_nav("reality-check")
     return render_template("reality-check.html", active_page="lessons", prev_lesson=prev_l, next_lesson=next_l)
+
+
+# ======================================================================
+# Module 2 — Quantum Algorithms
+# ======================================================================
+
+@app.route("/quantum-teleportation")
+@login_required
+def quantum_teleportation():
+    prev_l, next_l = _lesson_nav("quantum-teleportation")
+    return render_template("quantum-teleportation.html", active_page="lessons", prev_lesson=prev_l, next_lesson=next_l)
+
+
+@app.route("/superdense-coding")
+@login_required
+def superdense_coding():
+    prev_l, next_l = _lesson_nav("superdense-coding")
+    return render_template("superdense-coding.html", active_page="lessons", prev_lesson=prev_l, next_lesson=next_l)
+
+
+@app.route("/deutsch-jozsa")
+@login_required
+def deutsch_jozsa():
+    prev_l, next_l = _lesson_nav("deutsch-jozsa")
+    return render_template("deutsch-jozsa.html", active_page="lessons", prev_lesson=prev_l, next_lesson=next_l)
+
+
+@app.route("/grovers-search")
+@login_required
+def grovers_search():
+    prev_l, next_l = _lesson_nav("grovers-search")
+    return render_template("grovers-search.html", active_page="lessons", prev_lesson=prev_l, next_lesson=next_l)
+
+
+# ======================================================================
+# Module 3 — The Physics and Math Underneath
+# ======================================================================
+
+@app.route("/complex-numbers")
+@login_required
+def complex_numbers():
+    prev_l, next_l = _lesson_nav("complex-numbers")
+    return render_template("complex-numbers.html", active_page="lessons", prev_lesson=prev_l, next_lesson=next_l)
+
+
+@app.route("/bra-ket")
+@login_required
+def bra_ket():
+    prev_l, next_l = _lesson_nav("bra-ket")
+    return render_template("bra-ket.html", active_page="lessons", prev_lesson=prev_l, next_lesson=next_l)
+
+
+@app.route("/matrices-as-gates")
+@login_required
+def matrices_as_gates():
+    prev_l, next_l = _lesson_nav("matrices-as-gates")
+    return render_template("matrices-as-gates.html", active_page="lessons", prev_lesson=prev_l, next_lesson=next_l)
+
+
+@app.route("/measurement-postulate")
+@login_required
+def measurement_postulate():
+    prev_l, next_l = _lesson_nav("measurement-postulate")
+    return render_template("measurement-postulate.html", active_page="lessons", prev_lesson=prev_l, next_lesson=next_l)
+
+
+@app.route("/schrodinger-equation")
+@login_required
+def schrodinger_equation():
+    prev_l, next_l = _lesson_nav("schrodinger-equation")
+    return render_template("schrodinger-equation.html", active_page="lessons", prev_lesson=prev_l, next_lesson=next_l)
+
+
+@app.route("/basis-vectors")
+@login_required
+def basis_vectors():
+    prev_l, next_l = _lesson_nav("basis-vectors")
+    return render_template("basis-vectors.html", active_page="lessons", prev_lesson=prev_l, next_lesson=next_l)
+
+
+@app.route("/tensor-products")
+@login_required
+def tensor_products():
+    prev_l, next_l = _lesson_nav("tensor-products")
+    return render_template("tensor-products.html", active_page="lessons", prev_lesson=prev_l, next_lesson=next_l)
+
+
+@app.route("/operator-types")
+@login_required
+def operator_types():
+    prev_l, next_l = _lesson_nav("operator-types")
+    return render_template("operator-types.html", active_page="lessons", prev_lesson=prev_l, next_lesson=next_l)
+
+
+@app.route("/eigenvalues-eigenvectors")
+@login_required
+def eigenvalues_eigenvectors():
+    prev_l, next_l = _lesson_nav("eigenvalues-eigenvectors")
+    return render_template("eigenvalues-eigenvectors.html", active_page="lessons", prev_lesson=prev_l, next_lesson=next_l)
+
+
+@app.route("/commutation-relations")
+@login_required
+def commutation_relations():
+    prev_l, next_l = _lesson_nav("commutation-relations")
+    return render_template("commutation-relations.html", active_page="lessons", prev_lesson=prev_l, next_lesson=next_l)
+
+
+# ======================================================================
+# Module 4 — Where Quantum Comes From
+# ======================================================================
+
+@app.route("/wave-particle-duality")
+@login_required
+def wave_particle_duality():
+    prev_l, next_l = _lesson_nav("wave-particle-duality")
+    return render_template("wave-particle-duality.html", active_page="lessons", prev_lesson=prev_l, next_lesson=next_l)
+
+
+@app.route("/blackbody-radiation")
+@login_required
+def blackbody_radiation():
+    prev_l, next_l = _lesson_nav("blackbody-radiation")
+    return render_template("blackbody-radiation.html", active_page="lessons", prev_lesson=prev_l, next_lesson=next_l)
+
+
+@app.route("/de-broglie")
+@login_required
+def de_broglie():
+    prev_l, next_l = _lesson_nav("de-broglie")
+    return render_template("de-broglie.html", active_page="lessons", prev_lesson=prev_l, next_lesson=next_l)
+
+
+@app.route("/particle-in-a-box")
+@login_required
+def particle_in_a_box():
+    prev_l, next_l = _lesson_nav("particle-in-a-box")
+    return render_template("particle-in-a-box.html", active_page="lessons", prev_lesson=prev_l, next_lesson=next_l)
+
+
+@app.route("/quantum-tunneling")
+@login_required
+def quantum_tunneling():
+    prev_l, next_l = _lesson_nav("quantum-tunneling")
+    return render_template("quantum-tunneling.html", active_page="lessons", prev_lesson=prev_l, next_lesson=next_l)
+
+
+@app.route("/three-dimensional-box")
+@login_required
+def three_dimensional_box():
+    prev_l, next_l = _lesson_nav("three-dimensional-box")
+    return render_template("three-dimensional-box.html", active_page="lessons", prev_lesson=prev_l, next_lesson=next_l)
+
+
+# ======================================================================
+# Module 5 — Error Correction & Noise
+# ======================================================================
+
+@app.route("/decoherence")
+@login_required
+def decoherence():
+    prev_l, next_l = _lesson_nav("decoherence")
+    return render_template("decoherence.html", active_page="lessons", prev_lesson=prev_l, next_lesson=next_l)
+
+
+@app.route("/bit-flip-code")
+@login_required
+def bit_flip_code():
+    prev_l, next_l = _lesson_nav("bit-flip-code")
+    return render_template("bit-flip-code.html", active_page="lessons", prev_lesson=prev_l, next_lesson=next_l)
+
+
+@app.route("/nisq")
+@login_required
+def nisq():
+    prev_l, next_l = _lesson_nav("nisq")
+    return render_template("nisq.html", active_page="lessons", prev_lesson=prev_l, next_lesson=next_l)
+
+
+# ======================================================================
+# Module 6 — Quantum Cryptography
+# ======================================================================
+
+@app.route("/bb84")
+@login_required
+def bb84():
+    prev_l, next_l = _lesson_nav("bb84")
+    return render_template("bb84.html", active_page="lessons", prev_lesson=prev_l, next_lesson=next_l)
+
+
+@app.route("/shors-algorithm")
+@login_required
+def shors_algorithm():
+    prev_l, next_l = _lesson_nav("shors-algorithm")
+    return render_template("shors-algorithm.html", active_page="lessons", prev_lesson=prev_l, next_lesson=next_l)
 
 
 @app.route("/sandbox")

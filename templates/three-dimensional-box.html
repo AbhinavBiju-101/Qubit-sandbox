@@ -1,0 +1,115 @@
+{% from "_lesson_nav.html" import lesson_nav %}
+{% extends "base.html" %}
+{% block title %}The 3D Box — Qubit Sandbox{% endblock %}
+{% block page_title %}Module 4 · The 3D Box{% endblock %}
+
+{% block content %}
+
+<div class="pill amber" style="margin-bottom:14px;">MODULE 4 · WHERE QUANTUM COMES FROM</div>
+<h1 style="margin-bottom:6px;">Same box, two more directions, real degeneracy.</h1>
+<p class="lede muted" style="font-size:1.05rem;">Particle in a Box's degeneracy bonus was a preview. This is the full 3D calculation — and degeneracy stops being a curiosity and becomes something you compute.</p>
+
+<div class="lesson-progress-row">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+<!-- ===================== STEP 1 — THEORY ===================== -->
+<div class="lesson-step" data-step="step1">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">1</div>
+    <h3>Three quantum numbers, one energy formula</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Confine a particle to a cube instead of a line, and the wavefunction has to satisfy the same "pinned at the walls" condition in all three directions at once, giving it three independent quantum numbers <span class="mono">nₓ, n_y, n_z</span> (each 1, 2, 3, …). The energy is just the 1D formula added across all three: <span class="mono">E(nₓ,n_y,n_z) ∝ nₓ² + n_y² + n_z²</span>.</p>
+    <p class="muted">Because it's a <em>sum</em> of squares, completely different triples of quantum numbers can land on the exact same total — <span class="mono">(1,2,2)</span> and <span class="mono">(2,1,2)</span> and <span class="mono">(2,2,1)</span> all give <span class="mono">1+4+4=9</span>. Each distinct triple is still a physically distinct state (a different standing-wave pattern along each axis) — they just happen to share an energy. That's degeneracy, computed instead of asserted.</p>
+    <div class="callout blue">A perfectly cubic box gets extra degeneracy specifically from its symmetry — permuting nₓ,n_y,n_z always preserves the sum of squares. Stretch the box into a non-cube and most of that degeneracy breaks, because the three directions no longer contribute equally to the energy.</div>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step1"> Sum of three squares → multiple triples, one energy
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 2 — DEGENERACY FINDER ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
+    <h3>Pick a state, find everything degenerate with it</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Set <span class="mono">nₓ, n_y, n_z</span>. We'll search every triple up to 6 in each direction and list every other one that lands on the exact same energy — a real computed search, not a lookup table.</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · 3D BOX DEGENERACY</div>
+      <div class="grid-3">
+        <div>
+          <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.85rem;"><span class="muted">nₓ</span><span id="nx-val">1</span></div>
+          <input type="range" id="nx-slider" min="1" max="6" step="1" value="1">
+        </div>
+        <div>
+          <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.85rem;"><span class="muted">n_y</span><span id="ny-val">2</span></div>
+          <input type="range" id="ny-slider" min="1" max="6" step="1" value="2">
+        </div>
+        <div>
+          <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.85rem;"><span class="muted">n_z</span><span id="nz-val">2</span></div>
+          <input type="range" id="nz-slider" min="1" max="6" step="1" value="2">
+        </div>
+      </div>
+      <div class="stat" style="margin-top:16px; max-width:280px;"><span class="num" id="energy-sum">9</span><span class="label">nₓ² + n_y² + n_z²</span></div>
+      <div class="mono" id="degen-list" style="font-size:0.85rem; color:var(--text-muted); margin-top:14px;">—</div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step2"> I found a triple with real degenerate partners
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — BONUS ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
+    <h3>Bonus: this is where atomic orbital degeneracy comes from</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">A hydrogen atom's electron shells show exactly this kind of degeneracy — multiple orbitals (different shapes, different quantum numbers) sharing one energy level, purely from the symmetry of the confining potential. The cubic box here is a toy model, but the mechanism generating degenerate levels is the same one running in every atom.</p>
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step3"> Same mechanism, real atoms
+    </label>
+  </div>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script>
+  function refresh3D() {
+    const nx = +document.getElementById('nx-slider').value;
+    const ny = +document.getElementById('ny-slider').value;
+    const nz = +document.getElementById('nz-slider').value;
+    document.getElementById('nx-val').textContent = nx;
+    document.getElementById('ny-val').textContent = ny;
+    document.getElementById('nz-val').textContent = nz;
+    const target = nx*nx + ny*ny + nz*nz;
+    document.getElementById('energy-sum').textContent = target;
+
+    const partners = [];
+    for (let x = 1; x <= 6; x++) for (let y = 1; y <= 6; y++) for (let z = 1; z <= 6; z++) {
+      if (x===nx && y===ny && z===nz) continue;
+      if (x*x + y*y + z*z === target) partners.push(`(${x},${y},${z})`);
+    }
+    document.getElementById('degen-list').textContent = partners.length
+      ? `Degenerate with (${nx},${ny},${nz}): ${partners.join(', ')} — ${partners.length + 1} states, one energy.`
+      : `No other triple up to n=6 shares this energy — (${nx},${ny},${nz}) is non-degenerate in this range.`;
+  }
+
+  ['nx-slider','ny-slider','nz-slider'].forEach(id => document.getElementById(id).addEventListener('input', refresh3D));
+  refresh3D();
+  initLessonProgress('three-dimensional-box');
+</script>
+{% endblock %}

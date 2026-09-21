@@ -7,6 +7,132 @@ reflects the single combined, current state after each merge.
 
 ---
 
+## Recently shipped (this round — filling VIT syllabus gaps in Modules 3 & 4)
+
+- **Module 3 gained 5 lessons** (`basis-vectors`, `tensor-products`,
+  `operator-types`, `eigenvalues-eigenvectors`, `commutation-relations`),
+  covering VIT Module 2 topics that were only touched in passing before:
+  linear vector space/orthonormal bases/Hilbert space, tensor products
+  of vector spaces, Hermitian/Unitary/Projection operators, eigenvalues
+  and eigenvectors, and a dedicated commutation-relations lesson (the
+  H/Z non-commuting demo from Matrices as Gates was a preview, not the
+  full treatment). Tensor Products' "try to factor a Bell state back
+  apart" search is a real 5,000-random-sample numerical search each
+  run — verified against a 2,000,000-sample reference run that the
+  true floor is 2-√2 ≈ 0.586, so the lesson's "never gets close" claim
+  is a real mathematical fact, not a hand-wave.
+- **Module 4 gained 1 lesson** (`three-dimensional-box`), extending
+  Particle in a Box's 1D treatment (and its degeneracy bonus paragraph)
+  into VIT's explicitly-named "extension to three-dimensional potential
+  wells" — a genuine computed degeneracy search over nx,ny,nz up to 6,
+  not a lookup table.
+- **Remaining VIT coverage check, for whoever reads this next:** with
+  this round, Module 3+4 now cover essentially all of VIT's Modules
+  1–4 (wave-particle duality, math foundations, postulates,
+  applications) at an applied/simulated depth rather than full
+  derivation depth. Module 1 (built before this project's Module 2-6
+  work) already covers VIT's Module 5 (qubits, Bloch sphere,
+  entanglement, Bell states, Pauli/Hadamard/CNOT). No further known
+  gaps against the syllabus as of this round — if new ones surface,
+  log them here rather than guessing silently.
+- **Verification.** Same discipline as the Module 2/5/6 round: every
+  new interactive claim was checked by actually running the logic in
+  Node against known theory, not just eyeballed — operator
+  classification checked against all 6 candidate matrices' known
+  Hermitian/Unitary/Projection status, the eigenvector checker against
+  all 8 (operator, vector) combinations' known eigenvalue theory, and
+  the tensor-product factorization floor against a 2M-sample reference
+  run. All passed. Still no live server smoke test possible in this
+  sandbox (no network for `pip install authlib`).
+
+---
+
+## Recently shipped (previous round — Modules 2, 5 & 6; Modules 1–6 complete)
+
+- **Module 2 — "Quantum Algorithms" — done.** Four lessons
+  (`quantum-teleportation`, `superdense-coding`, `deutsch-jozsa`,
+  `grovers-search`), built after Modules 3/4 at the person's request
+  but slotted back into catalog position 2 (`ALL_BUILTIN_LESSONS` order
+  is 1→2→3→4→5→6). Introduced `static/js/multiqubit.js` — a real
+  N-qubit state-vector engine (arbitrary n, full CNOT/measurement/
+  Grover-diffusion support) built on the same `C` complex-number
+  helper as `quantum.js`, needed once a lesson goes past 2 qubits.
+  Teleportation and Superdense Coding read amplitudes directly off the
+  post-measurement register rather than faking the "it matched"
+  reveal. Grover's Search deliberately uses N=4 (2 qubits), not the
+  originally-planned 3 qubits — 1 iteration gives an exact 25%→100%
+  jump at N=4, which is a cleaner demo than any 3-qubit case.
+- **Module 5 — "Error Correction & Noise" — done.** Three lessons
+  (`decoherence`, `bit-flip-code`, `nisq`). Decoherence reuses
+  `bloch.js`'s existing `set(theta, phi, mag)` third argument (already
+  in the engine, just previously unused by any lesson) to show the
+  vector's length shrinking. The bit-flip code lesson runs a genuine
+  5-qubit (3 data + 2 syndrome ancilla) non-demolition error-correction
+  circuit on `multiqubit.js` — ancillas get measured, data qubits'
+  superposition never does. NISQ's circuit-depth calculator plots the
+  real `(1-ε)^N` curve.
+- **Module 6 — "Quantum Cryptography" — done.** Two lessons (`bb84`,
+  `shors-algorithm`). BB84 runs 16 independent single-qubit trials
+  through `quantum.js` with an Eve intercept-resend toggle — the
+  ~25%-error-rate-with-Eve result falls out of the real simulation,
+  it isn't hardcoded. Shor's lesson is explicitly scoped to the
+  classical period→factors half (N=15, real gcd/modpow arithmetic);
+  the quantum period-finding half is described but not simulated, with
+  an explicit "NISQ hardware isn't there yet" caveat.
+- **Modules 1 through 6 are now all complete.** Module 7 ("From Lab to
+  Industry") remains unbuilt and unscheduled.
+- **Plumbing.** `_module_catalog()`, `ALL_BUILTIN_LESSONS`/`_lesson_nav()`,
+  `lessons.html`'s community-module-loop reuse, and `lessons-data.js`
+  (`QS_LESSON_DEFS`) all extended the same way Modules 3/4 were —
+  see that entry below for the mechanism. No template or JS
+  architecture changed for this round beyond adding `multiqubit.js`.
+  Same caveat as last round applies: no live server smoke test was
+  possible in the build sandbox (no network to `pip install authlib`);
+  only static checks (Python AST/compile, all-template Jinja
+  compilation, route/function-name uniqueness, CSS class coverage)
+  were run. Worth a real click-through — especially the multi-qubit
+  circuits in Module 2/5, which are the most novel code in the app —
+  before deploying.
+
+---
+
+## Recently shipped (previous round — Modules 3 & 4)
+
+- **Module 3 — "The Physics and Math Underneath" — done.** Five lessons
+  (`complex-numbers`, `bra-ket`, `matrices-as-gates`,
+  `measurement-postulate`, `schrodinger-equation`), placed *after* the
+  original Module 1 rather than before it on purpose — every lesson
+  leans on gate/Bloch/entanglement intuition the person already built,
+  instead of front-loading linear algebra. All five reuse the real
+  `quantum.js` engine (no toy math): Complex Numbers applies an actual
+  phase gate; Bra-Ket computes real inner products; Matrices as Gates
+  expands the arithmetic by hand with the live α/β; Measurement builds
+  a Stern-Gerlach simulator plus the sequential Z→X→Z cascade; Schrödinger
+  animates real precession and Rabi flopping via `requestAnimationFrame`.
+- **Module 4 — "Where Quantum Comes From" — done.** Five lessons
+  (`wave-particle-duality`, `blackbody-radiation`, `de-broglie`,
+  `particle-in-a-box`, `quantum-tunneling`), covering the historical/
+  physical origin story a computing-first Module 1 skips. Each has a
+  genuine computed simulation on `<canvas>`/SVG (double-slit build-up
+  with a which-path-detector toggle, real Planck's-law vs.
+  Rayleigh-Jeans curves, a log-scale de Broglie ruler, particle-in-a-box
+  wavefunctions, an exponential tunneling-barrier sim) — Quantum
+  Tunneling explicitly cross-links back to Hardware Lab's Josephson
+  junction, since it's the same mechanism at chip scale.
+- **Plumbing for a 2nd/3rd built-in module — done.** `_module_catalog()`
+  in app.py generalized from "just Module 1" to a list of builtin
+  modules; `_lesson_nav()` now walks one continuous `ALL_BUILTIN_LESSONS`
+  sequence for prev/next; `lessons.html`'s existing community-module
+  loop renders extra builtin modules too (via a `kind == 'builtin'`
+  branch so they don't get a "BY community" byline); `lessons-data.js`
+  (`QS_LESSON_DEFS`) got the new entries so Dashboard's "Continue"
+  list and lesson-count stat pick them up for free. Module 1's own
+  progress bar on `/lessons` was carefully kept scoped to its original
+  six lessons (not accidentally averaged across every builtin lesson)
+  — see the `idToFill.hasOwnProperty(l.id)` guard in `lessons.html`.
+
+---
+
 ## Recently shipped (this round — Supabase/Postgres migration)
 
 - **Migrated off SQLite to Postgres (Supabase) — done.** SQLite's

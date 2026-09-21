@@ -1,0 +1,160 @@
+{% from "_lesson_nav.html" import lesson_nav %}
+{% extends "base.html" %}
+{% block title %}Matrices as Gates — Qubit Sandbox{% endblock %}
+{% block page_title %}Module 3 · Matrices as Gates{% endblock %}
+
+{% block content %}
+
+<div class="pill" style="margin-bottom:14px;">MODULE 3 · THE MATH UNDERNEATH</div>
+<h1 style="margin-bottom:6px;">Every gate click has been this multiplication.</h1>
+<p class="lede muted" style="font-size:1.05rem;">Three steps: see the rule, do it by hand once with real numbers, then watch two gates disagree about order — the thing "operators don't commute" actually means.</p>
+
+<div class="lesson-progress-row">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+<!-- ===================== STEP 1 — THEORY ===================== -->
+<div class="lesson-step" data-step="step1">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">1</div>
+    <h3>The rule: row times column</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">A gate is a 2×2 matrix <span class="mono">[[m₀₀, m₀₁], [m₁₀, m₁₁]]</span>. Applying it to a state <span class="mono">(α, β)</span> means: multiply each row of the matrix into the column, entry by entry, and add:</p>
+    <div class="callout blue mono" style="font-size:0.92rem;">new α = m₀₀·α + m₀₁·β<br>new β = m₁₀·α + m₁₁·β</div>
+    <p class="muted">That's it — every gate button you've ever clicked ran exactly this, silently, in <span class="mono">quantum.js</span>'s <span class="mono">applyMatrix()</span>. The Pauli matrices you've been calling X, Y, Z are:</p>
+    <div class="grid-3" style="margin-top:12px;">
+      <div class="stat mono" style="font-size:0.95rem;">X = [[0,1],[1,0]]</div>
+      <div class="stat mono" style="font-size:0.95rem;">Y = [[0,−i],[i,0]]</div>
+      <div class="stat mono" style="font-size:0.95rem;">Z = [[1,0],[0,−1]]</div>
+    </div>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step1"> Row-times-column, got it
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 2 — BY HAND ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
+    <h3>Multiply one by hand</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Pick a gate. We'll write out the expansion with the actual starting numbers plugged in, then apply it and move the Bloch point — so you can check the arithmetic against the geometry.</p>
+
+    <div class="grid-2" style="margin-top:18px;">
+      <div class="panel">
+        <div class="panel-label">SANDBOX · APPLY TO |0⟩</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
+          <button data-handgate="H">H</button>
+          <button data-handgate="X">X</button>
+          <button data-handgate="Z">Z</button>
+        </div>
+        <svg id="bloch-hand" viewBox="0 0 300 300" style="width:100%; max-width:260px; display:block; margin:0 auto;"></svg>
+      </div>
+      <div class="mono" style="font-size:0.86rem; color:var(--text-muted); background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-sm); padding:16px; white-space:pre-wrap;" id="expansion-readout">Pick a gate to see the expansion.</div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step2"> I matched the arithmetic to the Bloch rotation
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — COMMUTATION ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
+    <h3>Order matters: H then Z vs. Z then H</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Run both orders below, starting from |0⟩ each time. If gates were ordinary numbers, order wouldn't matter — <span class="mono">3×5 = 5×3</span>. Matrices aren't numbers: <span class="mono">HZ ≠ ZH</span> here, and the two Bloch spheres will land on opposite sides of the equator to prove it.</p>
+
+    <div class="grid-2" style="margin-top:18px;">
+      <div class="panel">
+        <div class="panel-label">ORDER A · H → Z</div>
+        <svg id="bloch-a" viewBox="0 0 260 260" style="width:100%; max-width:220px; display:block; margin:0 auto;"></svg>
+        <button id="run-a" class="small block" style="margin-top:10px;">Run H → Z</button>
+      </div>
+      <div class="panel">
+        <div class="panel-label">ORDER B · Z → H</div>
+        <svg id="bloch-b" viewBox="0 0 260 260" style="width:100%; max-width:220px; display:block; margin:0 auto;"></svg>
+        <button id="run-b" class="small block" style="margin-top:10px;">Run Z → H</button>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:16px;" id="commute-callout">Run both orders to compare where they land.</div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step3"> I ran both orders and saw them disagree
+    </label>
+  </div>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bloch.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script>
+  // ---- Step 2: by-hand expansion ----
+  const GATE_MATRIX = {
+    H: [[C.make(1/Math.sqrt(2)), C.make(1/Math.sqrt(2))], [C.make(1/Math.sqrt(2)), C.make(-1/Math.sqrt(2))]],
+    X: [[C.make(0), C.make(1)], [C.make(1), C.make(0)]],
+    Z: [[C.make(1), C.make(0)], [C.make(0), C.make(-1)]],
+  };
+  const qHand = new Qubit();
+  const widgetHand = createBlochWidget(document.getElementById('bloch-hand'));
+  widgetHand.set(0, 0);
+
+  document.querySelectorAll('button[data-handgate]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const g = btn.dataset.handgate;
+      const m = GATE_MATRIX[g];
+      const a0 = qHand.a, b0 = qHand.b;
+      const newA = C.add(C.mul(m[0][0], a0), C.mul(m[0][1], b0));
+      const newB = C.add(C.mul(m[1][0], a0), C.mul(m[1][1], b0));
+      document.getElementById('expansion-readout').textContent =
+        `${g} · (${C.fmt(a0,2)}, ${C.fmt(b0,2)})\n\n` +
+        `new α = (${C.fmt(m[0][0],2)})(${C.fmt(a0,2)}) + (${C.fmt(m[0][1],2)})(${C.fmt(b0,2)})\n       = ${C.fmt(newA,3)}\n\n` +
+        `new β = (${C.fmt(m[1][0],2)})(${C.fmt(a0,2)}) + (${C.fmt(m[1][1],2)})(${C.fmt(b0,2)})\n       = ${C.fmt(newB,3)}`;
+      qHand.applyMatrix(m, g);
+      const bl = qHand.bloch();
+      widgetHand.set(bl.theta, bl.phi);
+    });
+  });
+
+  // ---- Step 3: commutation ----
+  const qA = new Qubit(), qB = new Qubit();
+  const widgetA = createBlochWidget(document.getElementById('bloch-a'));
+  const widgetB = createBlochWidget(document.getElementById('bloch-b'));
+
+  document.getElementById('run-a').addEventListener('click', () => {
+    qA.reset(); qA.H(); qA.Z();
+    const bl = qA.bloch(); widgetA.set(bl.theta, bl.phi);
+    checkCommute();
+  });
+  document.getElementById('run-b').addEventListener('click', () => {
+    qB.reset(); qB.Z(); qB.H();
+    const bl = qB.bloch(); widgetB.set(bl.theta, bl.phi);
+    checkCommute();
+  });
+
+  function checkCommute() {
+    const distPhi = Math.abs(qA.bloch().phi - qB.bloch().phi);
+    const callout = document.getElementById('commute-callout');
+    if (Math.abs(qA.prob0() - 0.5) < 0.05 && Math.abs(qB.prob0() - 0.5) < 0.05 && distPhi > 1) {
+      callout.className = 'callout amber';
+      callout.textContent = 'Order A landed at |−⟩, Order B landed at |+⟩ — opposite sides of the equator, from the exact same two gates. That gap is what "H and Z don\'t commute" means, concretely, not abstractly.';
+    }
+  }
+
+  initLessonProgress('matrices-as-gates');
+</script>
+{% endblock %}

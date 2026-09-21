@@ -1,0 +1,154 @@
+{% from "_lesson_nav.html" import lesson_nav %}
+{% extends "base.html" %}
+{% block title %}BB84 Key Distribution — Qubit Sandbox{% endblock %}
+{% block page_title %}Module 6 · BB84{% endblock %}
+
+{% block content %}
+
+<div class="pill blue" style="margin-bottom:14px;">MODULE 6 · QUANTUM CRYPTOGRAPHY</div>
+<h1 style="margin-bottom:6px;">A secret key, with eavesdropping built to be detectable.</h1>
+<p class="lede muted" style="font-size:1.05rem;">Not encryption itself — a way for Alice and Bob to agree on a random secret key while making it physically impossible for Eve to listen in without leaving evidence.</p>
+
+<div class="lesson-progress-row">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+<!-- ===================== STEP 1 — THEORY ===================== -->
+<div class="lesson-step" data-step="step1">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">1</div>
+    <h3>Two bases, and the measurement postulate doing security work</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">For each bit, Alice picks a random value (0 or 1) <em>and</em> a random basis — Z (|0⟩/|1⟩) or X (|+⟩/|−⟩) — and sends a qubit prepared accordingly. Bob measures each incoming qubit in his own randomly chosen basis. When his basis happens to match Alice's, he gets her bit back with certainty; when it doesn't, he gets a random, useless result. Afterward, Alice and Bob publicly compare <em>which bases</em> they used (never the bits) and keep only the positions where they matched — that surviving subset is the "sifted key."</p>
+    <p class="muted">Here's the security: Measurement & Stern-Gerlach already showed you that measuring in the wrong basis genuinely disturbs a state. If Eve intercepts a qubit and measures it (she doesn't know Alice's basis either, so she guesses), roughly half the time she guesses wrong and disturbs it before resending — introducing errors that show up when Alice and Bob compare a sample of their sifted key out loud.</p>
+    <div class="callout blue">No eavesdropping ⇒ sifted-key error rate ≈ 0%. Eve intercepting-and-resending every qubit ⇒ error rate ≈ 25% on the sifted key. That gap isn't a software patch someone could sneak past — it's the measurement postulate itself, working as a tripwire.</div>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step1"> Wrong-basis measurement disturbs the state — that's the security
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 2 — RUN A KEY EXCHANGE ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
+    <h3>Exchange a key, with Eve as an optional toggle</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">16 qubits, sent one at a time. Toggle Eve on and off and compare the sifted-key error rate — every qubit really is an independent single-qubit simulation, exactly like Single Qubit's engine.</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <label style="display:flex; align-items:center; gap:8px; font-size:0.9rem; color:var(--text-muted); cursor:pointer; margin-bottom:14px;">
+        <input type="checkbox" id="eve-toggle"> Eve is intercepting every qubit
+      </label>
+      <button id="bb84-run" class="primary">Run the exchange</button>
+
+      <div style="overflow-x:auto; margin-top:18px;">
+        <table class="mono" style="width:100%; border-collapse:collapse; font-size:0.78rem;" id="bb84-table">
+          <thead><tr style="color:var(--text-faint); text-align:left;"><th style="padding:4px 8px;">#</th><th>Alice bit</th><th>Alice basis</th><th>Bob basis</th><th>Bob result</th><th>Kept?</th></tr></thead>
+          <tbody id="bb84-tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="grid-2" style="margin-top:18px;">
+        <div class="stat"><span class="num" id="sifted-key">—</span><span class="label">Sifted key</span></div>
+        <div class="stat"><span class="num" id="error-rate">—</span><span class="label">Sampled error rate</span></div>
+      </div>
+      <div class="callout" id="bb84-verdict" style="margin-top:16px; display:none;"></div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step2"> I compared the error rate with Eve on and off
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — BONUS ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
+    <h3>Bonus: this secures the key, not the message</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">BB84 only gets Alice and Bob a shared random secret string with a provable eavesdropping check — the actual message still gets encrypted classically (commonly with that key as a one-time pad, or feeding a standard symmetric cipher). The quantum part's entire job is solving "how do two people agree on a secret over a public channel without anyone else usably copying it" — which, per the no-cloning theorem, Shor's Algorithm's next lesson will connect to why factoring-based classical cryptography is the thing actually at risk from quantum computers, not this.</p>
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step3"> BB84 secures the key; the cipher still does the encrypting
+    </label>
+  </div>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script>
+  const N = 16;
+
+  function prepare(bit, basis) {
+    const q = new Qubit();
+    if (basis === 'X') q.H();
+    if (bit === 1) { if (basis === 'X') q.Z(); else q.X(); }
+    return q;
+  }
+  function measure(q, basis) {
+    if (basis === 'X') q.H();
+    return q.measure();
+  }
+
+  document.getElementById('bb84-run').addEventListener('click', () => {
+    const eveOn = document.getElementById('eve-toggle').checked;
+    const tbody = document.getElementById('bb84-tbody');
+    tbody.innerHTML = '';
+    let sifted = [];
+    let siftedBob = [];
+
+    for (let i = 0; i < N; i++) {
+      const aliceBit = Math.random() < 0.5 ? 0 : 1;
+      const aliceBasis = Math.random() < 0.5 ? 'Z' : 'X';
+      let q = prepare(aliceBit, aliceBasis);
+
+      if (eveOn) {
+        const eveBasis = Math.random() < 0.5 ? 'Z' : 'X';
+        const eveResult = measure(q, eveBasis);
+        q = prepare(eveResult, eveBasis); // intercept-resend
+      }
+
+      const bobBasis = Math.random() < 0.5 ? 'Z' : 'X';
+      const bobResult = measure(q, bobBasis);
+      const kept = aliceBasis === bobBasis;
+      if (kept) { sifted.push(aliceBit); siftedBob.push(bobResult); }
+
+      const row = document.createElement('tr');
+      row.style.borderTop = '1px solid var(--line)';
+      row.innerHTML = `<td style="padding:4px 8px;">${i+1}</td><td>${aliceBit}</td><td>${aliceBasis}</td><td>${bobBasis}</td><td>${bobResult}</td><td>${kept ? '✓' : '—'}</td>`;
+      tbody.appendChild(row);
+    }
+
+    document.getElementById('sifted-key').textContent = sifted.length ? sifted.join('') : '(none)';
+
+    let mismatches = 0;
+    for (let i = 0; i < sifted.length; i++) if (sifted[i] !== siftedBob[i]) mismatches++;
+    const errRate = sifted.length ? (mismatches / sifted.length * 100) : 0;
+    document.getElementById('error-rate').textContent = errRate.toFixed(1) + '%';
+
+    const verdict = document.getElementById('bb84-verdict');
+    verdict.style.display = 'block';
+    if (errRate > 10) {
+      verdict.className = 'callout amber';
+      verdict.textContent = `${errRate.toFixed(1)}% errors on a key that should be perfect — that's the signature of an eavesdropper, not noise. Alice and Bob would discard this key and try again on a fresh channel.`;
+    } else {
+      verdict.className = 'callout green';
+      verdict.textContent = `${errRate.toFixed(1)}% errors — clean. No evidence of eavesdropping on this run.`;
+    }
+  });
+
+  initLessonProgress('bb84');
+</script>
+{% endblock %}

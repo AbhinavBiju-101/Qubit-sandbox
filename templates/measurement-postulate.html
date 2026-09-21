@@ -1,0 +1,190 @@
+{% from "_lesson_nav.html" import lesson_nav %}
+{% extends "base.html" %}
+{% block title %}Measurement & Stern-Gerlach — Qubit Sandbox{% endblock %}
+{% block page_title %}Module 3 · Measurement{% endblock %}
+
+{% block content %}
+
+<div class="pill" style="margin-bottom:14px;">MODULE 3 · THE MATH UNDERNEATH</div>
+<h1 style="margin-bottom:6px;">The postulate you've been using since Lesson 1.</h1>
+<p class="lede muted" style="font-size:1.05rem;">Stern-Gerlach is the original, physical version of "measure in the Z basis" — a real 1922 experiment, not a metaphor. Choosing the magnet's orientation is choosing your measurement basis.</p>
+
+<div class="lesson-progress-row">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+<!-- ===================== STEP 1 — THEORY ===================== -->
+<div class="lesson-step" data-step="step1">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">1</div>
+    <h3>The measurement postulate, stated once</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Measuring an observable can only return one of its allowed outcomes, with probability <span class="mono">|⟨outcome|ψ⟩|²</span> (Step 3 of Bra-Ket, generalized), and the state <strong>collapses</strong> to that outcome afterward. Silver atoms in a Stern-Gerlach magnet only ever land in two spots — "spin up" or "spin down" along the magnet's axis — never in between, exactly like your qubit only ever measures 0 or 1.</p>
+    <p class="muted">One more piece worth naming: the <strong>expectation value</strong> <span class="mono">⟨Z⟩ = p(up) − p(down)</span> is the average result over many atoms, not any single atom's outcome — it's what "50/50" and "75/25" have been summarizing all along.</p>
+    <div class="callout blue">Original 1922 experiment, exactly this app's engine: an oven sprays silver atoms through an inhomogeneous magnetic field. Classically you'd expect a smear (any deflection angle). What Stern and Gerlach actually saw: two sharp spots. That binary outcome <em>is</em> a qubit measurement, discovered two decades before the word "qubit" existed.</div>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step1"> Discrete outcomes, probability, collapse — got it
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 2 — SG SIMULATOR ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
+    <h3>Fire atoms, choose the magnet's axis</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Prepare a state, pick which axis the magnet is oriented along, then fire 200 atoms through it. Switching the magnet from Z to X is switching your measurement basis — exactly the choice a Bloch-sphere measurement always secretly makes.</p>
+
+    <div class="grid-2" style="margin-top:18px;">
+      <div class="panel">
+        <div class="panel-label">PREPARE, THEN FIRE</div>
+        <div class="muted" style="font-size:0.85rem; margin-bottom:8px;">1. Prepare:</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
+          <button data-prepgate="H">H</button>
+          <button data-prepgate="X">X</button>
+          <button id="sg-reset" class="small ghost">Reset |0⟩</button>
+        </div>
+        <div class="muted" style="font-size:0.85rem; margin-bottom:8px;">2. Magnet axis:</div>
+        <div class="tag-list" id="axis-buttons">
+          <div class="tag active" data-axis="Z">Z</div>
+          <div class="tag" data-axis="X">X</div>
+        </div>
+        <button id="fire-btn" class="primary block" style="margin-top:16px;">Fire 200 atoms</button>
+      </div>
+      <div class="panel">
+        <div class="panel-label">SCREEN</div>
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+          <div class="mono" style="width:40px; color:var(--primary); font-weight:700;" id="up-label">Up</div>
+          <div style="flex:1; background:var(--surface-alt); border:1px solid var(--line); border-radius:999px; height:22px; overflow:hidden;"><div id="sg-bar-up" style="height:100%; width:50%; background:var(--primary); transition:width 0.5s ease;"></div></div>
+          <div class="mono" id="sg-count-up" style="width:70px; text-align:right;">—</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div class="mono" style="width:40px; color:var(--amber); font-weight:700;" id="down-label">Down</div>
+          <div style="flex:1; background:var(--surface-alt); border:1px solid var(--line); border-radius:999px; height:22px; overflow:hidden;"><div id="sg-bar-down" style="height:100%; width:50%; background:var(--amber); transition:width 0.5s ease;"></div></div>
+          <div class="mono" id="sg-count-down" style="width:70px; text-align:right;">—</div>
+        </div>
+        <div class="stat" style="margin-top:18px;"><span class="num" id="expect-z">—</span><span class="label">⟨axis⟩ = p(up) − p(down)</span></div>
+      </div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step2"> I fired atoms on both Z and X axes
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — SEQUENTIAL SG ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
+    <h3>The sequential SG experiment: does measuring erase what you knew?</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Start every atom at |0⟩ — a Z-magnet always says "up," no surprise. Now send that same "known up" atom through an X-magnet, then through <em>another</em> Z-magnet. Classically, the atom's Z-spin shouldn't have changed. Run it and see.</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · Z → X → Z</div>
+      <button id="cascade-btn" class="block">Send one atom through Z → X → Z</button>
+      <div class="mono" style="font-size:0.92rem; margin-top:16px; color:var(--text-muted);">
+        <div>1st Z-magnet: <span id="cascade-z1" style="color:var(--text);">—</span></div>
+        <div>X-magnet: <span id="cascade-x" style="color:var(--text);">—</span></div>
+        <div>2nd Z-magnet: <span id="cascade-z2" style="color:var(--text);">—</span></div>
+      </div>
+      <div class="callout amber" style="margin-top:14px;" id="cascade-tally">Run it a few times and watch the tally below.</div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step3"> I saw the 2nd Z-magnet come out 50/50 despite the 1st saying "up"
+    </label>
+  </div>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script>
+  // ---- Step 2: SG simulator ----
+  const qSG = new Qubit();
+  document.querySelectorAll('button[data-prepgate]').forEach(btn => {
+    btn.addEventListener('click', () => { qSG[btn.dataset.prepgate](); });
+  });
+  document.getElementById('sg-reset').addEventListener('click', () => { qSG.reset(); });
+
+  let axis = 'Z';
+  document.querySelectorAll('#axis-buttons .tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+      document.querySelectorAll('#axis-buttons .tag').forEach(t => t.classList.remove('active'));
+      tag.classList.add('active');
+      axis = tag.dataset.axis;
+      document.getElementById('up-label').textContent = axis === 'Z' ? 'Up' : '+';
+      document.getElementById('down-label').textContent = axis === 'Z' ? 'Down' : '−';
+    });
+  });
+
+  document.getElementById('fire-btn').addEventListener('click', () => {
+    // Measuring along X: rotate X-basis onto Z-basis with H, sample, done.
+    // This never mutates qSG (sampleShots doesn't collapse), so repeated
+    // firing on the same prepared state gives consistent statistics.
+    let p0;
+    if (axis === 'Z') {
+      p0 = qSG.prob0();
+    } else {
+      const clone = new Qubit();
+      clone.a = qSG.a; clone.b = qSG.b;
+      clone.H();
+      p0 = clone.prob0();
+    }
+    const n = 200;
+    let up = 0;
+    for (let i = 0; i < n; i++) { if (Math.random() < p0) up++; }
+    const down = n - up;
+    document.getElementById('sg-bar-up').style.width = (up / n * 100) + '%';
+    document.getElementById('sg-bar-down').style.width = (down / n * 100) + '%';
+    document.getElementById('sg-count-up').textContent = up + ' (' + (up/n*100).toFixed(0) + '%)';
+    document.getElementById('sg-count-down').textContent = down + ' (' + (down/n*100).toFixed(0) + '%)';
+    document.getElementById('expect-z').textContent = ((up - down) / n).toFixed(2);
+  });
+
+  // ---- Step 3: sequential SG ----
+  let tallyUp = 0, tallyDown = 0, tallyRuns = 0;
+  document.getElementById('cascade-btn').addEventListener('click', () => {
+    const q = new Qubit(); // starts at |0>, "known up" along Z
+
+    // 1st Z-magnet: deterministic.
+    const z1 = q.measure();
+    document.getElementById('cascade-z1').textContent = z1 === 0 ? 'up' : 'down';
+
+    // X-magnet: rotate X onto Z, measure, rotate back — this is the
+    // standard trick for "measure in a different basis" with an engine
+    // that only exposes measure-in-Z, and it genuinely collapses the
+    // state to |+> or |-> in the original frame afterward.
+    q.H();
+    const xOutcome = q.measure();
+    q.H();
+    document.getElementById('cascade-x').textContent = xOutcome === 0 ? '+' : '−';
+
+    // 2nd Z-magnet: now genuinely 50/50, because the X measurement
+    // above really did erase the Z information the 1st magnet set.
+    const z2 = q.measure();
+    document.getElementById('cascade-z2').textContent = z2 === 0 ? 'up' : 'down';
+    if (z2 === 0) tallyUp++; else tallyDown++;
+    tallyRuns++;
+
+    const pct = (tallyUp / tallyRuns * 100).toFixed(0);
+    document.getElementById('cascade-tally').textContent =
+      `Over ${tallyRuns} run${tallyRuns === 1 ? '' : 's'}, the 2nd Z-magnet said "up" ${pct}% of the time — heading toward 50%, even though every single atom started out already measured "up." The X-magnet measurement in between is what reset it.`;
+  });
+
+  initLessonProgress('measurement-postulate');
+</script>
+{% endblock %}

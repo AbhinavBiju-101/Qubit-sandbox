@@ -1,0 +1,167 @@
+{% from "_lesson_nav.html" import lesson_nav %}
+{% extends "base.html" %}
+{% block title %}Bit-Flip and Phase-Flip Codes — Qubit Sandbox{% endblock %}
+{% block page_title %}Module 5 · Error Correction{% endblock %}
+
+{% block content %}
+
+<div class="pill" style="margin-bottom:14px;">MODULE 5 · ERROR CORRECTION &amp; NOISE</div>
+<h1 style="margin-bottom:6px;">Catch the error without looking at the data.</h1>
+<p class="lede muted" style="font-size:1.05rem;">The simplest quantum error-correcting code: spread 1 logical qubit across 3 physical ones, and use 2 extra "syndrome" qubits to find a flipped bit — without ever measuring, and therefore destroying, the logical state itself.</p>
+
+<div class="lesson-progress-row">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+<!-- ===================== STEP 1 — THEORY ===================== -->
+<div class="lesson-step" data-step="step1">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">1</div>
+    <h3>Why you can't just "check the bit"</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Classical error correction can just look at a bit and see if it flipped. Measuring a qubit directly would collapse any superposition it's carrying — so quantum error correction has to detect <em>that</em> an error happened, and <em>which</em> qubit it hit, without ever learning the logical α or β. The trick: encode 1 logical qubit into 3 physical ones (<span class="mono">α|0⟩+β|1⟩ → α|000⟩+β|111⟩</span>, using two CNOTs — literally the entangling gate from Two Qubits, twice), then use two extra ancilla qubits to measure only the <em>parity</em> between pairs of data qubits, never the data qubits themselves.</p>
+    <p class="muted">Those two parity bits — the "syndrome" — pinpoint exactly which of the 3 qubits flipped (or that none did), and a single corrective X fixes it. The logical superposition was never touched.</p>
+    <div class="callout blue">Phase-flip errors get corrected the same way, just rotated: apply H to all 3 qubits before and after the exact same bit-flip circuit, and a phase-flip error becomes a bit-flip error in the rotated basis. One trick, two error types.</div>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step1"> Syndrome measurement finds the error without reading the data
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 2 — RUN THE CODE ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
+    <h3>Encode, corrupt, detect, fix</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Prepare a secret, encode it across 3 qubits, then inject a random bit-flip on one of them (hidden from you). Measure the syndrome to find it, apply the fix, and decode — the recovered qubit should match the original secret exactly.</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · 3-QUBIT BIT-FLIP CODE</div>
+      <div class="muted" style="font-size:0.85rem; margin-bottom:8px;">1. Secret:</div>
+      <div class="tag-list">
+        <div class="tag" data-secret="X">|1⟩</div>
+        <div class="tag" data-secret="H">|+⟩</div>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:16px;">
+        <button id="ec-encode" disabled>2. Encode across 3 qubits</button>
+        <button id="ec-error" disabled>3. Inject a random error</button>
+        <button id="ec-syndrome" disabled>4. Measure syndrome</button>
+        <button id="ec-correct" disabled>5. Apply correction</button>
+        <button id="ec-decode" disabled>6. Decode &amp; verify</button>
+      </div>
+      <div class="mono" id="ec-log" style="font-size:0.85rem; color:var(--text-muted); background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-sm); padding:14px; margin-top:16px; min-height:80px; white-space:pre-wrap;">Pick a secret to begin.</div>
+      <div class="grid-2" style="margin-top:16px;">
+        <div class="stat"><span class="num" id="ec-original">—</span><span class="label">Original secret (α, β)</span></div>
+        <div class="stat"><span class="num" id="ec-recovered">—</span><span class="label">Recovered (α, β)</span></div>
+      </div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step2"> I found and fixed a hidden error without measuring the secret
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — BONUS ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
+    <h3>Bonus: this doesn't catch everything</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">This code corrects exactly one bit-flip error among the three qubits. Two simultaneous bit-flips would be misdiagnosed as a single flip on the third qubit and "corrected" the wrong way — which is exactly why real quantum computers stack multiple layers of these codes (and use many more physical qubits per logical one) rather than relying on this simplest version alone.</p>
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step3"> This code has limits — that's why real QEC stacks codes
+    </label>
+  </div>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
+<script src="{{ url_for('static', filename='js/multiqubit.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script>
+  // Qubits: 0,1,2 = data (repetition code), 3,4 = syndrome ancillas.
+  let mq = new MultiQubit(5);
+  let secretGate = null, errorQubit = null, s0 = null, s1 = null, faultyQubit = null;
+
+  function log(msg) { document.getElementById('ec-log').textContent = msg; }
+  function enableOnly(id) {
+    ['ec-encode','ec-error','ec-syndrome','ec-correct','ec-decode'].forEach(x => document.getElementById(x).disabled = (x !== id));
+  }
+
+  document.querySelectorAll('[data-secret]').forEach(tag => {
+    tag.addEventListener('click', () => {
+      document.querySelectorAll('[data-secret]').forEach(t => t.classList.remove('active'));
+      tag.classList.add('active');
+      secretGate = tag.dataset.secret;
+      mq = new MultiQubit(5);
+      if (secretGate === 'X') mq.X(0);
+      if (secretGate === 'H') mq.H(0);
+      const q = new Qubit(); if (secretGate === 'X') q.X(); if (secretGate === 'H') q.H();
+      document.getElementById('ec-original').textContent = `(${C.fmt(q.a,2)}, ${C.fmt(q.b,2)})`;
+      document.getElementById('ec-recovered').textContent = '—';
+      enableOnly('ec-encode');
+      log('Secret prepared on qubit 0. Next: encode across 3 qubits.');
+    });
+  });
+
+  document.getElementById('ec-encode').addEventListener('click', () => {
+    mq.CNOT(0, 1); mq.CNOT(0, 2);
+    enableOnly('ec-error');
+    log('Encoded: α|000⟩ + β|111⟩ across qubits 0,1,2. Next: inject a hidden error.');
+  });
+
+  document.getElementById('ec-error').addEventListener('click', () => {
+    errorQubit = Math.floor(Math.random() * 3);
+    mq.X(errorQubit);
+    enableOnly('ec-syndrome');
+    log('A bit-flip error was injected on one of the 3 data qubits (which one is hidden). Next: measure the syndrome.');
+  });
+
+  document.getElementById('ec-syndrome').addEventListener('click', () => {
+    // a3 = parity(d0,d1), a4 = parity(d1,d2) — non-demolition: only
+    // ancillas get measured, the data qubits' superposition survives.
+    mq.CNOT(0, 3); mq.CNOT(1, 3);
+    mq.CNOT(1, 4); mq.CNOT(2, 4);
+    s0 = mq.measureQubit(3);
+    s1 = mq.measureQubit(4);
+    if (s0 === 0 && s1 === 0) faultyQubit = null;
+    else if (s0 === 1 && s1 === 0) faultyQubit = 0;
+    else if (s0 === 1 && s1 === 1) faultyQubit = 1;
+    else faultyQubit = 2;
+    enableOnly('ec-correct');
+    log(`Syndrome measured: (${s0}, ${s1}) → ` + (faultyQubit === null ? 'no error detected.' : `points to qubit ${faultyQubit}.`) + ' Next: apply the correction.');
+  });
+
+  document.getElementById('ec-correct').addEventListener('click', () => {
+    if (faultyQubit !== null) mq.X(faultyQubit);
+    enableOnly('ec-decode');
+    log('Correction applied' + (faultyQubit !== null ? ` (X on qubit ${faultyQubit})` : ' (none needed)') + '. Next: decode and verify.');
+  });
+
+  document.getElementById('ec-decode').addEventListener('click', () => {
+    mq.CNOT(0, 1); mq.CNOT(0, 2); // inverse of encoding
+    // Ancillas are already fixed classical values (measured above), so
+    // qubit 0's amplitudes can be read directly at the surviving index.
+    const idx0 = (0 << 4) | (0 << 3) | (0 << 2) | (s0 << 1) | s1;
+    const idx1 = (1 << 4) | (0 << 3) | (0 << 2) | (s0 << 1) | s1;
+    const a = mq.amps[idx0], b = mq.amps[idx1];
+    document.getElementById('ec-recovered').textContent = `(${C.fmt(a,2)}, ${C.fmt(b,2)})`;
+    document.getElementById('ec-decode').disabled = true;
+    log(`Decoded qubit 0 back to the logical state, qubits 1 & 2 back to |0⟩. It was qubit ${faultyQubit === null ? 'none' : faultyQubit} that flipped, correctly caught and fixed — compare to the original secret above.`);
+  });
+
+  initLessonProgress('bit-flip-code');
+</script>
+{% endblock %}

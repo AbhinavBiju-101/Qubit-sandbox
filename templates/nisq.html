@@ -1,0 +1,134 @@
+{% from "_lesson_nav.html" import lesson_nav %}
+{% extends "base.html" %}
+{% block title %}NISQ — Qubit Sandbox{% endblock %}
+{% block page_title %}Module 5 · NISQ{% endblock %}
+
+{% block content %}
+
+<div class="pill" style="margin-bottom:14px;">MODULE 5 · ERROR CORRECTION &amp; NOISE</div>
+<h1 style="margin-bottom:6px;">Noisy, intermediate-scale — right now.</h1>
+<p class="lede muted" style="font-size:1.05rem;">Every device Reality Check showed you real numbers for lives in this era. NISQ isn't a technology, it's an honest description of a limitation the whole field is currently working around.</p>
+
+<div class="lesson-progress-row">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+<!-- ===================== STEP 1 — THEORY ===================== -->
+<div class="lesson-step" data-step="step1">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">1</div>
+    <h3>What the acronym is actually saying</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted"><strong>N</strong>oisy <strong>I</strong>ntermediate-<strong>S</strong>cale <strong>Q</strong>uantum, coined by physicist John Preskill in 2018. Each word is doing real work: <em>intermediate-scale</em> means enough qubits to be interesting (tens to low thousands) but nowhere near enough for the error-corrected, fault-tolerant machines quantum algorithms were originally designed for. <em>Noisy</em> means those qubits don't have error correction wrapped around them the way Bit-Flip and Phase-Flip Codes just showed — every gate has some real chance of a small error, and those errors compound.</p>
+    <p class="muted">That compounding is the whole story of why NISQ matters: a circuit's overall success probability falls off roughly as <span class="mono">(1 − ε)ᴺ</span>, where <span class="mono">ε</span> is the per-gate error rate and <span class="mono">N</span> is the number of gates. Even a small <span class="mono">ε</span> caps how deep (how many sequential gates) a useful circuit can be before noise drowns out the signal — which is exactly why NISQ-era algorithms are designed to be shallow.</p>
+    <div class="callout blue">Full error correction like Bit-Flip Codes fixes this in principle — but at a steep cost: today's best codes need on the order of 1,000+ noisy physical qubits per 1 clean logical qubit. NISQ is the name for the gap between "we have qubits" and "we have enough spare qubits to error-correct them."</div>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step1"> Noisy + intermediate-scale + no error correction, yet
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 2 — CIRCUIT DEPTH CALCULATOR ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
+    <h3>How fast noise eats a circuit</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Set a realistic per-gate error rate and a circuit length, and watch how quickly the odds of an error-free run fall off. This is the actual pressure NISQ-era algorithm design lives under.</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · CIRCUIT SUCCESS PROBABILITY</div>
+      <div class="grid-2">
+        <div>
+          <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.85rem;"><span class="muted">per-gate error rate ε</span><span id="eps-val">0.5%</span></div>
+          <input type="range" id="eps-slider" min="0.05" max="5" step="0.05" value="0.5">
+        </div>
+        <div>
+          <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.85rem;"><span class="muted">number of gates N</span><span id="ngates-val">50</span></div>
+          <input type="range" id="ngates-slider" min="1" max="500" step="1" value="50">
+        </div>
+      </div>
+      <canvas id="nisq-canvas" width="560" height="200" style="width:100%; max-width:560px; display:block; margin:18px auto 0; background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-sm);"></canvas>
+      <div class="stat" style="margin-top:14px; max-width:280px;"><span class="num" id="success-readout">—</span><span class="label">P(entire circuit runs error-free)</span></div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step2"> I watched success probability collapse as N grew
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — BONUS ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
+    <h3>Bonus: so why bother, right now?</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Two live strategies: run circuits shallow enough to survive the noise (variational algorithms, error mitigation techniques that estimate and subtract out noise statistically), or push hardware fidelity up so ε keeps shrinking. Real published gate fidelities have moved from roughly 99% to well above 99.9% over the past several years on leading platforms — every extra "9" directly multiplies how deep a circuit can go before this exact curve drags it to zero.</p>
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step3"> Shallower circuits or better fidelity — the two live levers
+    </label>
+  </div>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script>
+  const canvas = document.getElementById('nisq-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height, pad = 40;
+  const lineCol = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#7dd3fc';
+  const gridCol = getComputedStyle(document.documentElement).getPropertyValue('--line').trim() || '#333';
+
+  function draw() {
+    const eps = (+document.getElementById('eps-slider').value) / 100;
+    const N = +document.getElementById('ngates-slider').value;
+    ctx.clearRect(0, 0, W, H);
+    ctx.strokeStyle = gridCol; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pad, H - pad); ctx.lineTo(W - 10, H - pad);
+    ctx.moveTo(pad, 10); ctx.lineTo(pad, H - pad);
+    ctx.stroke();
+    ctx.fillStyle = gridCol; ctx.font = '11px var(--font-mono)';
+    ctx.fillText('0', pad - 14, H - pad + 4);
+    ctx.fillText('100%', pad - 30, 18);
+    ctx.fillText('N=' + N, W - 60, H - pad + 16);
+
+    ctx.strokeStyle = lineCol; ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    const maxN = 500;
+    for (let n = 0; n <= maxN; n += 2) {
+      const p = Math.pow(1 - eps, n);
+      const x = pad + (W - pad - 10) * n / maxN;
+      const y = (H - pad) - p * (H - pad - 20);
+      if (n === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // marker at current N
+    const pAtN = Math.pow(1 - eps, N);
+    const mx = pad + (W - pad - 10) * N / maxN;
+    const my = (H - pad) - pAtN * (H - pad - 20);
+    ctx.fillStyle = lineCol;
+    ctx.beginPath(); ctx.arc(mx, my, 5, 0, Math.PI * 2); ctx.fill();
+
+    document.getElementById('success-readout').textContent = (pAtN * 100).toFixed(1) + '%';
+  }
+
+  document.getElementById('eps-slider').addEventListener('input', () => { document.getElementById('eps-val').textContent = (+document.getElementById('eps-slider').value).toFixed(2) + '%'; draw(); });
+  document.getElementById('ngates-slider').addEventListener('input', () => { document.getElementById('ngates-val').textContent = document.getElementById('ngates-slider').value; draw(); });
+
+  draw();
+  initLessonProgress('nisq');
+</script>
+{% endblock %}

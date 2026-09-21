@@ -38,6 +38,18 @@ request, which SQLite obviously never needed since it was a local file.
 Required environment variable: DATABASE_URL (or SUPABASE_DB_URL as a
 fallback name) — the Postgres connection string from Supabase's
 dashboard: Project Settings -> Database -> Connection string -> URI.
+
+IMPORTANT — use the Session pooler, not the direct connection: Supabase's
+direct-connection host now resolves IPv6-only by default, and Render's
+outbound networking (most plans) can't route to it — the symptom is a
+"Network is unreachable" error that has nothing to do with credentials
+or firewalls. Fix: in the dashboard, switch the connection-string mode
+from "Direct connection" to "Session" (port 5432, not the 6543
+"Transaction" pooler — Session mode is required here), which points at
+Supavisor's IPv4-compatible pooler host instead:
+  postgresql://postgres.<project-ref>:[PASSWORD]@aws-0-<region>.pooler.supabase.com:5432/postgres
+Supabase's own docs are outdated on this as of writing — the dashboard
+UI is correct, the prose isn't always.
 Use the **direct connection** string (port 5432), not the pgbouncer
 transaction-pooler string (port 6543) — this app holds a small pool of
 long-lived connections itself (see above), which is exactly the

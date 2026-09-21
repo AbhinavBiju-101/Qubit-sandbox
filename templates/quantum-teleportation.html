@@ -1,0 +1,146 @@
+{% from "_lesson_nav.html" import lesson_nav %}
+{% extends "base.html" %}
+{% block title %}Quantum Teleportation — Qubit Sandbox{% endblock %}
+{% block page_title %}Module 2 · Quantum Teleportation{% endblock %}
+
+{% block content %}
+
+<div class="pill green" style="margin-bottom:14px;">MODULE 2 · QUANTUM ALGORITHMS</div>
+<h1 style="margin-bottom:6px;">Move a qubit's state without moving the qubit.</h1>
+<p class="lede muted" style="font-size:1.05rem;">The entanglement from Two Qubits, put to work: an unknown state disappears from Alice's qubit and reappears on Bob's, using nothing but a shared Bell pair and two classical bits.</p>
+
+<div class="lesson-progress-row">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+<!-- ===================== STEP 1 — THEORY ===================== -->
+<div class="lesson-step" data-step="step1">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">1</div>
+    <h3>The four-move protocol</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Alice has a qubit in some state she doesn't even need to know — call it the "secret." She and Bob also share an entangled Bell pair from earlier (Two Qubits, Step 3). The protocol: (1) Alice entangles her secret with her half of the pair, (2) she measures both of her qubits, getting two classical bits, (3) she sends those two bits to Bob over an ordinary channel, (4) Bob applies a small correction — X, Z, both, or neither, depending on the bits — and his qubit becomes the secret.</p>
+    <p class="muted">Nothing traveled faster than light: Bob's qubit isn't usable until Alice's two classical bits physically arrive. What "teleports" is the <em>state</em>, not information on its own — and Alice's original qubit is left randomized in the process, so this isn't cloning either.</p>
+    <div class="callout blue">The two classical bits Bob needs are exactly the two measurement outcomes from Alice's Bell-basis measurement — same four possible outcomes as the four Bell states from Two Qubits, just used here to steer a correction instead of being the answer themselves.</div>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step1"> Entangle, measure, send 2 bits, correct
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 2 — RUN THE PROTOCOL ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
+    <h3>Teleport a secret, one step at a time</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Pick a secret state for Alice's qubit, then walk through each move. Watch Bob's qubit go from "nothing" to an exact match — read straight off the real 3-qubit state vector, not simulated after the fact.</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · TELEPORTATION</div>
+      <div class="muted" style="font-size:0.85rem; margin-bottom:8px;">1. Alice's secret:</div>
+      <div class="tag-list">
+        <div class="tag" data-secret="X">Secret = |1⟩</div>
+        <div class="tag" data-secret="H">Secret = |+⟩</div>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:16px;">
+        <button id="tp-entangle" disabled>2. Entangle Alice &amp; Bob</button>
+        <button id="tp-bellmeasure" disabled>3. Alice's Bell measurement</button>
+        <button id="tp-correct" disabled>4. Bob applies correction</button>
+      </div>
+      <div class="mono" id="tp-log" style="font-size:0.85rem; color:var(--text-muted); background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-sm); padding:14px; margin-top:16px; min-height:60px;">Pick a secret to begin.</div>
+      <div class="grid-2" style="margin-top:16px;">
+        <div class="stat"><span class="num" id="tp-original">—</span><span class="label">Original secret (α, β)</span></div>
+        <div class="stat"><span class="num" id="tp-bob">—</span><span class="label">Bob's qubit (α, β)</span></div>
+      </div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step2"> Bob's qubit matched the original secret
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — BONUS ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
+    <h3>Bonus: why Alice can't peek first</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">If Alice measured her secret directly to "read" it before teleporting, she'd collapse it and could only send classical bits describing one measured outcome — not the full complex state. Teleportation works precisely because Alice never learns α and β; she measures a <em>joint</em> property of her two qubits instead, which is enough to steer Bob's correction without ever revealing the secret itself.</p>
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step3"> Alice teleports the state without ever learning it
+    </label>
+  </div>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
+<script src="{{ url_for('static', filename='js/multiqubit.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script>
+  let mq = new MultiQubit(3); // q0 = secret, q1 = Alice's half, q2 = Bob's half
+  let secretGate = null, m0 = null, m1 = null;
+
+  function logMsg(msg) {
+    document.getElementById('tp-log').textContent = msg;
+  }
+
+  document.querySelectorAll('[data-secret]').forEach(tag => {
+    tag.addEventListener('click', () => {
+      document.querySelectorAll('[data-secret]').forEach(t => t.classList.remove('active'));
+      tag.classList.add('active');
+      secretGate = tag.dataset.secret;
+      mq = new MultiQubit(3);
+      if (secretGate === 'X') mq.X(0);
+      if (secretGate === 'H') mq.H(0);
+      const q = new Qubit(); if (secretGate === 'X') q.X(); if (secretGate === 'H') q.H();
+      document.getElementById('tp-original').textContent = `(${C.fmt(q.a,2)}, ${C.fmt(q.b,2)})`;
+      document.getElementById('tp-bob').textContent = '—';
+      document.getElementById('tp-entangle').disabled = false;
+      document.getElementById('tp-bellmeasure').disabled = true;
+      document.getElementById('tp-correct').disabled = true;
+      logMsg('Secret prepared on Alice\'s qubit. Next: create the entangled pair.');
+    });
+  });
+
+  document.getElementById('tp-entangle').addEventListener('click', () => {
+    mq.H(1); mq.CNOT(1, 2);
+    document.getElementById('tp-entangle').disabled = true;
+    document.getElementById('tp-bellmeasure').disabled = false;
+    logMsg('Entangled pair created between Alice\'s 2nd qubit and Bob\'s qubit. Next: Alice\'s Bell measurement.');
+  });
+
+  document.getElementById('tp-bellmeasure').addEventListener('click', () => {
+    mq.CNOT(0, 1); mq.H(0);
+    m0 = mq.measureQubit(0);
+    m1 = mq.measureQubit(1);
+    document.getElementById('tp-bellmeasure').disabled = true;
+    document.getElementById('tp-correct').disabled = false;
+    logMsg(`Alice measured her two qubits: bit0=${m0}, bit1=${m1}. She sends these 2 classical bits to Bob. Next: Bob corrects.`);
+  });
+
+  document.getElementById('tp-correct').addEventListener('click', () => {
+    if (m1 === 1) mq.X(2);
+    if (m0 === 1) mq.Z(2);
+    const idx0 = (m0 << 2) | (m1 << 1) | 0;
+    const idx1 = (m0 << 2) | (m1 << 1) | 1;
+    const bobA = mq.amps[idx0], bobB = mq.amps[idx1];
+    document.getElementById('tp-bob').textContent = `(${C.fmt(bobA,2)}, ${C.fmt(bobB,2)})`;
+    document.getElementById('tp-correct').disabled = true;
+    logMsg('Bob applied his correction (X if bit1=1, Z if bit0=1). His qubit now matches the original secret exactly.');
+  });
+
+  initLessonProgress('quantum-teleportation');
+</script>
+{% endblock %}

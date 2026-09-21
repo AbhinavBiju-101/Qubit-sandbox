@@ -1,0 +1,123 @@
+{% from "_lesson_nav.html" import lesson_nav %}
+{% extends "base.html" %}
+{% block title %}Why Qubits Decohere — Qubit Sandbox{% endblock %}
+{% block page_title %}Module 5 · Decoherence{% endblock %}
+
+{% block content %}
+
+<div class="pill" style="margin-bottom:14px;">MODULE 5 · ERROR CORRECTION &amp; NOISE</div>
+<h1 style="margin-bottom:6px;">The Bloch point doesn't just rotate — it shrinks.</h1>
+<p class="lede muted" style="font-size:1.05rem;">Every gate you've clicked so far kept the state vector's length pinned at 1. Real qubits leak information to their environment, and that shows up as the vector shrinking toward the center.</p>
+
+<div class="lesson-progress-row">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+<!-- ===================== STEP 1 — THEORY ===================== -->
+<div class="lesson-step" data-step="step1">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">1</div>
+    <h3>Losing information to the environment</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Every gate in this app has been a clean, reversible rotation — the state vector's length never changes. Real qubits aren't perfectly isolated: stray photons, thermal vibrations, and imperfect control electronics all slowly leak information out of the qubit and into its surroundings. Once that information is out there, unrecoverable, the qubit's own state can no longer be described as a single clean point on the sphere — it becomes a statistical mix, and the Bloch vector representing it physically shrinks toward the center.</p>
+    <p class="muted">Two numbers describe how fast, and you'll see both named on real hardware specs (Reality Check has actual published values): <span class="mono">T1</span>, how long amplitude information survives (energy relaxation), and <span class="mono">T2</span>, how long phase information survives (dephasing) — <span class="mono">T2</span> is always ≤ 2×T1, and in practice usually shorter.</p>
+    <div class="callout blue">A vector at the center of the sphere (length 0) represents total uncertainty — 50/50 no matter which basis you measure in. That's not a superposition anymore; it's just noise. Decoherence is the process of a qubit sliding from "definite quantum state" to "noise," continuously.</div>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step1"> Shrinking vector = leaking information, not a rotation
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 2 — WATCH IT DECAY ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
+    <h3>Dial in T2 and watch the vector spiral in</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Starts at the equator — a clean superposition. Shorter T2 means faster decoherence; watch how quickly a short T2 flattens the point to the center versus a long one.</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · DECOHERENCE</div>
+      <svg id="bloch-decay" viewBox="0 0 280 280" style="width:100%; max-width:260px; display:block; margin:0 auto;"></svg>
+      <div style="margin-top:14px; max-width:400px;">
+        <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.85rem;"><span class="muted">T2 (coherence time)</span><span id="t2-val">2.0 s</span></div>
+        <input type="range" id="t2-slider" min="0.3" max="5" step="0.1" value="2">
+      </div>
+      <div style="display:flex; gap:10px; margin-top:14px;">
+        <button id="decay-toggle" class="primary">Start</button>
+        <button id="decay-reset" class="small ghost">Reset to equator</button>
+      </div>
+      <div class="stat" style="margin-top:14px;"><span class="num" id="decay-mag">1.00</span><span class="label">|Bloch vector| (1.0 = pure state, 0 = fully mixed)</span></div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step2"> I watched the vector shrink toward the center
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — BONUS ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
+    <h3>Bonus: this is Physical Qubit's demo, named</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">The temperature/decoherence demo in <a href="{{ url_for('physical_qubit') }}">Physical Qubit</a> was already showing you this exact shrinking effect — colder dilution-fridge temperatures push T1 and T2 longer, which is the entire reason those fridges exist. Now you have the vocabulary for what "worse at higher temperature" was actually doing to the sphere.</p>
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step3"> Temperature ↔ T1/T2 ↔ Bloch vector length, connected
+    </label>
+  </div>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bloch.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script>
+  const widgetDecay = createBlochWidget(document.getElementById('bloch-decay'));
+  const t2Slider = document.getElementById('t2-slider');
+  let running = false, startTs = null, frame = null;
+
+  function setPoint(mag) {
+    widgetDecay.set(Math.PI/2, 0, mag);
+    document.getElementById('decay-mag').textContent = mag.toFixed(2);
+  }
+
+  function step(ts) {
+    if (!startTs) startTs = ts;
+    const t = (ts - startTs) / 1000;
+    const T2 = +t2Slider.value;
+    const mag = Math.exp(-t / T2);
+    setPoint(mag);
+    if (running && mag > 0.01) frame = requestAnimationFrame(step);
+    else if (running) { running = false; document.getElementById('decay-toggle').textContent = 'Start'; }
+  }
+
+  document.getElementById('decay-toggle').addEventListener('click', (e) => {
+    running = !running;
+    e.target.textContent = running ? 'Pause' : 'Start';
+    if (running) { startTs = null; frame = requestAnimationFrame(step); }
+    else if (frame) cancelAnimationFrame(frame);
+  });
+  document.getElementById('decay-reset').addEventListener('click', () => {
+    running = false; startTs = null;
+    if (frame) cancelAnimationFrame(frame);
+    document.getElementById('decay-toggle').textContent = 'Start';
+    setPoint(1);
+  });
+  t2Slider.addEventListener('input', () => { document.getElementById('t2-val').textContent = (+t2Slider.value).toFixed(1) + ' s'; });
+
+  setPoint(1);
+  initLessonProgress('decoherence');
+</script>
+{% endblock %}

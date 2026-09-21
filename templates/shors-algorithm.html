@@ -1,0 +1,141 @@
+{% from "_lesson_nav.html" import lesson_nav %}
+{% extends "base.html" %}
+{% block title %}Why Factoring Matters — Qubit Sandbox{% endblock %}
+{% block page_title %}Module 6 · Shor's Algorithm{% endblock %}
+
+{% block content %}
+
+<div class="pill blue" style="margin-bottom:14px;">MODULE 6 · QUANTUM CRYPTOGRAPHY</div>
+<h1 style="margin-bottom:6px;">Finding a hidden period is the whole trick.</h1>
+<p class="lede muted" style="font-size:1.05rem;">RSA encryption's security rests on factoring large numbers being classically hard. Shor's algorithm doesn't factor directly — it finds a repeating period exponentially faster, and period-finding turns out to be all factoring needs.</p>
+
+<div class="lesson-progress-row">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+<!-- ===================== STEP 1 — THEORY ===================== -->
+<div class="lesson-step" data-step="step1">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">1</div>
+    <h3>From "find the period" to "here are the factors"</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Pick a number <span class="mono">a</span> smaller than <span class="mono">N</span> (the number you want to factor) with no common factors. The sequence <span class="mono">a¹ mod N, a² mod N, a³ mod N, …</span> always repeats — call that repeat length its <strong>period</strong> <span class="mono">r</span>. Once you know <span class="mono">r</span>, a little classical algebra (<span class="mono">gcd(a^(r/2) − 1, N)</span> and <span class="mono">gcd(a^(r/2) + 1, N)</span>) hands you N's factors directly, most of the time.</p>
+    <p class="muted">Finding <span class="mono">r</span> classically means checking values one by one — for an N with hundreds of digits (real RSA key sizes), that's longer than the age of the universe. Shor's quantum algorithm finds <span class="mono">r</span> using a quantum Fourier transform in roughly polynomial time instead — the exponential-vs-polynomial gap is the entire reason a large enough quantum computer would break RSA.</p>
+    <div class="callout blue">Everything below this box is the easy, classical half of Shor's algorithm — the part any computer can do once <span class="mono">r</span> is known. The genuinely quantum half, finding <span class="mono">r</span> fast, needs more qubits and more error correction than exists today (see NISQ) to run on numbers anywhere near RSA scale.</div>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step1"> Period r → factors, via ordinary gcd
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 2 — FIND THE PERIOD ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
+    <h3>Factor 15, by finding a period</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Pick a value of <span class="mono">a</span>. We'll lay out <span class="mono">a^x mod 15</span> for increasing <span class="mono">x</span> — watch it repeat, read off the period, and let the classical formula pull out the factors.</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · FACTOR N = 15</div>
+      <div class="tag-list" id="a-buttons">
+        <div class="tag" data-a="2">a = 2</div>
+        <div class="tag" data-a="7">a = 7</div>
+        <div class="tag" data-a="11">a = 11</div>
+        <div class="tag" data-a="13">a = 13</div>
+      </div>
+      <div id="seq-display" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:18px;"></div>
+      <div class="grid-2" style="margin-top:18px;">
+        <div class="stat"><span class="num" id="period-readout">—</span><span class="label">Period r</span></div>
+        <div class="stat"><span class="num" id="factors-readout">—</span><span class="label">Factors of 15</span></div>
+      </div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step2"> I found the period and got 15 = 3 × 5
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — BONUS ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
+    <h3>Bonus: BB84 vs. Shor's — two different quantum threats</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Worth keeping straight: BB84 (previous lesson) is quantum mechanics <em>defending</em> a key exchange. Shor's algorithm is quantum computing <em>attacking</em> classical RSA/factoring-based cryptography. That's not a contradiction — they're solving different problems, which is exactly why "quantum-safe" cryptography research exists: replace factoring-based schemes with ones Shor's algorithm doesn't help against, while quantum key distribution like BB84 sidesteps the whole issue by not relying on factoring in the first place.</p>
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step3"> Shor's attacks factoring; BB84 doesn't depend on it
+    </label>
+  </div>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script>
+  const NUM = 15;
+  function gcd(a, b) { while (b) { [a, b] = [b, a % b]; } return a; }
+  function modpow(base, exp, mod) {
+    let result = 1; base = base % mod;
+    for (let i = 0; i < exp; i++) result = (result * base) % mod;
+    return result;
+  }
+
+  document.querySelectorAll('#a-buttons .tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+      document.querySelectorAll('#a-buttons .tag').forEach(t => t.classList.remove('active'));
+      tag.classList.add('active');
+      const a = +tag.dataset.a;
+      runSequence(a);
+    });
+  });
+
+  function runSequence(a) {
+    const seq = [];
+    for (let x = 0; x <= 11; x++) seq.push(modpow(a, x, NUM));
+
+    // find period: smallest r>0 with seq[r] === seq[0] (===1)
+    let r = null;
+    for (let x = 1; x <= 11; x++) if (seq[x] === 1) { r = x; break; }
+
+    const display = document.getElementById('seq-display');
+    display.innerHTML = '';
+    seq.forEach((v, x) => {
+      const box = document.createElement('div');
+      const inPeriod = r && x > 0 && x <= r;
+      box.className = 'mono';
+      box.style.cssText = `width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm); border:1.5px solid ${inPeriod ? 'var(--primary)' : 'var(--line)'}; background:${inPeriod ? 'var(--primary-soft)' : 'var(--surface-alt)'}; font-size:0.85rem; color:${inPeriod ? 'var(--primary)' : 'var(--text-muted)'};`;
+      box.textContent = v;
+      box.title = `a^${x} mod 15`;
+      display.appendChild(box);
+    });
+
+    document.getElementById('period-readout').textContent = r ? `r = ${r}` : '—';
+
+    if (r && r % 2 === 0) {
+      const half = modpow(a, r / 2, NUM);
+      if (half !== NUM - 1) {
+        const f1 = gcd(half - 1, NUM);
+        const f2 = gcd(half + 1, NUM);
+        document.getElementById('factors-readout').textContent = `${f1} × ${f2}`;
+      } else {
+        document.getElementById('factors-readout').textContent = 'this a didn\'t work, try another';
+      }
+    } else {
+      document.getElementById('factors-readout').textContent = 'r is odd — try another a';
+    }
+  }
+
+  initLessonProgress('shors-algorithm');
+</script>
+{% endblock %}

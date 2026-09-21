@@ -1,0 +1,176 @@
+{% from "_lesson_nav.html" import lesson_nav %}
+{% extends "base.html" %}
+{% block title %}Quantum Tunneling — Qubit Sandbox{% endblock %}
+{% block page_title %}Module 4 · Quantum Tunneling{% endblock %}
+
+{% block content %}
+
+<div class="pill amber" style="margin-bottom:14px;">MODULE 4 · WHERE QUANTUM COMES FROM</div>
+<h1 style="margin-bottom:6px;">The wavefunction doesn't stop at the wall.</h1>
+<p class="lede muted" style="font-size:1.05rem;">Classically, a particle without enough energy to clear a barrier just bounces off. Quantum mechanically, its wavefunction leaks through the wall — and sometimes the particle is on the other side.</p>
+
+<div class="lesson-progress-row">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+<!-- ===================== STEP 1 — THEORY ===================== -->
+<div class="lesson-step" data-step="step1">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">1</div>
+    <h3>A wavefunction that decays instead of stopping</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">At a barrier taller than the particle's energy, classical mechanics says: reflect, 100% of the time. Quantum mechanics says the wavefunction doesn't have to hit zero at the wall — instead it decays exponentially <em>inside</em> the barrier. If the barrier is thin enough that the wavefunction hasn't decayed all the way to zero by the far edge, there's a genuine nonzero amplitude to be found beyond it.</p>
+    <p class="muted">The transmission probability falls off as <span class="mono">T ≈ e^{-2κL}</span>, where <span class="mono">L</span> is the barrier's width and <span class="mono">κ</span> grows with how much the barrier exceeds the particle's energy. Thin and low barriers tunnel easily; thick and tall ones effectively don't — but "effectively don't" is never quite "can't."</p>
+    <div class="callout blue">You've already met this mechanism without the name: Hardware Lab's Josephson junction is a Cooper pair tunneling straight through an insulating layer a few nanometers thick. Same formula, same physics — the barrier is just an oxide layer instead of a textbook rectangle.</div>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step1"> The wavefunction leaks, it doesn't just stop
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 2 — BARRIER SIMULATOR ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
+    <h3>Shape the barrier, then fire particles at it</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Adjust barrier height and width and watch the exponential decay change inside it. Then fire particles — most reflect, but a fraction genuinely tunnel through, at exactly the rate T predicts.</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · TUNNELING</div>
+      <canvas id="tun-canvas" width="560" height="200" style="width:100%; max-width:560px; display:block; margin:0 auto; background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-sm);"></canvas>
+      <div class="grid-2" style="margin-top:14px; max-width:460px;">
+        <div>
+          <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.85rem;"><span class="muted">barrier height</span><span id="v-val">1.0</span></div>
+          <input type="range" id="v-slider" min="1.1" max="4" step="0.1" value="2">
+        </div>
+        <div>
+          <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.85rem;"><span class="muted">barrier width</span><span id="w-val">1.0</span></div>
+          <input type="range" id="w-slider" min="0.3" max="2.5" step="0.1" value="1">
+        </div>
+      </div>
+      <div class="stat" style="margin-top:14px;"><span class="num" id="T-readout">—</span><span class="label">Transmission probability T</span></div>
+      <button id="fire-tunnel" class="primary block" style="margin-top:14px;">Fire 100 particles at the barrier</button>
+      <div class="mono muted" style="font-size:0.86rem; margin-top:10px;">Tunneled through: <span id="tunnel-count" style="color:var(--primary);">0</span> / <span id="tunnel-total">0</span></div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step2"> I watched T drop as I made the barrier taller and wider
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — BONUS: JOSEPHSON JUNCTION LINK ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
+    <h3>Bonus: this is your qubit's hardware</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Every superconducting qubit you've simulated since Physical Qubit relies on exactly this effect: Cooper pairs of electrons tunneling through the thin insulating layer of a Josephson junction. Make that layer too thick and the qubit simply stops working — which is precisely the barrier-width slider above, at chip-fabrication scale.</p>
+    <p class="muted"><a href="{{ url_for('hardware_lab') }}">Revisit Hardware Lab →</a> with this in mind and the Josephson junction diagram reads differently the second time.</p>
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step3"> I connected this back to the Josephson junction
+    </label>
+  </div>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script>
+  const canvas = document.getElementById('tun-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height, baseline = 140, left = 20, right = W - 20;
+  const lineCol = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#7dd3fc';
+  const lineCol2 = getComputedStyle(document.documentElement).getPropertyValue('--amber').trim() || '#f0b429';
+  const gridCol = getComputedStyle(document.documentElement).getPropertyValue('--line').trim() || '#333';
+
+  const E = 1.0; // fixed particle energy, in the same relative units as V
+
+  function kappa(V, wUnits) {
+    return Math.sqrt(Math.max(V - E, 0.001)) * 2.2; // relative units, tuned for a visible decay
+  }
+  function transmission(V, wUnits) {
+    const k = kappa(V, wUnits);
+    return Math.exp(-2 * k * wUnits);
+  }
+
+  function barrierBounds() {
+    const wUnits = +document.getElementById('w-slider').value;
+    const centerX = (left + right) / 2;
+    const pxPerUnit = 60;
+    return { x0: centerX - wUnits * pxPerUnit / 2, x1: centerX + wUnits * pxPerUnit / 2, wUnits };
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    const V = +document.getElementById('v-slider').value;
+    const { x0, x1, wUnits } = barrierBounds();
+    const k = kappa(V, wUnits);
+
+    // baseline
+    ctx.strokeStyle = gridCol; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(left, baseline); ctx.lineTo(right, baseline); ctx.stroke();
+
+    // barrier block
+    ctx.fillStyle = 'rgba(240,180,41,0.12)';
+    ctx.fillRect(x0, 30, x1 - x0, baseline - 30);
+    ctx.strokeStyle = lineCol2; ctx.lineWidth = 1.4;
+    ctx.strokeRect(x0, 30, x1 - x0, baseline - 30);
+
+    // incoming + decaying + transmitted wave amplitude, illustrative
+    ctx.strokeStyle = lineCol; ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    const amp = 22;
+    for (let x = left; x <= right; x += 2) {
+      let y;
+      if (x < x0) {
+        y = baseline - amp * Math.sin((x - left) * 0.15);
+      } else if (x <= x1) {
+        const decay = Math.exp(-k * (x - x0) / 60);
+        y = baseline - amp * decay;
+      } else {
+        const T = transmission(V, wUnits);
+        y = baseline - amp * Math.sqrt(T) * Math.sin((x - x1) * 0.15);
+      }
+      if (x === left) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    ctx.fillStyle = gridCol; ctx.font = '11px var(--font-mono)';
+    ctx.fillText('incoming', left, 20);
+    ctx.fillText('barrier', x0 + 4, 24);
+    ctx.fillText('transmitted (shrunk)', x1 + 6, 20);
+
+    const T = transmission(V, wUnits);
+    document.getElementById('T-readout').textContent = (T * 100).toFixed(2) + '%';
+  }
+
+  document.getElementById('v-slider').addEventListener('input', () => { document.getElementById('v-val').textContent = (+document.getElementById('v-slider').value).toFixed(1); draw(); });
+  document.getElementById('w-slider').addEventListener('input', () => { document.getElementById('w-val').textContent = (+document.getElementById('w-slider').value).toFixed(1); draw(); });
+
+  let tunneledTotal = 0, firedTotal = 0;
+  document.getElementById('fire-tunnel').addEventListener('click', () => {
+    const V = +document.getElementById('v-slider').value;
+    const { wUnits } = barrierBounds();
+    const T = transmission(V, wUnits);
+    let tunneled = 0;
+    for (let i = 0; i < 100; i++) { if (Math.random() < T) tunneled++; }
+    tunneledTotal += tunneled; firedTotal += 100;
+    document.getElementById('tunnel-count').textContent = tunneledTotal;
+    document.getElementById('tunnel-total').textContent = firedTotal;
+  });
+
+  draw();
+  initLessonProgress('quantum-tunneling');
+</script>
+{% endblock %}

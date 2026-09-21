@@ -1,0 +1,142 @@
+{% from "_lesson_nav.html" import lesson_nav %}
+{% extends "base.html" %}
+{% block title %}Eigenvalues and Eigenvectors — Qubit Sandbox{% endblock %}
+{% block page_title %}Module 3 · Eigenvalues{% endblock %}
+
+{% block content %}
+
+<div class="pill" style="margin-bottom:14px;">MODULE 3 · THE MATH UNDERNEATH</div>
+<h1 style="margin-bottom:6px;">Measurement never returns anything but an eigenvalue.</h1>
+<p class="lede muted" style="font-size:1.05rem;">Every Stern-Gerlach "up" or "down," every single-qubit measurement in this app, has secretly been reporting one specific number: an eigenvalue of whatever you measured.</p>
+
+<div class="lesson-progress-row">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+<!-- ===================== STEP 1 — THEORY ===================== -->
+<div class="lesson-step" data-step="step1">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">1</div>
+    <h3>M|v⟩ = λ|v⟩</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">A vector <span class="mono">|v⟩</span> is an <strong>eigenvector</strong> of a matrix <span class="mono">M</span> if applying <span class="mono">M</span> doesn't rotate it at all — only rescales it by some number <span class="mono">λ</span>, its <strong>eigenvalue</strong>: <span class="mono">M|v⟩ = λ|v⟩</span>. For the Z operator, <span class="mono">|0⟩</span> and <span class="mono">|1⟩</span> are eigenvectors with eigenvalues <span class="mono">+1</span> and <span class="mono">−1</span>. For X, it's <span class="mono">|+⟩</span> and <span class="mono">|−⟩</span> with the same two eigenvalues.</p>
+    <p class="muted">The measurement postulate, stated precisely: measuring observable <span class="mono">M</span> can only ever return one of its eigenvalues, and the state collapses to the matching eigenvector. Every "up/down," "+1/−1" result you've seen in this app has literally been one of these two numbers.</p>
+    <div class="callout blue">This is also why Hermitian matrices matter for observables (Operator Types, previous lesson): a Hermitian matrix is mathematically guaranteed to have only real eigenvalues — you'll never measure an observable and get an imaginary number back.</div>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step1"> Eigenvector = unrotated by M; eigenvalue = the measurement result
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 2 — VERIFY ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
+    <h3>Check whether a vector is really an eigenvector</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Pick an operator and a candidate vector. We'll apply the matrix and check whether the result is a plain rescaling of the input — computed, not assumed.</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · EIGENVECTOR CHECK</div>
+      <div class="grid-2">
+        <div>
+          <div class="muted" style="font-size:0.85rem; margin-bottom:8px;">Operator:</div>
+          <div class="tag-list" id="eig-op-buttons">
+            <div class="tag active" data-op="Z">Z</div>
+            <div class="tag" data-op="X">X</div>
+          </div>
+        </div>
+        <div>
+          <div class="muted" style="font-size:0.85rem; margin-bottom:8px;">Candidate vector:</div>
+          <div class="tag-list" id="eig-vec-buttons">
+            <div class="tag active" data-vec="0">|0⟩</div>
+            <div class="tag" data-vec="1">|1⟩</div>
+            <div class="tag" data-vec="plus">|+⟩</div>
+            <div class="tag" data-vec="minus">|−⟩</div>
+          </div>
+        </div>
+      </div>
+      <div class="mono" id="eig-log" style="font-size:0.9rem; color:var(--text-muted); background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-sm); padding:14px; margin-top:16px; white-space:pre-wrap;">—</div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step2"> I found a matching pair and a mismatched one
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — BONUS ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
+    <h3>Bonus: the sequential Stern-Gerlach experiment, in this language</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Measurement & Stern-Gerlach's Z→X→Z cascade makes perfect sense now: the atom starts as an eigenvector of Z. Measuring X forces a collapse onto an eigenvector of X instead — which is <em>not</em> an eigenvector of Z. So the following Z-measurement is back to a genuine 50/50, because the state has left Z's eigenbasis entirely.</p>
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step3"> An X-eigenvector is never a Z-eigenvector — that's the whole cascade
+    </label>
+  </div>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script>
+  const S = 1/Math.sqrt(2);
+  const OPS = {
+    Z: [[C.make(1),C.make(0)],[C.make(0),C.make(-1)]],
+    X: [[C.make(0),C.make(1)],[C.make(1),C.make(0)]],
+  };
+  const VECS = {
+    '0': [C.make(1), C.make(0)],
+    '1': [C.make(0), C.make(1)],
+    'plus': [C.make(S), C.make(S)],
+    'minus': [C.make(S), C.make(-S)],
+  };
+
+  let selOp = 'Z', selVec = '0';
+
+  function checkEigen() {
+    const m = OPS[selOp], v = VECS[selVec];
+    const out = [C.add(C.mul(m[0][0],v[0]), C.mul(m[0][1],v[1])), C.add(C.mul(m[1][0],v[0]), C.mul(m[1][1],v[1]))];
+    // Is out = lambda * v for some real lambda? Estimate lambda from the larger component.
+    const idx = C.abs(v[0]) > C.abs(v[1]) ? 0 : 1;
+    if (C.abs(v[idx]) < 1e-9) { document.getElementById('eig-log').textContent = 'Degenerate vector.'; return; }
+    const lambdaReal = (out[idx].re * v[idx].re + out[idx].im * v[idx].im) / C.abs2(v[idx]);
+    const predicted = [C.scale(v[0], lambdaReal), C.scale(v[1], lambdaReal)];
+    const isEigen = Math.abs(out[0].re-predicted[0].re) < 1e-6 && Math.abs(out[0].im-predicted[0].im) < 1e-6 &&
+                    Math.abs(out[1].re-predicted[1].re) < 1e-6 && Math.abs(out[1].im-predicted[1].im) < 1e-6;
+    document.getElementById('eig-log').textContent =
+      `${selOp} · (${C.fmt(v[0],2)}, ${C.fmt(v[1],2)}) = (${C.fmt(out[0],2)}, ${C.fmt(out[1],2)})\n\n` +
+      (isEigen
+        ? `Yes — this is an eigenvector of ${selOp}, with eigenvalue λ = ${lambdaReal.toFixed(2)}.`
+        : `No — the result isn't a simple rescaling of the input, so this is not an eigenvector of ${selOp}.`);
+  }
+
+  document.querySelectorAll('#eig-op-buttons .tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+      document.querySelectorAll('#eig-op-buttons .tag').forEach(t => t.classList.remove('active'));
+      tag.classList.add('active'); selOp = tag.dataset.op; checkEigen();
+    });
+  });
+  document.querySelectorAll('#eig-vec-buttons .tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+      document.querySelectorAll('#eig-vec-buttons .tag').forEach(t => t.classList.remove('active'));
+      tag.classList.add('active'); selVec = tag.dataset.vec; checkEigen();
+    });
+  });
+
+  checkEigen();
+  initLessonProgress('eigenvalues-eigenvectors');
+</script>
+{% endblock %}

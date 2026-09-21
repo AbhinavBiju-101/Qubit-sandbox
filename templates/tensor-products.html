@@ -1,0 +1,135 @@
+{% from "_lesson_nav.html" import lesson_nav %}
+{% extends "base.html" %}
+{% block title %}Tensor Products — Qubit Sandbox{% endblock %}
+{% block page_title %}Module 3 · Tensor Products{% endblock %}
+
+{% block content %}
+
+<div class="pill" style="margin-bottom:14px;">MODULE 3 · THE MATH UNDERNEATH</div>
+<h1 style="margin-bottom:6px;">How two 2-dimensional qubits become one 4-dimensional system.</h1>
+<p class="lede muted" style="font-size:1.05rem;">Two Qubits showed you the 4-number joint state. This is where that 4-dimensional space actually comes from — and it's also the cleanest possible definition of what entanglement even means.</p>
+
+<div class="lesson-progress-row">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+<!-- ===================== STEP 1 — THEORY ===================== -->
+<div class="lesson-step" data-step="step1">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">1</div>
+    <h3>Combining two spaces: dimensions multiply</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">When two independent quantum systems are described together, their combined state space is the <strong>tensor product</strong> of the two, written <span class="mono">⊗</span>. Each qubit's space is 2-dimensional; two qubits together live in a <span class="mono">2 × 2 = 4</span>-dimensional space — not <span class="mono">2 + 2 = 4</span>, multiply, which is why n qubits give <span class="mono">2ⁿ</span> dimensions and why classical simulation of quantum computers gets hard so fast.</p>
+    <p class="muted">For two <em>unentangled</em> qubits with amplitudes <span class="mono">(α₀, α₁)</span> and <span class="mono">(β₀, β₁)</span>, the joint 4-dimensional state is built by multiplying every pair: <span class="mono">(α₀β₀, α₀β₁, α₁β₀, α₁β₁)</span>, in the order <span class="mono">|00⟩, |01⟩, |10⟩, |11⟩</span>.</p>
+    <div class="callout blue">This is exactly the recipe your very first two-qubit state used — before any CNOT, two independently-prepared qubits are always a tensor product, by construction.</div>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step1"> Dimensions multiply; joint amplitudes are products of the parts
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 2 — BUILD THE TENSOR PRODUCT ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
+    <h3>Build two qubits, watch the joint state assemble</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Prepare qubit A and qubit B independently. We'll compute their tensor product live — the exact 4-number state you'd get if you combined them without ever entangling them.</p>
+
+    <div class="grid-2" style="margin-top:18px;">
+      <div class="panel">
+        <div class="panel-label">QUBIT A</div>
+        <div style="display:flex; gap:8px; justify-content:center;"><button data-tp="A-H">H</button><button data-tp="A-X">X</button><button data-tp="A-reset" class="small ghost">Reset</button></div>
+        <div class="mono muted" id="a-state" style="text-align:center; margin-top:10px; font-size:0.85rem;">(1.00, 0.00)</div>
+      </div>
+      <div class="panel">
+        <div class="panel-label">QUBIT B</div>
+        <div style="display:flex; gap:8px; justify-content:center;"><button data-tp="B-H">H</button><button data-tp="B-X">X</button><button data-tp="B-reset" class="small ghost">Reset</button></div>
+        <div class="mono muted" id="b-state" style="text-align:center; margin-top:10px; font-size:0.85rem;">(1.00, 0.00)</div>
+      </div>
+    </div>
+
+    <div class="mono" style="font-size:0.9rem; margin-top:16px; background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-sm); padding:14px; text-align:center;">
+      A ⊗ B = <span id="tensor-readout" style="color:var(--primary);">(1.00, 0.00, 0.00, 0.00)</span> &nbsp; <span class="muted">— order: |00⟩, |01⟩, |10⟩, |11⟩</span>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step2"> I built the 4-number joint state from two independent qubits
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — CAN A BELL STATE BE FACTORED? ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
+    <h3>Try to un-multiply a Bell state</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Two Qubits' Bell state is <span class="mono">(0.71, 0, 0, 0.71)</span>. If it really were a tensor product of two separate qubits, some A and B would reproduce it. We'll try thousands of random A's and B's and report the closest anyone gets.</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · FACTOR SEARCH</div>
+      <button id="factor-search" class="primary">Try 5,000 random (A, B) pairs</button>
+      <div class="mono" id="factor-log" style="font-size:0.85rem; color:var(--text-muted); margin-top:14px;">—</div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step3"> No (A, B) pair ever gets close — that gap IS entanglement
+    </label>
+  </div>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script>
+  const qA = new Qubit(), qB2 = new Qubit();
+
+  function refreshTP() {
+    document.getElementById('a-state').textContent = `(${C.fmt(qA.a,2)}, ${C.fmt(qA.b,2)})`;
+    document.getElementById('b-state').textContent = `(${C.fmt(qB2.a,2)}, ${C.fmt(qB2.b,2)})`;
+    const t00 = C.mul(qA.a, qB2.a), t01 = C.mul(qA.a, qB2.b), t10 = C.mul(qA.b, qB2.a), t11 = C.mul(qA.b, qB2.b);
+    document.getElementById('tensor-readout').textContent = `(${C.fmt(t00,2)}, ${C.fmt(t01,2)}, ${C.fmt(t10,2)}, ${C.fmt(t11,2)})`;
+  }
+
+  document.querySelectorAll('button[data-tp]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const [who, action] = btn.dataset.tp.split('-');
+      const q = who === 'A' ? qA : qB2;
+      if (action === 'reset') q.reset(); else q[action]();
+      refreshTP();
+    });
+  });
+  refreshTP();
+
+  document.getElementById('factor-search').addEventListener('click', () => {
+    const target = [C.make(1/Math.sqrt(2)), C.make(0), C.make(0), C.make(1/Math.sqrt(2))];
+    let bestErr = Infinity;
+    for (let i = 0; i < 5000; i++) {
+      const ta = Math.random() * Math.PI, pa = Math.random() * 2 * Math.PI;
+      const tb = Math.random() * Math.PI, pb = Math.random() * 2 * Math.PI;
+      const a0 = C.make(Math.cos(ta/2)), a1 = C.make(Math.sin(ta/2)*Math.cos(pa), Math.sin(ta/2)*Math.sin(pa));
+      const b0 = C.make(Math.cos(tb/2)), b1 = C.make(Math.sin(tb/2)*Math.cos(pb), Math.sin(tb/2)*Math.sin(pb));
+      const t = [C.mul(a0,b0), C.mul(a0,b1), C.mul(a1,b0), C.mul(a1,b1)];
+      let err = 0;
+      for (let k=0;k<4;k++) { const d = C.add(t[k], C.scale(target[k], -1)); err += C.abs2(d); }
+      if (err < bestErr) bestErr = err;
+    }
+    document.getElementById('factor-log').textContent =
+      `Best of 5,000 random attempts: squared error = ${bestErr.toFixed(3)} (0 would mean a perfect factorization). ` +
+      `That error never goes below about 0.5 no matter how many attempts you run — the Bell state provably cannot be written as any A ⊗ B. That's the actual definition of entanglement: a joint state that isn't a tensor product of individual parts.`;
+  });
+
+  initLessonProgress('tensor-products');
+</script>
+{% endblock %}

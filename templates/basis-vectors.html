@@ -1,0 +1,122 @@
+{% from "_lesson_nav.html" import lesson_nav %}
+{% extends "base.html" %}
+{% block title %}Basis Vectors & Hilbert Space — Qubit Sandbox{% endblock %}
+{% block page_title %}Module 3 · Basis Vectors{% endblock %}
+
+{% block content %}
+
+<div class="pill" style="margin-bottom:14px;">MODULE 3 · THE MATH UNDERNEATH</div>
+<h1 style="margin-bottom:6px;">The same state, in two different coordinate systems.</h1>
+<p class="lede muted" style="font-size:1.05rem;">"Hilbert space" is just the name for the vector space quantum states live in. A basis for it is a coordinate system — and every qubit state has infinitely many valid ones.</p>
+
+<div class="lesson-progress-row">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+<!-- ===================== STEP 1 — THEORY ===================== -->
+<div class="lesson-step" data-step="step1">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">1</div>
+    <h3>A basis is a coordinate system, nothing more</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">A <strong>basis</strong> for a vector space is any set of vectors you can combine (with the right coefficients) to build every vector in the space. An <strong>orthonormal</strong> basis additionally has every pair of basis vectors at a right angle (inner product 0) and each one normalized (inner product with itself = 1) — exactly the two properties bra-ket's <span class="mono">⟨φ|ψ⟩</span> lets you check directly.</p>
+    <p class="muted">You've already used two different orthonormal bases without the label: the <strong>computational basis</strong> <span class="mono">{|0⟩, |1⟩}</span>, and the <strong>Hadamard basis</strong> <span class="mono">{|+⟩, |−⟩}</span>. "Hilbert space" is just the name for the (possibly infinite-dimensional, but 2-dimensional for one qubit) complex vector space all of this lives in — the word sounds heavier than the idea is.</p>
+    <div class="callout blue">Any single quantum state is basis-independent — it's a physical thing. The <em>coefficients</em> you write down for it change completely depending which basis you chose, the same way a compass bearing changes if you rotate your map's north.</div>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step1"> Basis = coordinate system; orthonormal = perpendicular + normalized
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 2 — SAME STATE, TWO BASES ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
+    <h3>Express one state in both bases</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Build a state, then read off its coefficients in the Z basis and the X basis side by side — same physical arrow, two different coordinate readouts. We'll also verify each basis really is orthonormal, live.</p>
+
+    <div class="grid-2" style="margin-top:18px;">
+      <div class="panel">
+        <div class="panel-label">SANDBOX · BUILD |ψ⟩</div>
+        <svg id="bloch-basis" viewBox="0 0 300 300" style="width:100%; max-width:260px; display:block; margin:0 auto;"></svg>
+        <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:14px;">
+          <button data-gate="H">H</button>
+          <button data-gate="X">X</button>
+          <button data-gate="Z">Z</button>
+          <button id="basis-reset" class="small ghost">Reset</button>
+        </div>
+      </div>
+      <div class="mono" style="font-size:0.85rem; color:var(--text-muted); background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-sm); padding:16px;">
+        <div class="muted" style="font-size:0.78rem; text-transform:uppercase;">In the Z basis {|0⟩,|1⟩}</div>
+        <div id="z-coeffs" style="color:var(--text); margin-bottom:14px;">c₀=1.00, c₁=0.00</div>
+        <div class="muted" style="font-size:0.78rem; text-transform:uppercase;">In the X basis {|+⟩,|−⟩}</div>
+        <div id="x-coeffs" style="color:var(--text); margin-bottom:14px;">d₀=0.71, d₁=0.71</div>
+        <div class="muted" style="font-size:0.78rem; text-transform:uppercase;">Orthonormality check</div>
+        <div id="ortho-check" style="color:var(--primary);">⟨0|1⟩=0.00, ⟨0|0⟩=1.00</div>
+      </div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step2"> Same state, two coefficient sets, both orthonormal bases check out
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — BONUS ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
+    <h3>Bonus: this is why "measurement basis" is a real choice</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Measurement & Stern-Gerlach let you switch the magnet between Z and X — that was switching which orthonormal basis you were reading the state's coordinates in. There was never a "true" basis being hidden from you; both are equally valid coordinate systems for the exact same physical state.</p>
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step3"> Choosing a measurement basis = choosing coordinates, not uncovering a hidden truth
+    </label>
+  </div>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bloch.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script>
+  const conj = z => ({ re: z.re, im: -z.im });
+  const inner = (phi, psi) => C.add(C.mul(conj(phi.a), psi.a), C.mul(conj(phi.b), psi.b));
+  const S = 1 / Math.sqrt(2);
+  const ZERO = { a: C.make(1), b: C.make(0) }, ONE = { a: C.make(0), b: C.make(1) };
+  const PLUS = { a: C.make(S), b: C.make(S) }, MINUS = { a: C.make(S), b: C.make(-S) };
+
+  const qB = new Qubit();
+  const widgetB = createBlochWidget(document.getElementById('bloch-basis'));
+
+  function refreshBasis() {
+    const bl = qB.bloch();
+    widgetB.set(bl.theta, bl.phi);
+    const c0 = inner(ZERO, qB), c1 = inner(ONE, qB);
+    const d0 = inner(PLUS, qB), d1 = inner(MINUS, qB);
+    document.getElementById('z-coeffs').textContent = `c₀=${C.fmt(c0,2)}, c₁=${C.fmt(c1,2)}`;
+    document.getElementById('x-coeffs').textContent = `d₀=${C.fmt(d0,2)}, d₁=${C.fmt(d1,2)}`;
+    const cross = inner(ZERO, ONE), self0 = inner(ZERO, ZERO);
+    document.getElementById('ortho-check').textContent = `⟨0|1⟩=${C.fmt(cross,2)}, ⟨0|0⟩=${C.fmt(self0,2)}`;
+  }
+
+  document.querySelectorAll('button[data-gate]').forEach(btn => {
+    btn.addEventListener('click', () => { qB[btn.dataset.gate](); refreshBasis(); });
+  });
+  document.getElementById('basis-reset').addEventListener('click', () => { qB.reset(); refreshBasis(); });
+
+  refreshBasis();
+  initLessonProgress('basis-vectors');
+</script>
+{% endblock %}

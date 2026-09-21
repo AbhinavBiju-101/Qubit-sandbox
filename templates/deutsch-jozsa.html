@@ -1,0 +1,133 @@
+{% from "_lesson_nav.html" import lesson_nav %}
+{% extends "base.html" %}
+{% block title %}Deutsch-Jozsa — Qubit Sandbox{% endblock %}
+{% block page_title %}Module 2 · Deutsch-Jozsa{% endblock %}
+
+{% block content %}
+
+<div class="pill green" style="margin-bottom:14px;">MODULE 2 · QUANTUM ALGORITHMS</div>
+<h1 style="margin-bottom:6px;">The smallest "quantum actually wins."</h1>
+<p class="lede muted" style="font-size:1.05rem;">A hidden function, one property to determine, one query. Classically this can take two queries in the worst case — small, but a real, provable, permanent advantage.</p>
+
+<div class="lesson-progress-row">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+<!-- ===================== STEP 1 — THEORY ===================== -->
+<div class="lesson-step" data-step="step1">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">1</div>
+    <h3>Constant, or balanced?</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">You're handed a hidden function <span class="mono">f(x)</span> that takes one bit and returns one bit, promised to be either <strong>constant</strong> (same output for every input) or <strong>balanced</strong> (outputs 0 for half the inputs, 1 for the other half). For a single-bit input there are only two inputs, so classically you might get lucky on 1 query — but in the worst case you need both queries to be sure.</p>
+    <p class="muted">The quantum trick: put the input in superposition, run the oracle once, and interference cancels out everything except the one bit of information you actually need — constant or balanced — in a single query, guaranteed, every time.</p>
+    <div class="callout blue">The oracle is wired as <span class="mono">|x⟩|y⟩ → |x⟩|y ⊕ f(x)⟩</span> — the CNOT and X gates you already know from Two Qubits, just relabeled as "the unknown function" for this lesson.</div>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step1"> Constant vs. balanced, one query settles it
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 2 — RUN IT ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
+    <h3>Get a hidden oracle, query it once</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Draw a random hidden oracle — you won't be told which of the four it is. Run the one-query circuit, read off constant or balanced from the measurement, then reveal the oracle to check yourself.</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · DEUTSCH-JOZSA</div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button id="dj-new" class="primary">New hidden oracle</button>
+        <button id="dj-run" disabled>Run the 1-query circuit</button>
+        <button id="dj-reveal" disabled>Reveal the oracle</button>
+      </div>
+      <div class="mono" id="dj-log" style="font-size:0.85rem; color:var(--text-muted); background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-sm); padding:14px; margin-top:16px; min-height:60px;">Draw an oracle to begin.</div>
+      <div class="grid-2" style="margin-top:16px;">
+        <div class="stat"><span class="num" id="dj-verdict">—</span><span class="label">Your verdict, from 1 query</span></div>
+        <div class="stat"><span class="num" id="dj-actual">?</span><span class="label">Actual oracle type</span></div>
+      </div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step2"> I matched my 1-query verdict to the revealed oracle
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — BONUS ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
+    <h3>Bonus: this scales</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">With <span class="mono">n</span> input bits, a classical worst case needs <span class="mono">2ⁿ⁻¹ + 1</span> queries to be certain — exponentially many. The quantum algorithm still needs exactly <strong>one</strong>, regardless of <span class="mono">n</span>. The 1-bit version here is the smallest case where that gap already exists; it just isn't dramatic yet at n=1.</p>
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step3"> One query stays one query as n grows
+    </label>
+  </div>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
+<script src="{{ url_for('static', filename='js/multiqubit.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script>
+  const ORACLE_TYPES = ['constant0', 'constant1', 'balanced-id', 'balanced-not'];
+  let oracle = null;
+
+  function applyOracle(mq, type) {
+    // |x>|y> -> |x>|y XOR f(x)>, on q0=x, q1=y
+    if (type === 'constant0') { /* f(x)=0, do nothing */ }
+    if (type === 'constant1') { mq.X(1); }
+    if (type === 'balanced-id') { mq.CNOT(0, 1); }
+    if (type === 'balanced-not') { mq.CNOT(0, 1); mq.X(1); }
+  }
+
+  document.getElementById('dj-new').addEventListener('click', () => {
+    oracle = ORACLE_TYPES[Math.floor(Math.random() * 4)];
+    document.getElementById('dj-run').disabled = false;
+    document.getElementById('dj-reveal').disabled = true;
+    document.getElementById('dj-verdict').textContent = '—';
+    document.getElementById('dj-actual').textContent = '?';
+    document.getElementById('dj-log').textContent = 'Hidden oracle drawn (not shown). Click "Run the 1-query circuit."';
+  });
+
+  document.getElementById('dj-run').addEventListener('click', () => {
+    const mq = new MultiQubit(2); // q0 = x, q1 = y
+    mq.X(1);       // y starts at |1>
+    mq.H(0); mq.H(1);
+    applyOracle(mq, oracle);
+    mq.H(0);
+    const result = mq.measureQubit(0);
+    const verdict = result === 0 ? 'constant' : 'balanced';
+    document.getElementById('dj-verdict').textContent = verdict;
+    document.getElementById('dj-run').disabled = true;
+    document.getElementById('dj-reveal').disabled = false;
+    document.getElementById('dj-log').textContent = `Measured q0 = ${result} → verdict: ${verdict}. Click "Reveal the oracle" to check.`;
+  });
+
+  document.getElementById('dj-reveal').addEventListener('click', () => {
+    const actualType = oracle.startsWith('constant') ? 'constant' : 'balanced';
+    document.getElementById('dj-actual').textContent = `${actualType} (${oracle})`;
+    const verdict = document.getElementById('dj-verdict').textContent;
+    document.getElementById('dj-log').textContent = (verdict === actualType)
+      ? `Confirmed: the oracle really was ${actualType}, determined in exactly 1 query.`
+      : `Something's off — that shouldn't happen with this circuit. Try "New hidden oracle."`;
+    document.getElementById('dj-reveal').disabled = true;
+  });
+
+  initLessonProgress('deutsch-jozsa');
+</script>
+{% endblock %}

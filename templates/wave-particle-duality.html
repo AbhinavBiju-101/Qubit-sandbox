@@ -1,0 +1,150 @@
+{% from "_lesson_nav.html" import lesson_nav %}
+{% extends "base.html" %}
+{% block title %}Wave-Particle Duality — Qubit Sandbox{% endblock %}
+{% block page_title %}Module 4 · Wave-Particle Duality{% endblock %}
+
+{% block content %}
+
+<div class="pill amber" style="margin-bottom:14px;">MODULE 4 · WHERE QUANTUM COMES FROM</div>
+<h1 style="margin-bottom:6px;">One particle at a time, building a wave pattern.</h1>
+<p class="lede muted" style="font-size:1.05rem;">The experiment that started all of this. Fire particles one at a time through two slits — each lands as a single dot, yet the dots collectively build the interference pattern only a wave should make.</p>
+
+<div class="lesson-progress-row">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+<!-- ===================== STEP 1 — THEORY ===================== -->
+<div class="lesson-step" data-step="step1">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">1</div>
+    <h3>Young's double slit, and the puzzle it left behind</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Shine light (or fire electrons) through two narrow, closely-spaced slits at a screen. Waves passing through both slits interfere: crest-meets-crest gives a bright band, crest-meets-trough cancels to dark — a striped fringe pattern, not two simple bands.</p>
+    <p class="muted">The puzzle: this still happens when particles go through <em>one at a time</em>, slow enough that only one particle is ever in flight. Each one lands as a single point — clearly a particle. But over thousands of them, the points build the exact same striped pattern — clearly a wave. Both descriptions are correct; neither is complete alone. That's wave-particle duality.</p>
+    <div class="callout blue">Every amplitude you've used since Single Qubit already carries this: a state is a wave-like sum of possibilities right up until measurement, at which point it commits to one particle-like outcome. The double slit is that same story, just running in physical space instead of a Bloch sphere.</div>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step1"> One particle at a time, still a wave pattern
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 2 — BUILD-UP SIMULATOR ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
+    <h3>Fire particles and watch the pattern build</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Each click adds particles one at a time, each landing at a random position — but not uniformly random. Watch the fringes emerge from the accumulating dots.</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · DOUBLE SLIT</div>
+      <canvas id="slit-canvas" width="560" height="220" style="width:100%; max-width:560px; display:block; margin:0 auto; background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-sm);"></canvas>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px;">
+        <button id="fire-particles" class="primary">Fire 200 particles</button>
+        <button id="clear-canvas" class="small ghost">Clear</button>
+        <label style="display:flex; align-items:center; gap:6px; font-size:0.88rem; color:var(--text-muted); cursor:pointer;">
+          <input type="checkbox" id="detector-toggle"> Which-path detector ON
+        </label>
+        <span class="mono muted" style="font-size:0.85rem;">Landed: <span id="particle-count">0</span></span>
+      </div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step2"> I saw the fringes appear, then vanish with the detector on
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — BONUS: FRINGE SPACING ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
+    <h3>Bonus: what sets the fringe spacing</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Fringe spacing scales with wavelength and inversely with slit separation: <span class="mono">Δx ∝ λ / d</span>. Slide either one, clear, and fire again to see the bands stretch or squeeze.</p>
+    <div style="max-width:420px;">
+      <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.85rem;"><span class="muted">slit separation d</span><span id="d-val">1.0</span></div>
+      <input type="range" id="d-slider" min="0.5" max="2.5" step="0.1" value="1">
+      <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.85rem; margin-top:10px;"><span class="muted">wavelength λ</span><span id="lambda-val">1.0</span></div>
+      <input type="range" id="lambda-slider" min="0.5" max="2.5" step="0.1" value="1">
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step3"> I stretched and squeezed the fringes
+    </label>
+  </div>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script>
+  const canvas = document.getElementById('slit-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  let landed = 0;
+
+  function fringeFreq() {
+    const d = +document.getElementById('d-slider').value;
+    const lambda = +document.getElementById('lambda-slider').value;
+    return (d / lambda) * 6; // cycles across the canvas width
+  }
+
+  function sampleX(detectorOn) {
+    // Rejection sampling from an interference-fringe density (or, with
+    // the detector on, a flat single-particle density — no fringes).
+    const freq = fringeFreq();
+    for (let tries = 0; tries < 40; tries++) {
+      const x = Math.random() * W;
+      const density = detectorOn ? 1 : (1 + Math.cos(2 * Math.PI * freq * (x - W/2) / W)) / 2;
+      if (Math.random() < density) return x;
+    }
+    return Math.random() * W;
+  }
+
+  const dotColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#7dd3fc';
+
+  function dropParticle() {
+    const detectorOn = document.getElementById('detector-toggle').checked;
+    const x = sampleX(detectorOn);
+    const y = 10 + Math.random() * (H - 20);
+    ctx.fillStyle = dotColor;
+    ctx.globalAlpha = 0.75;
+    ctx.beginPath();
+    ctx.arc(x, y, 1.6, 0, Math.PI * 2);
+    ctx.fill();
+    landed++;
+    document.getElementById('particle-count').textContent = landed;
+  }
+
+  document.getElementById('fire-particles').addEventListener('click', () => {
+    let i = 0;
+    const total = 200;
+    const interval = setInterval(() => {
+      dropParticle();
+      i++;
+      if (i >= total) clearInterval(interval);
+    }, 6);
+  });
+
+  document.getElementById('clear-canvas').addEventListener('click', () => {
+    ctx.clearRect(0, 0, W, H);
+    landed = 0;
+    document.getElementById('particle-count').textContent = '0';
+  });
+
+  document.getElementById('d-slider').addEventListener('input', () => { document.getElementById('d-val').textContent = (+document.getElementById('d-slider').value).toFixed(1); });
+  document.getElementById('lambda-slider').addEventListener('input', () => { document.getElementById('lambda-val').textContent = (+document.getElementById('lambda-slider').value).toFixed(1); });
+
+  initLessonProgress('wave-particle-duality');
+</script>
+{% endblock %}

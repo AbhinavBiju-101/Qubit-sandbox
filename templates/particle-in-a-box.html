@@ -1,0 +1,168 @@
+{% from "_lesson_nav.html" import lesson_nav %}
+{% extends "base.html" %}
+{% block title %}Particle in a Box — Qubit Sandbox{% endblock %}
+{% block page_title %}Module 4 · Particle in a Box{% endblock %}
+
+{% block content %}
+
+<div class="pill amber" style="margin-bottom:14px;">MODULE 4 · WHERE QUANTUM COMES FROM</div>
+<h1 style="margin-bottom:6px;">Confine a wave, and only certain shapes fit.</h1>
+<p class="lede muted" style="font-size:1.05rem;">Trap a particle between two walls and its wavefunction has to be zero at both ends — like a guitar string. Only a discrete ladder of wavelengths, and therefore energies, satisfies that.</p>
+
+<div class="lesson-progress-row">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+<!-- ===================== STEP 1 — THEORY ===================== -->
+<div class="lesson-step" data-step="step1">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">1</div>
+    <h3>Standing waves, not any wave</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Confine a particle to a box of width <span class="mono">L</span> with infinitely hard walls, and its wavefunction must vanish at both walls — exactly the same constraint as a guitar string pinned at both ends. Only whole numbers of half-wavelengths fit: <span class="mono">λₙ = 2L/n</span> for <span class="mono">n = 1, 2, 3, …</span>.</p>
+    <p class="muted">Through <span class="mono">λ = h/p</span> and <span class="mono">E = p²/2m</span>, that quantized wavelength ladder becomes a quantized <em>energy</em> ladder: <span class="mono">Eₙ = n²h² / (8mL²)</span>. This is the simplest possible model that produces discrete energy levels from first principles — no hypothesis needed, just "the wave has to fit."</p>
+    <div class="callout blue">Notice the shape of the formula: energy climbs as n², and as 1/L². Shrink the box and the levels spread apart fast — which is exactly why quantized energy is obvious for an electron confined to an atom, and utterly unmeasurable for a marble confined to a room.</div>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step1"> Wavefunction pinned at both walls → discrete energies
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 2 — WAVEFUNCTIONS ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
+    <h3>Watch the standing waves and their energies</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Pick a level <span class="mono">n</span> and a box width. The top curve is the wavefunction <span class="mono">ψₙ(x)</span> itself (can go negative); the bottom is the probability density <span class="mono">|ψₙ(x)|²</span> — where the particle actually tends to be found.</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · PARTICLE IN A BOX</div>
+      <canvas id="pib-canvas" width="560" height="260" style="width:100%; max-width:560px; display:block; margin:0 auto; background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-sm);"></canvas>
+      <div class="tag-list" id="n-buttons" style="margin-top:14px;">
+        <div class="tag active" data-n="1">n = 1</div>
+        <div class="tag" data-n="2">n = 2</div>
+        <div class="tag" data-n="3">n = 3</div>
+        <div class="tag" data-n="4">n = 4</div>
+      </div>
+      <div style="margin-top:14px; max-width:400px;">
+        <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.85rem;"><span class="muted">box width L</span><span id="L-val">1.0 nm</span></div>
+        <input type="range" id="L-slider" min="0.3" max="3" step="0.1" value="1">
+      </div>
+      <div class="stat" style="margin-top:16px;"><span class="num" id="energy-readout">—</span><span class="label">Eₙ (relative to n=1, L=1nm)</span></div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step2"> I stepped through n=1..4 and watched the energy jump
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — BONUS: DEGENERACY ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
+    <h3>Bonus: degeneracy in a 2D box</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Add a second dimension and the energy becomes <span class="mono">E(nₓ,n_y) ∝ nₓ² + n_y²</span>. Different quantum numbers can now land on the exact same energy — that's called <strong>degeneracy</strong>, and it's not a coincidence when the box is square.</p>
+    <div class="grid-3" style="margin-top:12px;">
+      <div class="stat"><span class="num">(1,2) &amp; (2,1)</span><span class="label">both give nₓ²+n_y² = 5</span></div>
+      <div class="stat"><span class="num">(1,4) &amp; (4,1) &amp; (2, √14)†</span><span class="label">not all match — degeneracy depends on the exact numbers</span></div>
+      <div class="stat"><span class="num">(2,3) &amp; (3,2)</span><span class="label">both give nₓ²+n_y² = 13</span></div>
+    </div>
+    <p class="muted" style="font-size:0.85rem; margin-top:8px;">† only whole-number pairs count — that entry is there to show not every level has a partner, not every n has a degenerate twin.</p>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step3"> I see why a square box's levels can share an energy
+    </label>
+  </div>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script>
+  const canvas = document.getElementById('pib-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const midTop = 90, midBottom = 220, left = 40, right = W - 20;
+  const lineCol = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#7dd3fc';
+  const lineCol2 = getComputedStyle(document.documentElement).getPropertyValue('--amber').trim() || '#f0b429';
+  const gridCol = getComputedStyle(document.documentElement).getPropertyValue('--line').trim() || '#333';
+
+  let n = 1;
+  document.querySelectorAll('#n-buttons .tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+      document.querySelectorAll('#n-buttons .tag').forEach(t => t.classList.remove('active'));
+      tag.classList.add('active');
+      n = +tag.dataset.n;
+      draw();
+    });
+  });
+
+  function psi(x, n) { return Math.sin(n * Math.PI * x); } // x in [0,1]
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.strokeStyle = gridCol; ctx.lineWidth = 1;
+    // walls
+    ctx.beginPath();
+    ctx.moveTo(left, 20); ctx.lineTo(left, midTop + 30);
+    ctx.moveTo(right, 20); ctx.lineTo(right, midTop + 30);
+    ctx.moveTo(left, midTop); ctx.lineTo(right, midTop);
+    ctx.moveTo(left, midBottom - 40); ctx.lineTo(left, midBottom + 10);
+    ctx.moveTo(right, midBottom - 40); ctx.lineTo(right, midBottom + 10);
+    ctx.moveTo(left, midBottom); ctx.lineTo(right, midBottom);
+    ctx.stroke();
+
+    // psi_n(x)
+    ctx.strokeStyle = lineCol; ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    const N = 200;
+    for (let i = 0; i <= N; i++) {
+      const xf = i / N;
+      const x = left + xf * (right - left);
+      const y = midTop - psi(xf, n) * 32;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // |psi_n(x)|^2
+    ctx.strokeStyle = lineCol2; ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    for (let i = 0; i <= N; i++) {
+      const xf = i / N;
+      const x = left + xf * (right - left);
+      const p2 = psi(xf, n) * psi(xf, n);
+      const y = midBottom - p2 * 55;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    ctx.fillStyle = gridCol; ctx.font = '11px var(--font-mono)';
+    ctx.fillText('ψₙ(x)', left, midTop - 40);
+    ctx.fillText('|ψₙ(x)|²', left, midBottom - 62);
+
+    const L = +document.getElementById('L-slider').value;
+    const E = (n * n) / (L * L); // relative units, E1(L=1nm) = 1
+    document.getElementById('energy-readout').textContent = E.toFixed(2) + ' ×E₁';
+  }
+
+  document.getElementById('L-slider').addEventListener('input', () => {
+    document.getElementById('L-val').textContent = (+document.getElementById('L-slider').value).toFixed(1) + ' nm';
+    draw();
+  });
+
+  draw();
+  initLessonProgress('particle-in-a-box');
+</script>
+{% endblock %}

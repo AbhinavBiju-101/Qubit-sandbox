@@ -1,0 +1,167 @@
+{% from "_lesson_nav.html" import lesson_nav %}
+{% extends "base.html" %}
+{% block title %}The Schrödinger Equation — Qubit Sandbox{% endblock %}
+{% block page_title %}Module 3 · Schrödinger Equation{% endblock %}
+
+{% block content %}
+
+<div class="pill" style="margin-bottom:14px;">MODULE 3 · THE MATH UNDERNEATH</div>
+<h1 style="margin-bottom:6px;">Time evolution, watched instead of derived.</h1>
+<p class="lede muted" style="font-size:1.05rem;">No differential equations to solve here — just watch what the equation predicts happen to a Bloch point left running, and to one being deliberately driven.</p>
+
+<div class="lesson-progress-row">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+<!-- ===================== STEP 1 — THEORY ===================== -->
+<div class="lesson-step" data-step="step1">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">1</div>
+    <h3>Two versions of one equation</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">The <strong>time-independent</strong> Schrödinger equation finds a system's fixed energy levels — for a qubit, that's just |0⟩ and |1⟩ again, now called <strong>energy eigenstates</strong>. The <strong>time-dependent</strong> version says how a state changes moment to moment: each energy eigenstate spins in the complex plane at a rate set by its energy, <span class="mono">e^{-iEt/ħ}</span>.</p>
+    <p class="muted">Here's the part that matters for what you'll actually see: if a qubit is sitting purely in <span class="mono">|0⟩</span> or purely in <span class="mono">|1⟩</span>, that spinning is an invisible <em>global</em> phase — nothing observable moves. It's only a <strong>superposition</strong> of the two — different energies spinning at different rates, drifting apart — that shows up as motion on the Bloch sphere. That drift is called <strong>precession</strong>.</p>
+    <div class="callout blue">This is the same phase gate from Complex Numbers, just now running continuously instead of by a slider you set once.</div>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step1"> Stationary states don't move; superpositions precess
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 2 — PRECESSION ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
+    <h3>Watch it precess — and watch a stationary state not</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Left panel starts at the equator (a superposition) and free-runs under the time-dependent equation. Right panel starts at the pole (a stationary state, |0⟩) under the exact same evolution.</p>
+
+    <div class="grid-2" style="margin-top:18px;">
+      <div class="panel">
+        <div class="panel-label">SUPERPOSITION |+⟩</div>
+        <svg id="bloch-precess" viewBox="0 0 260 260" style="width:100%; max-width:220px; display:block; margin:0 auto;"></svg>
+      </div>
+      <div class="panel">
+        <div class="panel-label">STATIONARY STATE |0⟩</div>
+        <svg id="bloch-stationary" viewBox="0 0 260 260" style="width:100%; max-width:220px; display:block; margin:0 auto;"></svg>
+      </div>
+    </div>
+    <div style="margin-top:16px;">
+      <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.85rem;"><span class="muted">ω (energy gap)</span><span id="omega-val">1.0</span></div>
+      <input type="range" id="omega-slider" min="0.2" max="3" step="0.1" value="1">
+      <button id="precess-toggle" class="primary block" style="margin-top:14px;">Start precession</button>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step2"> I watched one panel spin and the other hold still
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — RABI DRIVE ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
+    <h3>Rabi flopping — how a real qubit gets controlled</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Drive a qubit with a resonant pulse and, instead of precessing around the pole, it rotates all the way from |0⟩ to |1⟩ and back — a continuous version of the single-click H/X gates from Module 1. This is <em>literally</em> how <a href="{{ url_for('physical_qubit') }}">Physical Qubit</a>'s "how it's controlled" step works: a microwave pulse plays the role of Ω below.</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · DRIVEN ROTATION</div>
+      <svg id="bloch-rabi" viewBox="0 0 260 260" style="width:100%; max-width:240px; display:block; margin:0 auto;"></svg>
+      <div class="grid-2" style="margin-top:14px;">
+        <div class="stat"><span class="num" id="rabi-p1">0%</span><span class="label">P(measure 1)</span></div>
+        <div class="stat"><span class="num" id="rabi-t">0.0</span><span class="label">Ωt (radians)</span></div>
+      </div>
+      <div style="margin-top:14px;">
+        <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.85rem;"><span class="muted">Ω (drive strength)</span><span id="rabi-omega-val">1.0</span></div>
+        <input type="range" id="rabi-omega-slider" min="0.3" max="3" step="0.1" value="1">
+      </div>
+      <button id="rabi-toggle" class="block" style="margin-top:14px;">Start drive</button>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step3"> I watched the population flop between 0 and 1
+    </label>
+  </div>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bloch.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script>
+  // ---- Step 2: precession vs stationary ----
+  const widgetPrecess = createBlochWidget(document.getElementById('bloch-precess'));
+  const widgetStationary = createBlochWidget(document.getElementById('bloch-stationary'));
+  const omegaSlider = document.getElementById('omega-slider');
+  let precessRunning = false, precessStart = null, precessFrame = null;
+
+  function phaseState(phi) {
+    const q = new Qubit();
+    q.H();
+    q.applyMatrix([[C.make(1), C.make(0)], [C.make(0), C.make(Math.cos(phi), Math.sin(phi))]]);
+    return q;
+  }
+
+  function precessStep(ts) {
+    if (!precessStart) precessStart = ts;
+    const t = (ts - precessStart) / 1000;
+    const omega = +omegaSlider.value;
+    const phi = omega * t;
+    const q = phaseState(phi);
+    const bl = q.bloch();
+    widgetPrecess.set(bl.theta, bl.phi);
+    widgetStationary.set(0, 0); // |0> never moves, by construction
+    if (precessRunning) precessFrame = requestAnimationFrame(precessStep);
+  }
+
+  document.getElementById('precess-toggle').addEventListener('click', (e) => {
+    precessRunning = !precessRunning;
+    e.target.textContent = precessRunning ? 'Stop precession' : 'Start precession';
+    if (precessRunning) { precessStart = null; precessFrame = requestAnimationFrame(precessStep); }
+    else if (precessFrame) cancelAnimationFrame(precessFrame);
+  });
+  omegaSlider.addEventListener('input', () => { document.getElementById('omega-val').textContent = (+omegaSlider.value).toFixed(1); });
+  widgetPrecess.set(Math.PI/2, 0);
+
+  // ---- Step 3: Rabi drive ----
+  const widgetRabi = createBlochWidget(document.getElementById('bloch-rabi'));
+  const rabiOmegaSlider = document.getElementById('rabi-omega-slider');
+  let rabiRunning = false, rabiStart = null, rabiFrame = null;
+
+  function rabiStep(ts) {
+    if (!rabiStart) rabiStart = ts;
+    const t = (ts - rabiStart) / 1000;
+    const omega = +rabiOmegaSlider.value;
+    const theta = omega * t; // RY(theta) on |0> gives P1 = sin^2(theta/2) — exact Rabi formula
+    const q = new Qubit();
+    q.RY(theta);
+    const bl = q.bloch();
+    widgetRabi.set(bl.theta, bl.phi);
+    document.getElementById('rabi-p1').textContent = (q.prob1() * 100).toFixed(0) + '%';
+    document.getElementById('rabi-t').textContent = (theta % (2*Math.PI)).toFixed(1);
+    if (rabiRunning) rabiFrame = requestAnimationFrame(rabiStep);
+  }
+
+  document.getElementById('rabi-toggle').addEventListener('click', (e) => {
+    rabiRunning = !rabiRunning;
+    e.target.textContent = rabiRunning ? 'Stop drive' : 'Start drive';
+    if (rabiRunning) { rabiStart = null; rabiFrame = requestAnimationFrame(rabiStep); }
+    else if (rabiFrame) cancelAnimationFrame(rabiFrame);
+  });
+  rabiOmegaSlider.addEventListener('input', () => { document.getElementById('rabi-omega-val').textContent = (+rabiOmegaSlider.value).toFixed(1); });
+
+  initLessonProgress('schrodinger-equation');
+</script>
+{% endblock %}

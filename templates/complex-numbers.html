@@ -1,0 +1,190 @@
+{% from "_lesson_nav.html" import lesson_nav %}
+{% extends "base.html" %}
+{% block title %}Complex Numbers — Qubit Sandbox{% endblock %}
+{% block page_title %}Module 3 · Complex Numbers{% endblock %}
+
+{% block content %}
+
+<div class="pill" style="margin-bottom:14px;">MODULE 3 · THE MATH UNDERNEATH</div>
+<h1 style="margin-bottom:6px;">Why amplitudes need complex numbers.</h1>
+<p class="lede muted" style="font-size:1.05rem;">You've been multiplying complex numbers since Single Qubit without being told — this lesson just names what you were already doing, then shows why a real number alone couldn't have done the job.</p>
+
+<div class="lesson-progress-row">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+<!-- ===================== STEP 1 — THEORY ===================== -->
+<div class="lesson-step" data-step="step1">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">1</div>
+    <h3>A number with two parts</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">A complex number <span class="mono">z = a + bi</span> is just a pair of real numbers, <span class="mono">a</span> (the real part) and <span class="mono">b</span> (the imaginary part), with <span class="mono">i² = -1</span> as the one new rule. Every amplitude you've clicked into existence since Single Qubit — <span class="mono">α</span> and <span class="mono">β</span> — is one of these.</p>
+    <p class="muted">Two things about <span class="mono">z</span> matter for quantum mechanics far more than <span class="mono">a</span> and <span class="mono">b</span> individually: its <strong>magnitude</strong> <span class="mono">|z| = √(a² + b²)</span> (how far from zero) and its <strong>phase</strong> <span class="mono">arg(z)</span> (which direction, as an angle). Born's rule only ever uses <span class="mono">|z|²</span> — the phase is invisible to any single measurement, but it is <em>not</em> invisible to interference, which is where it does all its work.</p>
+    <div class="callout blue">Real numbers have a magnitude too (<span class="mono">|−3| = 3</span>), but only two directions: positive or negative. Complex numbers have a magnitude <em>and</em> a full 360° of direction. That extra dial — phase — is the thing amplitudes need that plain probabilities never did.</div>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step1"> Magnitude and phase, got it
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 2 — COMPLEX PLANE ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
+    <h3>The complex plane</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Plot <span class="mono">a</span> on the horizontal axis and <span class="mono">b</span> on the vertical axis, and every complex number becomes a point — equivalently, an arrow from the origin with a length (<span class="mono">r</span>) and an angle (<span class="mono">θ</span>). Drag the sliders and watch both descriptions stay in sync.</p>
+
+    <div class="grid-2" style="margin-top:18px;">
+      <div class="panel">
+        <div class="panel-label">SANDBOX · COMPLEX PLANE</div>
+        <svg id="cplane" viewBox="0 0 280 280" style="width:100%; max-width:280px; display:block; margin:0 auto;"></svg>
+      </div>
+      <div>
+        <div style="margin-bottom:14px;">
+          <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.85rem;"><span class="muted">r (magnitude)</span><span id="r-val">1.00</span></div>
+          <input type="range" id="r-slider" min="0.2" max="1.3" step="0.01" value="1">
+        </div>
+        <div style="margin-bottom:14px;">
+          <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.85rem;"><span class="muted">θ (phase)</span><span id="theta-deg-val">0°</span></div>
+          <input type="range" id="theta-slider-plane" min="0" max="360" step="1" value="0">
+        </div>
+        <div class="mono" style="font-size:0.9rem; color:var(--text-muted); background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-sm); padding:14px;">
+          <div>z = <span id="z-readout" style="color:var(--text);">1.00 + 0.00i</span></div>
+          <div style="margin-top:6px;">|z| = <span id="mag-readout" style="color:var(--primary);">1.00</span>, arg(z) = <span id="arg-readout" style="color:var(--primary);">0°</span></div>
+        </div>
+        <button id="times-i-btn" class="small" style="margin-top:14px;">Multiply by i (rotate 90°)</button>
+      </div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step2"> I rotated the point and watched θ change
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — PHASE ON A REAL QUBIT ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
+    <h3>A phase real numbers couldn't hide</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Apply H, then dial in a <strong>phase gate</strong> <span class="mono">P(θ) = diag(1, e^{iθ})</span> — it multiplies only β by a point on the unit circle, leaving <span class="mono">|α|</span> and <span class="mono">|β|</span> completely alone. Watch the Bloch point spin around the equator while the measurement odds don't move at all.</p>
+
+    <div class="grid-2" style="margin-top:18px;">
+      <div class="panel">
+        <div class="panel-label">SANDBOX · PHASE GATE</div>
+        <svg id="bloch3" viewBox="0 0 300 300" style="width:100%; max-width:280px; display:block; margin:0 auto;"></svg>
+        <button id="reset-btn3" class="small ghost block" style="margin-top:10px;">Reset: H then P(θ)</button>
+      </div>
+      <div>
+        <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.85rem;"><span class="muted">θ</span><span id="phase-deg-val">0°</span></div>
+        <input type="range" id="phase-slider" min="0" max="360" step="1" value="0">
+        <div class="mono" style="font-size:0.9rem; color:var(--text-muted); background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-sm); padding:14px; margin-top:14px;">
+          <div>State: <span id="phase-state-readout" style="color:var(--text);">—</span></div>
+        </div>
+        <div class="grid-2" style="margin-top:14px;">
+          <div class="stat"><span class="num" id="phase-prob0">50.0%</span><span class="label">P(measure 0)</span></div>
+          <div class="stat"><span class="num" id="phase-prob1">50.0%</span><span class="label">P(measure 1)</span></div>
+        </div>
+        <div class="callout blue" style="margin-top:14px;">Both probabilities stay pinned at 50/50 for every value of θ. If amplitudes were plain real numbers, "rotate the phase without touching the probabilities" wouldn't even be a sentence you could write — a real rotation <em>is</em> a probability change. That's the whole reason quantum states live in complex vector space.</div>
+      </div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step3"> I swept θ and watched the probabilities not move
+    </label>
+  </div>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bloch.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script>
+  // ---- Step 2: complex plane widget ----
+  const cplane = document.getElementById('cplane');
+  const cx = 140, cy = 140, R = 100;
+  function el(tag, attrs) {
+    const e = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+  cplane.appendChild(el('line', { x1: 10, y1: cy, x2: 270, y2: cy, stroke: 'var(--line)', 'stroke-width': 1 }));
+  cplane.appendChild(el('line', { x1: cx, y1: 10, x2: cx, y2: 270, stroke: 'var(--line)', 'stroke-width': 1 }));
+  cplane.appendChild(el('circle', { cx, cy, r: R, fill: 'none', stroke: 'var(--line-bright)', 'stroke-width': 1, 'stroke-dasharray': '3 4' }));
+  const t1 = el('text', { x: 274, y: cy - 6, fill: 'var(--text-faint)', 'font-family': 'var(--font-mono)', 'font-size': 11 }); t1.textContent = 'Re'; cplane.appendChild(t1);
+  const t2 = el('text', { x: cx + 6, y: 16, fill: 'var(--text-faint)', 'font-family': 'var(--font-mono)', 'font-size': 11 }); t2.textContent = 'Im'; cplane.appendChild(t2);
+  const zLine = el('line', { x1: cx, y1: cy, x2: cx + R, y2: cy, stroke: 'var(--copper)', 'stroke-width': 2.4, 'stroke-linecap': 'round' });
+  const zDot = el('circle', { cx: cx + R, cy, r: 6, fill: 'var(--copper)' });
+  cplane.appendChild(zLine); cplane.appendChild(zDot);
+
+  const rSlider = document.getElementById('r-slider');
+  const thetaSliderPlane = document.getElementById('theta-slider-plane');
+
+  function updatePlane() {
+    const r = +rSlider.value;
+    const thetaDeg = +thetaSliderPlane.value;
+    const theta = thetaDeg * Math.PI / 180;
+    const a = r * Math.cos(theta), b = r * Math.sin(theta);
+    const px = cx + r * R * Math.cos(theta), py = cy - r * R * Math.sin(theta);
+    zLine.setAttribute('x2', px); zLine.setAttribute('y2', py);
+    zDot.setAttribute('cx', px); zDot.setAttribute('cy', py);
+    document.getElementById('r-val').textContent = r.toFixed(2);
+    document.getElementById('theta-deg-val').textContent = thetaDeg + '°';
+    document.getElementById('z-readout').textContent = `${a.toFixed(2)} ${b >= 0 ? '+' : '-'} ${Math.abs(b).toFixed(2)}i`;
+    document.getElementById('mag-readout').textContent = r.toFixed(2);
+    document.getElementById('arg-readout').textContent = thetaDeg + '°';
+  }
+  rSlider.addEventListener('input', updatePlane);
+  thetaSliderPlane.addEventListener('input', updatePlane);
+  document.getElementById('times-i-btn').addEventListener('click', () => {
+    thetaSliderPlane.value = (+thetaSliderPlane.value + 90) % 360;
+    updatePlane();
+  });
+  updatePlane();
+
+  // ---- Step 3: phase gate on a real qubit ----
+  const q3 = new Qubit();
+  const widget3 = createBlochWidget(document.getElementById('bloch3'));
+  const phaseSlider = document.getElementById('phase-slider');
+
+  function fmtState3() {
+    const zero = C.abs(q3.a) < 1e-3 ? '' : `(${C.fmt(q3.a, 2)})|0⟩`;
+    const one = C.abs(q3.b) < 1e-3 ? '' : `${zero ? ' + ' : ''}(${C.fmt(q3.b, 2)})|1⟩`;
+    return (zero + one) || '0';
+  }
+
+  function applyPhase() {
+    q3.reset();
+    q3.H();
+    const theta = +phaseSlider.value * Math.PI / 180;
+    q3.applyMatrix([
+      [C.make(1), C.make(0)],
+      [C.make(0), C.make(Math.cos(theta), Math.sin(theta))]
+    ], `P(${phaseSlider.value}°)`);
+    const b = q3.bloch();
+    widget3.set(b.theta, b.phi);
+    document.getElementById('phase-deg-val').textContent = phaseSlider.value + '°';
+    document.getElementById('phase-state-readout').textContent = fmtState3();
+    document.getElementById('phase-prob0').textContent = (q3.prob0() * 100).toFixed(1) + '%';
+    document.getElementById('phase-prob1').textContent = (q3.prob1() * 100).toFixed(1) + '%';
+  }
+  phaseSlider.addEventListener('input', applyPhase);
+  document.getElementById('reset-btn3').addEventListener('click', applyPhase);
+  applyPhase();
+
+  initLessonProgress('complex-numbers');
+</script>
+{% endblock %}

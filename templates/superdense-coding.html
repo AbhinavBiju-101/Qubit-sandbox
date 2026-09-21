@@ -1,0 +1,125 @@
+{% from "_lesson_nav.html" import lesson_nav %}
+{% extends "base.html" %}
+{% block title %}Superdense Coding — Qubit Sandbox{% endblock %}
+{% block page_title %}Module 2 · Superdense Coding{% endblock %}
+
+{% block content %}
+
+<div class="pill green" style="margin-bottom:14px;">MODULE 2 · QUANTUM ALGORITHMS</div>
+<h1 style="margin-bottom:6px;">Teleportation's mirror image.</h1>
+<p class="lede muted" style="font-size:1.05rem;">Teleportation sends 1 qubit's state using entanglement + 2 classical bits. Superdense coding runs it backwards: send 2 classical bits using entanglement + 1 qubit.</p>
+
+<div class="lesson-progress-row">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+<!-- ===================== STEP 1 — THEORY ===================== -->
+<div class="lesson-step" data-step="step1">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">1</div>
+    <h3>One qubit, four possible messages</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Alice and Bob share a Bell pair, made in advance. Alice wants to send Bob one of four 2-bit messages — 00, 01, 10, or 11. She applies one of four gates to <em>her</em> half only (I, X, Z, or XZ), then physically sends that one qubit to Bob. Bob, now holding both qubits, applies CNOT then H and measures both — recovering Alice's exact 2 bits, every time, no errors.</p>
+    <p class="muted">A single unentangled qubit can only ever carry 1 bit reliably. Pre-shared entanglement is what lets one qubit's physical trip carry two classical bits instead — the entanglement was the "prepayment" that makes the extra capacity possible.</p>
+    <div class="callout blue">Same four gates you already know from Single Qubit — I, X, Z, and X-then-Z — now doing the job of a 2-bit label instead of a Bloch rotation.</div>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step1"> One qubit's trip, two bits recovered
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 2 — SEND A MESSAGE ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
+    <h3>Encode, send, decode</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Pick Alice's 2-bit message. We'll create the shared Bell pair, apply her encoding gate to her qubit only, then run Bob's decoding circuit and measure — watch the recovered bits match what she picked.</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · SUPERDENSE CODING</div>
+      <div class="tag-list" id="msg-buttons">
+        <div class="tag" data-msg="00">00</div>
+        <div class="tag" data-msg="01">01</div>
+        <div class="tag" data-msg="10">10</div>
+        <div class="tag" data-msg="11">11</div>
+      </div>
+      <button id="sdc-run" class="primary block" style="margin-top:16px;" disabled>Send it</button>
+      <div class="mono" id="sdc-log" style="font-size:0.85rem; color:var(--text-muted); background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-sm); padding:14px; margin-top:16px; min-height:40px;">Pick a message to begin.</div>
+      <div class="grid-2" style="margin-top:16px;">
+        <div class="stat"><span class="num" id="sdc-sent">—</span><span class="label">Alice sent</span></div>
+        <div class="stat"><span class="num" id="sdc-recovered">—</span><span class="label">Bob recovered</span></div>
+      </div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step2"> I sent all four possible messages
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — BONUS ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
+    <h3>Bonus: not faster-than-light either</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Bob can't decode anything until Alice's physical qubit actually reaches him — the entanglement was shared in advance, but the 2 bits of information only exist for Bob once both qubits are back in the same place. Superdense coding compresses <em>what has to travel</em>, not the universe's speed limit.</p>
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step3"> Still bounded by one qubit's physical trip
+    </label>
+  </div>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
+<script src="{{ url_for('static', filename='js/multiqubit.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script>
+  let selectedMsg = null;
+
+  document.querySelectorAll('#msg-buttons .tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+      document.querySelectorAll('#msg-buttons .tag').forEach(t => t.classList.remove('active'));
+      tag.classList.add('active');
+      selectedMsg = tag.dataset.msg;
+      document.getElementById('sdc-run').disabled = false;
+      document.getElementById('sdc-log').textContent = `Message ${selectedMsg} selected. Click "Send it" to run the protocol.`;
+    });
+  });
+
+  document.getElementById('sdc-run').addEventListener('click', () => {
+    const mq = new MultiQubit(2); // q0 = Alice's qubit, q1 = Bob's qubit
+    mq.H(0); mq.CNOT(0, 1); // shared Bell pair
+
+    const b0 = selectedMsg[0], b1 = selectedMsg[1];
+    // Alice's encoding, applied to her qubit (q0) only.
+    if (b0 === '1') mq.Z(0);
+    if (b1 === '1') mq.X(0);
+
+    // Bob's decoding, once he has both qubits.
+    mq.CNOT(0, 1); mq.H(0);
+    const r0 = mq.measureQubit(0);
+    const r1 = mq.measureQubit(1);
+
+    document.getElementById('sdc-sent').textContent = selectedMsg;
+    document.getElementById('sdc-recovered').textContent = `${r0}${r1}`;
+    const match = `${r0}${r1}` === selectedMsg;
+    document.getElementById('sdc-log').textContent = match
+      ? `Bob recovered ${r0}${r1} — exact match, using one physical qubit's trip.`
+      : `Bob recovered ${r0}${r1} — mismatch (shouldn't happen; try again).`;
+  });
+
+  initLessonProgress('superdense-coding');
+</script>
+{% endblock %}

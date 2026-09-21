@@ -1,0 +1,139 @@
+{% from "_lesson_nav.html" import lesson_nav %}
+{% extends "base.html" %}
+{% block title %}Operator Types — Qubit Sandbox{% endblock %}
+{% block page_title %}Module 3 · Operator Types{% endblock %}
+
+{% block content %}
+
+<div class="pill" style="margin-bottom:14px;">MODULE 3 · THE MATH UNDERNEATH</div>
+<h1 style="margin-bottom:6px;">Three properties, three completely different jobs.</h1>
+<p class="lede muted" style="font-size:1.05rem;">Every matrix this app has used is one of exactly three types — and which type it is determines whether it's a gate, an observable, or a measurement.</p>
+
+<div class="lesson-progress-row">
+  <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
+  <span class="lesson-progress-pct" id="lp-pct">0%</span>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+<!-- ===================== STEP 1 — THEORY ===================== -->
+<div class="lesson-step" data-step="step1">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">1</div>
+    <h3>Three definitions, in matrix arithmetic</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted"><span class="mono">M†</span> means "conjugate-transpose <span class="mono">M</span>" — flip it and conjugate every entry (exactly the bra-from-ket operation, applied to a whole matrix). Three properties, three roles:</p>
+    <div class="grid-3" style="margin-top:12px;">
+      <div class="stat"><span class="num" style="font-size:1rem;">Hermitian</span><span class="label"><span class="mono">M† = M</span> — observables. Guarantees real eigenvalues, so measurement outcomes are always real numbers.</span></div>
+      <div class="stat"><span class="num" style="font-size:1rem;">Unitary</span><span class="label"><span class="mono">M†M = I</span> — gates. Guarantees the state stays normalized; every gate you've ever clicked is one.</span></div>
+      <div class="stat"><span class="num" style="font-size:1rem;">Projection</span><span class="label"><span class="mono">M² = M</span> — measurement. Applying it twice does nothing new, exactly like "already collapsed, stays collapsed."</span></div>
+    </div>
+    <div class="callout blue">A matrix can be more than one at once — Z is both Hermitian <em>and</em> unitary, which is exactly why it can be measured (as an observable) or applied (as a gate).</div>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step1"> M†=M observable, M†M=I gate, M²=M measurement
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 2 — CLASSIFY ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
+    <h3>Classify every matrix you've been using</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Pick a matrix. We'll actually compute <span class="mono">M†</span>, <span class="mono">M†M</span>, and <span class="mono">M²</span> and check each property against it — not just tell you the answer.</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · CLASSIFY A MATRIX</div>
+      <div class="tag-list" id="op-buttons">
+        <div class="tag" data-op="I">I</div>
+        <div class="tag" data-op="X">X</div>
+        <div class="tag" data-op="Z">Z</div>
+        <div class="tag" data-op="H">H</div>
+        <div class="tag" data-op="P0">|0⟩⟨0|</div>
+        <div class="tag" data-op="NH">[[1,1],[0,1]]</div>
+      </div>
+      <div class="mono" id="op-log" style="font-size:0.85rem; color:var(--text-muted); background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-sm); padding:14px; margin-top:16px; white-space:pre-wrap; min-height:100px;">Pick a matrix to begin.</div>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step2"> I classified at least 4 matrices by computed property
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — BONUS ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
+    <h3>Bonus: the odd one out</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted"><span class="mono">[[1,1],[0,1]]</span> is neither Hermitian, unitary, nor a projection — which is exactly why it never shows up as a gate or an observable anywhere in this app. Every legitimate quantum gate has to be unitary; a matrix that isn't simply doesn't correspond to any physically realizable operation on a qubit.</p>
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step3"> Not every matrix is a valid gate or observable
+    </label>
+  </div>
+</div>
+
+{{ lesson_nav(prev_lesson, next_lesson) }}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lesson-progress.js') }}"></script>
+<script>
+  const S = 1/Math.sqrt(2);
+  const MATS = {
+    I: [[C.make(1),C.make(0)],[C.make(0),C.make(1)]],
+    X: [[C.make(0),C.make(1)],[C.make(1),C.make(0)]],
+    Z: [[C.make(1),C.make(0)],[C.make(0),C.make(-1)]],
+    H: [[C.make(S),C.make(S)],[C.make(S),C.make(-S)]],
+    P0: [[C.make(1),C.make(0)],[C.make(0),C.make(0)]],
+    NH: [[C.make(1),C.make(1)],[C.make(0),C.make(1)]],
+  };
+
+  function dagger(m) { return [[conj(m[0][0]), conj(m[1][0])], [conj(m[0][1]), conj(m[1][1])]]; }
+  function conj(z) { return { re: z.re, im: -z.im }; }
+  function matmul(a, b) {
+    const out = [[null,null],[null,null]];
+    for (let i=0;i<2;i++) for (let j=0;j<2;j++) {
+      out[i][j] = C.add(C.mul(a[i][0], b[0][j]), C.mul(a[i][1], b[1][j]));
+    }
+    return out;
+  }
+  function approxEqMat(a, b, eps=1e-6) {
+    for (let i=0;i<2;i++) for (let j=0;j<2;j++) {
+      if (Math.abs(a[i][j].re-b[i][j].re) > eps || Math.abs(a[i][j].im-b[i][j].im) > eps) return false;
+    }
+    return true;
+  }
+  function fmtMat(m) { return `[[${C.fmt(m[0][0],2)}, ${C.fmt(m[0][1],2)}], [${C.fmt(m[1][0],2)}, ${C.fmt(m[1][1],2)}]]`; }
+  const IDENTITY = [[C.make(1),C.make(0)],[C.make(0),C.make(1)]];
+
+  document.querySelectorAll('#op-buttons .tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+      document.querySelectorAll('#op-buttons .tag').forEach(t => t.classList.remove('active'));
+      tag.classList.add('active');
+      const m = MATS[tag.dataset.op];
+      const md = dagger(m);
+      const isHermitian = approxEqMat(m, md);
+      const mdM = matmul(md, m);
+      const isUnitary = approxEqMat(mdM, IDENTITY);
+      const m2 = matmul(m, m);
+      const isProjection = approxEqMat(m2, m);
+
+      document.getElementById('op-log').textContent =
+        `M = ${fmtMat(m)}\nM† = ${fmtMat(md)}\n\n` +
+        `M† = M? ${isHermitian ? 'YES — Hermitian' : 'no'}\n` +
+        `M†M = I? ${isUnitary ? 'YES — Unitary' : 'no'}\n` +
+        `M² = M? ${isProjection ? 'YES — Projection' : 'no'}`;
+    });
+  });
+
+  initLessonProgress('operator-types');
+</script>
+{% endblock %}
