@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grover's Search — embeddable widget</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<style>
+  body{ background: var(--surface); padding: 18px; }
+  .embed-wrap{ max-width: 520px; margin: 0 auto; }
+  .embed-credit{ text-align: center; margin-top: 14px; font-size: 0.78rem; }
+  .embed-credit a{ color: var(--text-faint); }
+</style>
+</head>
+<body>
+
+<div class="embed-wrap">
+  <div class="panel">
+    <div class="panel-label">GROVER'S SEARCH (N=4)</div>
+    <div class="tag-list" id="grover-target-buttons">
+      <div class="tag" data-target="0">|00⟩</div>
+      <div class="tag" data-target="1">|01⟩</div>
+      <div class="tag" data-target="2">|10⟩</div>
+      <div class="tag" data-target="3">|11⟩</div>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:16px;">
+      <button id="grover-init" disabled>1. Superpose</button>
+      <button id="grover-oracle" disabled>2. Oracle</button>
+      <button id="grover-diffuse" disabled>3. Diffuse</button>
+    </div>
+    <div style="margin-top:18px;">
+      {% for k in ['00','01','10','11'] %}
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+        <div class="mono" style="width:40px; color:var(--text-muted); font-size:0.85rem;">|{{ k }}⟩</div>
+        <div style="flex:1; background:var(--surface-alt); border:1px solid var(--line); border-radius:999px; height:18px; overflow:hidden;"><div id="gbar-{{ k }}" style="height:100%; width:25%; background:var(--primary); transition:width 0.5s ease;"></div></div>
+        <div class="mono" id="gpct-{{ k }}" style="width:50px; text-align:right; font-size:0.8rem;">25%</div>
+      </div>
+      {% endfor %}
+    </div>
+    <button id="grover-measure" class="small" style="margin-top:6px;" disabled>Measure</button>
+    <div class="mono muted" style="font-size:0.8rem; margin-top:8px;">Result: <span id="grover-result">—</span></div>
+  </div>
+  <div class="embed-credit">
+    <a href="{{ url_for('demo_grovers_search') }}" target="_blank" rel="noopener">Qubit Sandbox — open the full demo →</a>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
+<script src="{{ url_for('static', filename='js/multiqubit.js') }}"></script>
+<script>
+  const LABELS = ['00', '01', '10', '11'];
+  let mq = new MultiQubit(2);
+  let target = null;
+
+  function refreshBars() {
+    const probs = mq.probabilities();
+    LABELS.forEach((lab, i) => {
+      const pct = (probs[i] * 100);
+      document.getElementById('gbar-' + lab).style.width = pct + '%';
+      document.getElementById('gpct-' + lab).textContent = pct.toFixed(1) + '%';
+    });
+  }
+
+  document.querySelectorAll('#grover-target-buttons .tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+      document.querySelectorAll('#grover-target-buttons .tag').forEach(t => t.classList.remove('active'));
+      tag.classList.add('active');
+      target = +tag.dataset.target;
+      mq = new MultiQubit(2);
+      refreshBars();
+      document.getElementById('grover-init').disabled = false;
+      document.getElementById('grover-oracle').disabled = true;
+      document.getElementById('grover-diffuse').disabled = true;
+      document.getElementById('grover-measure').disabled = true;
+      document.getElementById('grover-result').textContent = '—';
+    });
+  });
+  document.getElementById('grover-init').addEventListener('click', () => {
+    mq.H(0); mq.H(1); refreshBars();
+    document.getElementById('grover-init').disabled = true;
+    document.getElementById('grover-oracle').disabled = false;
+  });
+  document.getElementById('grover-oracle').addEventListener('click', () => {
+    mq.markPhase(target); refreshBars();
+    document.getElementById('grover-oracle').disabled = true;
+    document.getElementById('grover-diffuse').disabled = false;
+  });
+  document.getElementById('grover-diffuse').addEventListener('click', () => {
+    mq.diffusionAboutMean(); refreshBars();
+    document.getElementById('grover-diffuse').disabled = true;
+    document.getElementById('grover-measure').disabled = false;
+  });
+  document.getElementById('grover-measure').addEventListener('click', () => {
+    const r0 = mq.measureQubit(0), r1 = mq.measureQubit(1);
+    document.getElementById('grover-result').textContent = `|${r0}${r1}⟩`;
+    document.getElementById('grover-measure').disabled = true;
+    refreshBars();
+  });
+</script>
+</body>
+</html>

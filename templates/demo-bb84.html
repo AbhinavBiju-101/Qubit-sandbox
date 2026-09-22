@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Demo · BB84 — Qubit Sandbox{% endblock %}
+{% block page_title %}Demo · BB84 Key Exchange{% endblock %}
+
+{% block content %}
+
+<div class="pill blue" style="margin-bottom:14px;">WIDGET · BB84 KEY EXCHANGE</div>
+<h1 style="margin-bottom:6px;">Watch eavesdropping become detectable.</h1>
+<p class="lede muted" style="font-size:1.05rem;">16 qubits, sent one at a time, each in a randomly chosen basis. Toggle Eve on and off and compare the resulting error rate — 0% clean, ~25% with an eavesdropper, every time. Full explanation in the <a href="{{ url_for('bb84') }}">full BB84 lesson</a> (Module 6, sign-in required) — this page is just the live widget.</p>
+
+<div class="panel" style="margin-top:24px;">
+  <label style="display:flex; align-items:center; gap:8px; font-size:0.9rem; color:var(--text-muted); cursor:pointer; margin-bottom:14px;">
+    <input type="checkbox" id="eve-toggle"> Eve is intercepting every qubit
+  </label>
+  <button id="bb84-run" class="primary">Run the exchange</button>
+
+  <div style="overflow-x:auto; margin-top:18px;">
+    <table class="mono" style="width:100%; border-collapse:collapse; font-size:0.78rem;" id="bb84-table">
+      <thead><tr style="color:var(--text-faint); text-align:left;"><th style="padding:4px 8px;">#</th><th>Alice bit</th><th>Alice basis</th><th>Bob basis</th><th>Bob result</th><th>Kept?</th></tr></thead>
+      <tbody id="bb84-tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="grid-2" style="margin-top:18px;">
+    <div class="stat"><span class="num" id="sifted-key">—</span><span class="label">Sifted key</span></div>
+    <div class="stat"><span class="num" id="error-rate">—</span><span class="label">Sampled error rate</span></div>
+  </div>
+  <div class="callout" id="bb84-verdict" style="margin-top:16px; display:none;"></div>
+</div>
+
+<div class="callout" style="margin-top:20px;">
+  <strong>Want this on your own site?</strong> This widget is also available as a standalone, chrome-less page built for embedding. <a href="{{ url_for('embed_bb84') }}" target="_blank" rel="noopener">Open the embeddable version →</a>
+  <details style="margin-top:10px;">
+    <summary style="cursor:pointer; font-size:0.85rem; color:var(--text-muted);">Get the embed code</summary>
+    <pre class="mono" style="background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-sm); padding:12px; font-size:0.78rem; overflow-x:auto; margin-top:10px;">&lt;iframe src="{{ request.url_root.rstrip('/') }}{{ url_for('embed_bb84') }}"
+        width="640" height="520" style="border:1px solid #e1e7ee; border-radius:12px;"
+        loading="lazy"&gt;&lt;/iframe&gt;</pre>
+  </details>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
+<script>
+  const N = 16;
+  function prepare(bit, basis) {
+    const q = new Qubit();
+    if (basis === 'X') q.H();
+    if (bit === 1) { if (basis === 'X') q.Z(); else q.X(); }
+    return q;
+  }
+  function measure(q, basis) {
+    if (basis === 'X') q.H();
+    return q.measure();
+  }
+
+  document.getElementById('bb84-run').addEventListener('click', () => {
+    const eveOn = document.getElementById('eve-toggle').checked;
+    const tbody = document.getElementById('bb84-tbody');
+    tbody.innerHTML = '';
+    let sifted = [], siftedBob = [];
+
+    for (let i = 0; i < N; i++) {
+      const aliceBit = Math.random() < 0.5 ? 0 : 1;
+      const aliceBasis = Math.random() < 0.5 ? 'Z' : 'X';
+      let q = prepare(aliceBit, aliceBasis);
+
+      if (eveOn) {
+        const eveBasis = Math.random() < 0.5 ? 'Z' : 'X';
+        const eveResult = measure(q, eveBasis);
+        q = prepare(eveResult, eveBasis);
+      }
+
+      const bobBasis = Math.random() < 0.5 ? 'Z' : 'X';
+      const bobResult = measure(q, bobBasis);
+      const kept = aliceBasis === bobBasis;
+      if (kept) { sifted.push(aliceBit); siftedBob.push(bobResult); }
+
+      const row = document.createElement('tr');
+      row.style.borderTop = '1px solid var(--line)';
+      row.innerHTML = `<td style="padding:4px 8px;">${i+1}</td><td>${aliceBit}</td><td>${aliceBasis}</td><td>${bobBasis}</td><td>${bobResult}</td><td>${kept ? '✓' : '—'}</td>`;
+      tbody.appendChild(row);
+    }
+
+    document.getElementById('sifted-key').textContent = sifted.length ? sifted.join('') : '(none)';
+
+    let mismatches = 0;
+    for (let i = 0; i < sifted.length; i++) if (sifted[i] !== siftedBob[i]) mismatches++;
+    const errRate = sifted.length ? (mismatches / sifted.length * 100) : 0;
+    document.getElementById('error-rate').textContent = errRate.toFixed(1) + '%';
+
+    const verdict = document.getElementById('bb84-verdict');
+    verdict.style.display = 'block';
+    if (errRate > 10) {
+      verdict.className = 'callout amber';
+      verdict.textContent = `${errRate.toFixed(1)}% errors on a key that should be perfect — the signature of an eavesdropper.`;
+    } else {
+      verdict.className = 'callout green';
+      verdict.textContent = `${errRate.toFixed(1)}% errors — clean. No evidence of eavesdropping on this run.`;
+    }
+  });
+</script>
+{% endblock %}

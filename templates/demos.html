@@ -45,13 +45,49 @@
     </div>
   </a>
 
+  <a href="{{ url_for('demo_grovers_search') }}" class="card-link">
+    <div class="lesson-card">
+      <div class="licon" style="background:var(--green-soft); color:var(--green);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-5-5"/></svg>
+      </div>
+      <span class="pill green" style="margin-bottom:10px; width:fit-content;">Widget · Grover's Search</span>
+      <h3>Grover's Search</h3>
+      <p>Search 4 items for 1 marked one — one oracle-plus-diffusion round takes it from 25% to exactly 100%, live.</p>
+      <div style="margin-top:auto; padding-top:14px;"><span class="pill">Open demo →</span></div>
+    </div>
+  </a>
+
+  <a href="{{ url_for('demo_double_slit') }}" class="card-link">
+    <div class="lesson-card">
+      <div class="licon" style="background:var(--amber-soft); color:var(--amber-dim);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3v18M18 3v18"/><path d="M2 12c2-4 3-4 4 0s2 4 4 0 2-4 4 0 2 4 4 0 2-4 4 0"/></svg>
+      </div>
+      <span class="pill amber" style="margin-bottom:10px; width:fit-content;">Widget · Double Slit</span>
+      <h3>Double Slit</h3>
+      <p>Fire particles one at a time and watch the interference pattern build, dot by dot — then toggle a detector and watch it vanish.</p>
+      <div style="margin-top:auto; padding-top:14px;"><span class="pill">Open demo →</span></div>
+    </div>
+  </a>
+
+  <a href="{{ url_for('demo_bb84') }}" class="card-link">
+    <div class="lesson-card">
+      <div class="licon" style="background:var(--primary-soft); color:var(--primary);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="7.5" cy="15.5" r="3.5"/><path d="M10 13l9-9M15 4h4v4"/></svg>
+      </div>
+      <span class="pill blue" style="margin-bottom:10px; width:fit-content;">Widget · BB84</span>
+      <h3>BB84 Key Exchange</h3>
+      <p>Run a 16-qubit quantum key exchange with an Eve toggle, and watch the error rate reveal eavesdropping in real time.</p>
+      <div style="margin-top:auto; padding-top:14px;"><span class="pill">Open demo →</span></div>
+    </div>
+  </a>
+
   <div class="lesson-card">
     <div class="soon-badge">More on the way</div>
     <div class="licon" style="background:var(--surface-alt); color:var(--text-faint);">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
     </div>
     <h3>Future demos</h3>
-    <p>As more short, standalone demo lessons get built (by us, and eventually via the Lesson Creator), they'll show up on this page — Two Qubits, Physical Qubit, and Reality Check are full lessons in the meantime, reachable from the Dashboard once you're signed in.</p>
+    <p>Grover's Search, Double Slit, and BB84 above are curated highlights, not the whole catalog — all 25 Module 2-6 widgets (plus these three, with full explanations) are reachable from <a href="{{ url_for('lessons') }}">the full lesson catalog</a> once you're signed in.</p>
   </div>
 
 </div>

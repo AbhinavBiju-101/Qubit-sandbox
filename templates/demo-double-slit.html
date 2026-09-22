@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Demo · Double Slit — Qubit Sandbox{% endblock %}
+{% block page_title %}Demo · Double Slit{% endblock %}
+
+{% block content %}
+
+<div class="pill amber" style="margin-bottom:14px;">WIDGET · DOUBLE SLIT</div>
+<h1 style="margin-bottom:6px;">One particle at a time, building a wave pattern.</h1>
+<p class="lede muted" style="font-size:1.05rem;">Fire particles one at a time through two slits — each lands as a single dot, yet thousands of them build the striped interference pattern only a wave should make. Toggle the detector to see the fringes vanish. Full explanation in the <a href="{{ url_for('wave_particle_duality') }}">full Wave-Particle Duality lesson</a> (Module 4, sign-in required) — this page is just the live widget.</p>
+
+<div class="panel" style="margin-top:24px;">
+  <div class="panel-label">SANDBOX · DOUBLE SLIT</div>
+  <canvas id="slit-canvas" width="560" height="220" style="width:100%; max-width:560px; display:block; margin:0 auto; background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-sm);"></canvas>
+  <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px;">
+    <button id="fire-particles" class="primary">Fire 200 particles</button>
+    <button id="clear-canvas" class="small ghost">Clear</button>
+    <label style="display:flex; align-items:center; gap:6px; font-size:0.88rem; color:var(--text-muted); cursor:pointer;">
+      <input type="checkbox" id="detector-toggle"> Which-path detector ON
+    </label>
+    <span class="mono muted" style="font-size:0.85rem;">Landed: <span id="particle-count">0</span></span>
+  </div>
+</div>
+
+<div class="callout" style="margin-top:20px;">
+  <strong>Want this on your own site?</strong> This widget is also available as a standalone, chrome-less page built for embedding. <a href="{{ url_for('embed_double_slit') }}" target="_blank" rel="noopener">Open the embeddable version →</a>
+  <details style="margin-top:10px;">
+    <summary style="cursor:pointer; font-size:0.85rem; color:var(--text-muted);">Get the embed code</summary>
+    <pre class="mono" style="background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-sm); padding:12px; font-size:0.78rem; overflow-x:auto; margin-top:10px;">&lt;iframe src="{{ request.url_root.rstrip('/') }}{{ url_for('embed_double_slit') }}"
+        width="620" height="360" style="border:1px solid #e1e7ee; border-radius:12px;"
+        loading="lazy"&gt;&lt;/iframe&gt;</pre>
+  </details>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const canvas = document.getElementById('slit-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  let landed = 0;
+
+  function fringeFreq() { return 6; }
+
+  function sampleX(detectorOn) {
+    const freq = fringeFreq();
+    for (let tries = 0; tries < 40; tries++) {
+      const x = Math.random() * W;
+      const density = detectorOn ? 1 : (1 + Math.cos(2 * Math.PI * freq * (x - W/2) / W)) / 2;
+      if (Math.random() < density) return x;
+    }
+    return Math.random() * W;
+  }
+
+  const dotColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#7dd3fc';
+
+  function dropParticle() {
+    const detectorOn = document.getElementById('detector-toggle').checked;
+    const x = sampleX(detectorOn);
+    const y = 10 + Math.random() * (H - 20);
+    ctx.fillStyle = dotColor;
+    ctx.globalAlpha = 0.75;
+    ctx.beginPath();
+    ctx.arc(x, y, 1.6, 0, Math.PI * 2);
+    ctx.fill();
+    landed++;
+    document.getElementById('particle-count').textContent = landed;
+  }
+
+  document.getElementById('fire-particles').addEventListener('click', () => {
+    let i = 0;
+    const total = 200;
+    const interval = setInterval(() => {
+      dropParticle();
+      i++;
+      if (i >= total) clearInterval(interval);
+    }, 6);
+  });
+
+  document.getElementById('clear-canvas').addEventListener('click', () => {
+    ctx.clearRect(0, 0, W, H);
+    landed = 0;
+    document.getElementById('particle-count').textContent = '0';
+  });
+</script>
+{% endblock %}

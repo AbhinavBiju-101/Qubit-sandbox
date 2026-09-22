@@ -7,7 +7,41 @@ reflects the single combined, current state after each merge.
 
 ---
 
-## Recently shipped (this round — 4th-step sweep completed across Modules 3-6; theory gap fixed)
+## Recently shipped (this round — the widget sweep: open demo + embed pages)
+
+- **Investigated before building, per the "check first" note from last
+  round: `/demos` *is* the real widgets gallery**, not the catalog's
+  unused `widgets` field (confirmed via grep — that field is written
+  to the catalog dict but never rendered by any template; it's inert).
+  `/demos` is open, no sign-in, hand-curated, and had a literal "More
+  on the way" placeholder card. The actual gap: every Module 2-6
+  lesson is `@login_required`, so none of their 25 real widgets had
+  any open-access equivalent the way Coin Flip (Module 1) does.
+- **Added 3 curated open demo + embed page pairs**, following the
+  exact existing `/demos/coin-flip` + `/embed/coin-flip` pattern
+  precisely (same minimal chrome-less embed shell, same "get embed
+  code" `<details>` block, same in-shell demo page structure):
+  Grover's Search (Module 2 — an algorithm), the double-slit (Module
+  4 — a physics visual), and BB84 (Module 6 — a crypto demo). One
+  from each broad category, not all 25 — opening everything would
+  just duplicate `/lessons` and defeat the point of the sign-in gate
+  on the full lessons.
+  New routes: `/demos/grovers-search`, `/demos/double-slit`,
+  `/demos/bb84` (full pages, in the normal sidebar shell) and
+  `/embed/grovers-search`, `/embed/double-slit`, `/embed/bb84`
+  (chrome-less, iframe-ready, no restrictive frame headers — same
+  reasoning as the existing two embeds). `demos.html`'s placeholder
+  card replaced with the three real ones; `BUILTIN_WIDGETS` extended
+  to match, for whenever that field does get a consumer.
+  Every widget's JS is a direct copy of its already-verified full-
+  lesson logic (not reimplemented) — confirmed via a structural diff
+  against the original files that the copied `mq.*` call sequences
+  (Grover) and `prepare`/`measure` function bodies (BB84) are
+  byte-identical, not just "looks the same," before shipping.
+
+---
+
+## Recently shipped (previous round — 4th-step sweep completed across Modules 3-6; theory gap fixed)
 
 - **Bug fix, called out directly: Operator Types' Step 1 theory was too
   compressed** (three terse stat-card labels, no real prose explaining
@@ -96,19 +130,13 @@ reflects the single combined, current state after each merge.
 
 ---
 
-## Explicitly deferred, not silently dropped
+## Nothing currently deferred
 
-One ask from two rounds ago is now done (the 4th-step sweep — see
-above) and removed from this list. One remains:
-
-- **A standalone "widgets gallery"** the way Module 1's `BUILTIN_WIDGETS`
-  implicitly feeds one (worth checking exactly what that currently
-  renders and where, before assuming Module 2-6's simulations are
-  "missing" from it versus just not surfaced the same way) — each
-  Module 2-6 lesson *does* already have a genuine unique interactive
-  widget (verified working, not templated filler — see the last two
-  rounds' Node-based functional verification), so this is about
-  discoverability/reuse outside the lesson flow, not missing content.
+Both items from the earlier "explicitly deferred" list (the 4th-step
+sweep, and the widgets gallery) are done as of this round and the
+previous one. Nothing is known to be intentionally left undone right
+now — if something surfaces, it goes here rather than being dropped
+silently, per how this file has worked throughout.
 
 ---
 

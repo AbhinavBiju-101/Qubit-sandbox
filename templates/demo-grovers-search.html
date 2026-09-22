@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Demo · Grover's Search — Qubit Sandbox{% endblock %}
+{% block page_title %}Demo · Grover's Search{% endblock %}
+
+{% block content %}
+
+<div class="pill green" style="margin-bottom:14px;">WIDGET · GROVER'S SEARCH</div>
+<h1 style="margin-bottom:6px;">Search 4 items, find the marked one with certainty.</h1>
+<p class="lede muted" style="font-size:1.05rem;">Pick which of 4 items is "marked," then step through the algorithm: uniform superposition → oracle → diffusion. One Grover iteration takes the marked item from 25% to exactly 100%. Full explanation and the phase-vs-probability breakdown live in the <a href="{{ url_for('grovers_search') }}">full Grover's Search lesson</a> (Module 2, sign-in required) — this page is just the live widget.</p>
+
+<div class="panel" style="margin-top:24px;">
+  <div class="panel-label">SANDBOX · GROVER'S SEARCH (N=4)</div>
+  <div class="tag-list" id="grover-target-buttons">
+    <div class="tag" data-target="0">|00⟩</div>
+    <div class="tag" data-target="1">|01⟩</div>
+    <div class="tag" data-target="2">|10⟩</div>
+    <div class="tag" data-target="3">|11⟩</div>
+  </div>
+  <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:16px;">
+    <button id="grover-init" disabled>1. Uniform superposition</button>
+    <button id="grover-oracle" disabled>2. Apply oracle (mark it)</button>
+    <button id="grover-diffuse" disabled>3. Apply diffusion</button>
+  </div>
+
+  <div style="margin-top:20px;">
+    {% for k in ['00','01','10','11'] %}
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+      <div class="mono" style="width:44px; color:var(--text-muted);">|{{ k }}⟩</div>
+      <div style="flex:1; background:var(--surface-alt); border:1px solid var(--line); border-radius:999px; height:22px; overflow:hidden;"><div id="gbar-{{ k }}" style="height:100%; width:25%; background:var(--primary); transition:width 0.5s ease;"></div></div>
+      <div class="mono" id="gpct-{{ k }}" style="width:56px; text-align:right;">25%</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <button id="grover-measure" class="small" style="margin-top:8px;" disabled>Measure</button>
+  <div class="mono muted" style="font-size:0.85rem; margin-top:8px;">Result: <span id="grover-result">—</span></div>
+</div>
+
+<div class="callout" style="margin-top:20px;">
+  <strong>Want this on your own site?</strong> This widget is also available as a standalone, chrome-less page built for embedding. <a href="{{ url_for('embed_grovers_search') }}" target="_blank" rel="noopener">Open the embeddable version →</a>
+  <details style="margin-top:10px;">
+    <summary style="cursor:pointer; font-size:0.85rem; color:var(--text-muted);">Get the embed code</summary>
+    <pre class="mono" style="background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-sm); padding:12px; font-size:0.78rem; overflow-x:auto; margin-top:10px;">&lt;iframe src="{{ request.url_root.rstrip('/') }}{{ url_for('embed_grovers_search') }}"
+        width="600" height="560" style="border:1px solid #e1e7ee; border-radius:12px;"
+        loading="lazy"&gt;&lt;/iframe&gt;</pre>
+  </details>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
+<script src="{{ url_for('static', filename='js/multiqubit.js') }}"></script>
+<script>
+  const LABELS = ['00', '01', '10', '11'];
+  let mq = new MultiQubit(2);
+  let target = null;
+
+  function refreshBars() {
+    const probs = mq.probabilities();
+    LABELS.forEach((lab, i) => {
+      const pct = (probs[i] * 100);
+      document.getElementById('gbar-' + lab).style.width = pct + '%';
+      document.getElementById('gpct-' + lab).textContent = pct.toFixed(1) + '%';
+    });
+  }
+
+  document.querySelectorAll('#grover-target-buttons .tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+      document.querySelectorAll('#grover-target-buttons .tag').forEach(t => t.classList.remove('active'));
+      tag.classList.add('active');
+      target = +tag.dataset.target;
+      mq = new MultiQubit(2);
+      refreshBars();
+      document.getElementById('grover-init').disabled = false;
+      document.getElementById('grover-oracle').disabled = true;
+      document.getElementById('grover-diffuse').disabled = true;
+      document.getElementById('grover-measure').disabled = true;
+      document.getElementById('grover-result').textContent = '—';
+    });
+  });
+
+  document.getElementById('grover-init').addEventListener('click', () => {
+    mq.H(0); mq.H(1);
+    refreshBars();
+    document.getElementById('grover-init').disabled = true;
+    document.getElementById('grover-oracle').disabled = false;
+  });
+
+  document.getElementById('grover-oracle').addEventListener('click', () => {
+    mq.markPhase(target);
+    refreshBars();
+    document.getElementById('grover-oracle').disabled = true;
+    document.getElementById('grover-diffuse').disabled = false;
+  });
+
+  document.getElementById('grover-diffuse').addEventListener('click', () => {
+    mq.diffusionAboutMean();
+    refreshBars();
+    document.getElementById('grover-diffuse').disabled = true;
+    document.getElementById('grover-measure').disabled = false;
+  });
+
+  document.getElementById('grover-measure').addEventListener('click', () => {
+    const r0 = mq.measureQubit(0), r1 = mq.measureQubit(1);
+    document.getElementById('grover-result').textContent = `|${r0}${r1}⟩`;
+    document.getElementById('grover-measure').disabled = true;
+    refreshBars();
+  });
+</script>
+{% endblock %}

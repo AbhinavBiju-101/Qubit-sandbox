@@ -572,6 +572,9 @@ ALL_BUILTIN_LESSONS = (
 BUILTIN_WIDGETS = [
     {"id": "coin-flip", "title": "Coin Flip (single qubit)", "href": "/embed/coin-flip"},
     {"id": "two-qubit-widget", "title": "Two Qubit / Bell state", "href": "/embed/two-qubit"},
+    {"id": "grovers-search-widget", "title": "Grover's Search", "href": "/embed/grovers-search"},
+    {"id": "double-slit-widget", "title": "Double Slit", "href": "/embed/double-slit"},
+    {"id": "bb84-widget", "title": "BB84 Key Exchange", "href": "/embed/bb84"},
 ]
 
 
@@ -845,6 +848,50 @@ def embed_two_qubit():
     # Same pattern as /embed/coin-flip, for the Bell-state/entanglement
     # widget. No restrictive frame headers here either, same reasoning.
     return render_template("embed-two-qubit.html")
+
+
+# ----------------------------------------------------------------------
+# Curated open (no sign-in) demo + embed pages for select Module 2-6
+# widgets. Every Module 2-6 lesson is @login_required, which is
+# correct for the full lesson experience but meant every one of those
+# 25 genuine widgets was undiscoverable outside the gated flow — no
+# equivalent to Module 1's /demos page. Rather than open every lesson
+# (defeats the point of gating), a curated trio gets the exact same
+# open demo + chrome-less embed treatment as /demos/coin-flip:
+# Grover's Search (Module 2), the double-slit (Module 4), and BB84
+# (Module 6) — one algorithm, one physics visual, one crypto demo.
+# Each page's widget JS is a straight copy of the already-verified
+# logic in its full lesson, just without the lesson-step scaffolding.
+# ----------------------------------------------------------------------
+
+@app.route("/demos/grovers-search")
+def demo_grovers_search():
+    return render_template("demo-grovers-search.html", active_page="demos")
+
+
+@app.route("/embed/grovers-search")
+def embed_grovers_search():
+    return render_template("embed-grovers-search.html")
+
+
+@app.route("/demos/double-slit")
+def demo_double_slit():
+    return render_template("demo-double-slit.html", active_page="demos")
+
+
+@app.route("/embed/double-slit")
+def embed_double_slit():
+    return render_template("embed-double-slit.html")
+
+
+@app.route("/demos/bb84")
+def demo_bb84():
+    return render_template("demo-bb84.html", active_page="demos")
+
+
+@app.route("/embed/bb84")
+def embed_bb84():
+    return render_template("embed-bb84.html")
 
 
 @app.route("/qm-basics")

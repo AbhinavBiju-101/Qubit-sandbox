@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Double Slit — embeddable widget</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<style>
+  body{ background: var(--surface); padding: 18px; }
+  .embed-wrap{ max-width: 600px; margin: 0 auto; }
+  .embed-credit{ text-align: center; margin-top: 14px; font-size: 0.78rem; }
+  .embed-credit a{ color: var(--text-faint); }
+</style>
+</head>
+<body>
+
+<div class="embed-wrap">
+  <div class="panel">
+    <div class="panel-label">DOUBLE SLIT</div>
+    <canvas id="slit-canvas" width="560" height="200" style="width:100%; display:block; margin:0 auto; background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-sm);"></canvas>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:12px;">
+      <button id="fire-particles" class="primary small">Fire 200</button>
+      <button id="clear-canvas" class="small ghost">Clear</button>
+      <label style="display:flex; align-items:center; gap:6px; font-size:0.82rem; color:var(--text-muted); cursor:pointer;">
+        <input type="checkbox" id="detector-toggle"> Detector ON
+      </label>
+      <span class="mono muted" style="font-size:0.8rem;">Landed: <span id="particle-count">0</span></span>
+    </div>
+  </div>
+  <div class="embed-credit">
+    <a href="{{ url_for('demo_double_slit') }}" target="_blank" rel="noopener">Qubit Sandbox — open the full demo →</a>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById('slit-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  let landed = 0;
+
+  function sampleX(detectorOn) {
+    const freq = 6;
+    for (let tries = 0; tries < 40; tries++) {
+      const x = Math.random() * W;
+      const density = detectorOn ? 1 : (1 + Math.cos(2 * Math.PI * freq * (x - W/2) / W)) / 2;
+      if (Math.random() < density) return x;
+    }
+    return Math.random() * W;
+  }
+  const dotColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#7dd3fc';
+  function dropParticle() {
+    const detectorOn = document.getElementById('detector-toggle').checked;
+    const x = sampleX(detectorOn);
+    const y = 10 + Math.random() * (H - 20);
+    ctx.fillStyle = dotColor;
+    ctx.globalAlpha = 0.75;
+    ctx.beginPath(); ctx.arc(x, y, 1.6, 0, Math.PI * 2); ctx.fill();
+    landed++;
+    document.getElementById('particle-count').textContent = landed;
+  }
+  document.getElementById('fire-particles').addEventListener('click', () => {
+    let i = 0;
+    const interval = setInterval(() => { dropParticle(); i++; if (i >= 200) clearInterval(interval); }, 6);
+  });
+  document.getElementById('clear-canvas').addEventListener('click', () => {
+    ctx.clearRect(0, 0, W, H); landed = 0;
+    document.getElementById('particle-count').textContent = '0';
+  });
+</script>
+</body>
+</html>

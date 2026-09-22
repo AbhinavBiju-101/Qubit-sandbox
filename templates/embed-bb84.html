@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BB84 — embeddable widget</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<style>
+  body{ background: var(--surface); padding: 18px; }
+  .embed-wrap{ max-width: 600px; margin: 0 auto; }
+  .embed-credit{ text-align: center; margin-top: 14px; font-size: 0.78rem; }
+  .embed-credit a{ color: var(--text-faint); }
+</style>
+</head>
+<body>
+
+<div class="embed-wrap">
+  <div class="panel">
+    <div class="panel-label">BB84 KEY EXCHANGE</div>
+    <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; color:var(--text-muted); cursor:pointer; margin-bottom:12px;">
+      <input type="checkbox" id="eve-toggle"> Eve is intercepting
+    </label>
+    <button id="bb84-run" class="primary small">Run the exchange</button>
+    <div class="grid-2" style="margin-top:16px;">
+      <div class="stat"><span class="num" id="sifted-key" style="font-size:0.95rem;">—</span><span class="label">Sifted key</span></div>
+      <div class="stat"><span class="num" id="error-rate">—</span><span class="label">Error rate</span></div>
+    </div>
+    <div class="callout" id="bb84-verdict" style="margin-top:12px; display:none; font-size:0.82rem;"></div>
+  </div>
+  <div class="embed-credit">
+    <a href="{{ url_for('demo_bb84') }}" target="_blank" rel="noopener">Qubit Sandbox — open the full demo →</a>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
+<script>
+  const N = 16;
+  function prepare(bit, basis) {
+    const q = new Qubit();
+    if (basis === 'X') q.H();
+    if (bit === 1) { if (basis === 'X') q.Z(); else q.X(); }
+    return q;
+  }
+  function measure(q, basis) { if (basis === 'X') q.H(); return q.measure(); }
+
+  document.getElementById('bb84-run').addEventListener('click', () => {
+    const eveOn = document.getElementById('eve-toggle').checked;
+    let sifted = [], siftedBob = [];
+    for (let i = 0; i < N; i++) {
+      const aliceBit = Math.random() < 0.5 ? 0 : 1;
+      const aliceBasis = Math.random() < 0.5 ? 'Z' : 'X';
+      let q = prepare(aliceBit, aliceBasis);
+      if (eveOn) {
+        const eveBasis = Math.random() < 0.5 ? 'Z' : 'X';
+        const eveResult = measure(q, eveBasis);
+        q = prepare(eveResult, eveBasis);
+      }
+      const bobBasis = Math.random() < 0.5 ? 'Z' : 'X';
+      const bobResult = measure(q, bobBasis);
+      if (aliceBasis === bobBasis) { sifted.push(aliceBit); siftedBob.push(bobResult); }
+    }
+    document.getElementById('sifted-key').textContent = sifted.length ? sifted.join('') : '(none)';
+    let mismatches = 0;
+    for (let i = 0; i < sifted.length; i++) if (sifted[i] !== siftedBob[i]) mismatches++;
+    const errRate = sifted.length ? (mismatches / sifted.length * 100) : 0;
+    document.getElementById('error-rate').textContent = errRate.toFixed(1) + '%';
+    const verdict = document.getElementById('bb84-verdict');
+    verdict.style.display = 'block';
+    if (errRate > 10) {
+      verdict.className = 'callout amber'; verdict.style.fontSize = '0.82rem';
+      verdict.textContent = `${errRate.toFixed(1)}% errors — signature of an eavesdropper.`;
+    } else {
+      verdict.className = 'callout green'; verdict.style.fontSize = '0.82rem';
+      verdict.textContent = `${errRate.toFixed(1)}% errors — clean.`;
+    }
+  });
+</script>
+</body>
+</html>
