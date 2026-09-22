@@ -98,6 +98,21 @@
   </div>
 </div>
 
+<!-- ===================== STEP 4 — OUTER PRODUCTS ===================== -->
+<div class="lesson-step" data-step="step4">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">4</div>
+    <h3>Flip it around: outer products build operators</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">A bra times a ket, <span class="mono">⟨φ|ψ⟩</span>, is a number. A ket times a bra, <span class="mono">|φ⟩⟨ψ|</span> — the <strong>outer product</strong> — is a matrix instead. <span class="mono">|0⟩⟨0|</span> is exactly the projector from Operator Types: it's the matrix <span class="mono">[[1,0],[0,0]]</span>, built from nothing but a ket and a bra multiplied the other way around.</p>
+    <p class="muted">This generalizes further than one projector: <em>any</em> operator can be written as a sum of outer products. Z, for instance, is exactly <span class="mono">|0⟩⟨0| − |1⟩⟨1|</span> — its two eigenvectors, each weighted by its own eigenvalue. That's not a special trick for Z; it's the general recipe (the "spectral decomposition") for rebuilding any Hermitian operator once you know its eigenvectors and eigenvalues, which is exactly what Eigenvalues and Eigenvectors covers next.</p>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step4"> Bra-ket = number; ket-bra = operator
+    </label>
+  </div>
+</div>
+
 {{ lesson_nav(prev_lesson, next_lesson) }}
 
 {% endblock %}

@@ -94,6 +94,22 @@
   </div>
 </div>
 
+<!-- ===================== STEP 4 — BIGGER MATRICES FOR MORE QUBITS ===================== -->
+<div class="lesson-step" data-step="step4">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">4</div>
+    <h3>CNOT is the same idea, just a 4×4 matrix</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Everything above used 2×2 matrices because one qubit lives in a 2-dimensional space. Two Qubits' CNOT gate acts on a 4-dimensional joint state (Tensor Products covers exactly why), so it has to be a 4×4 matrix instead — but it's the identical row-times-column rule, just with twice as many rows and columns:</p>
+    <div class="callout blue mono" style="font-size:0.85rem;">CNOT = [[1,0,0,0], [0,1,0,0], [0,0,0,1], [0,0,1,0]]</div>
+    <p class="muted">Read it the same way as any gate here: multiply this matrix against the 4-number joint state vector (in the |00⟩,|01⟩,|10⟩,|11⟩ order), and out comes the new joint state. The only thing that changed going from 1 qubit to 2 is the matrix's size — <span class="mono">2ⁿ × 2ⁿ</span> for n qubits — which is exactly why classically simulating more than a few dozen qubits this way becomes impossible.</p>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step4"> Multi-qubit gates are bigger matrices, same rule
+    </label>
+  </div>
+</div>
+
 {{ lesson_nav(prev_lesson, next_lesson) }}
 
 {% endblock %}

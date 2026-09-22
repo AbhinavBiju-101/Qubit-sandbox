@@ -81,6 +81,21 @@
   </div>
 </div>
 
+<!-- ===================== STEP 4 — ENTANGLEMENT-BASED QKD ===================== -->
+<div class="lesson-step" data-step="step4">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">4</div>
+    <h3>BB84's cousin: security from a Bell inequality instead</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">BB84 uses single qubits prepared and measured in random bases. A related protocol, <strong>E91</strong> (Artur Ekert, 1991), instead distributes entangled Bell pairs — the exact states from Two Qubits — one particle to Alice, one to Bob. Its security proof works differently: Alice and Bob check whether their correlated measurement results violate a Bell inequality (a statistical test that no classical, non-entangled explanation could pass). If the violation is there, genuine entanglement was present and untampered with; if Eve had intercepted and measured the particles, the entanglement — and the violation — would be destroyed.</p>
+    <p class="muted">This gives E91 a property BB84 doesn't have on its own: the security proof doesn't need to trust that Alice and Bob's devices are working correctly, only that the statistics violate the inequality — a idea called <strong>device-independent</strong> security, an active area of real quantum-cryptography research.</p>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step4"> E91: same goal as BB84, entanglement and a Bell-inequality check instead
+    </label>
+  </div>
+</div>
+
 {{ lesson_nav(prev_lesson, next_lesson) }}
 
 {% endblock %}

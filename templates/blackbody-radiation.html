@@ -75,6 +75,29 @@
   </div>
 </div>
 
+<!-- ===================== STEP 4 — TOTAL POWER, NOT JUST THE PEAK ===================== -->
+<div class="lesson-step" data-step="step4">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">4</div>
+    <h3>Add up the whole curve: the Stefan-Boltzmann law</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Wien's law (Step 2) tells you where the curve peaks. Integrating the <em>entire</em> Planck curve — every wavelength's contribution, added up — gives the total power radiated per unit area: <span class="mono">P = σT⁴</span>, with <span class="mono">σ</span> a fixed constant. That fourth power is dramatic: double an object's absolute temperature and it radiates <strong>16 times</strong> the power, not twice.</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · STEFAN-BOLTZMANN</div>
+      <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.85rem;"><span class="muted">Temperature</span><span id="sb-temp-val">5800 K (roughly the Sun)</span></div>
+      <input type="range" id="sb-temp-slider" min="2000" max="12000" step="100" value="5800">
+      <div class="stat" style="margin-top:14px;"><span class="num" id="sb-power-readout">—</span><span class="label">Radiated power per m² (kW/m²)</span></div>
+    </div>
+
+    <p class="muted" style="margin-top:14px;">This is the entire reason a blue-white star is so much brighter than a dim red one — it isn't burning proportionally more fuel, it's just a bit hotter feeding into a fourth-power law.</p>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step4"> Doubling temperature means 16× the radiated power, not 2×
+    </label>
+  </div>
+</div>
+
 {{ lesson_nav(prev_lesson, next_lesson) }}
 
 {% endblock %}
@@ -174,5 +197,15 @@
   draw();
 
   initLessonProgress('blackbody-radiation');
+
+  const SIGMA = 5.670374e-8; // Stefan-Boltzmann constant, W/(m^2 K^4)
+  function drawSB() {
+    const T = +document.getElementById('sb-temp-slider').value;
+    const P = SIGMA * Math.pow(T, 4); // W/m^2
+    document.getElementById('sb-power-readout').textContent = (P / 1000).toLocaleString(undefined, {maximumFractionDigits: 1}) + ' kW/m²';
+    document.getElementById('sb-temp-val').textContent = T + ' K' + (Math.abs(T - 5800) < 150 ? ' (roughly the Sun)' : '');
+  }
+  document.getElementById('sb-temp-slider').addEventListener('input', drawSB);
+  drawSB();
 </script>
 {% endblock %}

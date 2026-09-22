@@ -75,6 +75,21 @@
   </div>
 </div>
 
+<!-- ===================== STEP 4 — T1 AND T2 IN PRACTICE ===================== -->
+<div class="lesson-step" data-step="step4">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">4</div>
+    <h3>Real numbers, and why T2 can't beat T1</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Current leading superconducting qubits typically report T1 in the range of tens to a few hundred microseconds, with T2 usually somewhat shorter — the same real-hardware numbers Reality Check pulls from published specs. There's a strict mathematical relationship, not just an empirical pattern: <span class="mono">T2 ≤ 2·T1</span>, always. Losing amplitude information (T1, energy relaxation) necessarily scrambles phase information too, so phase can never survive strictly longer than twice the energy-relaxation time allows.</p>
+    <p class="muted">That inequality is why serious qubit engineering reports both numbers, never just one — a long T1 with a much shorter T2 (common when dephasing noise dominates over energy loss) still limits how long a superposition survives, even though the qubit "should" theoretically live longer by its T1 alone.</p>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step4"> T2 ≤ 2·T1, always — not a coincidence, a consequence
+    </label>
+  </div>
+</div>
+
 {{ lesson_nav(prev_lesson, next_lesson) }}
 
 {% endblock %}

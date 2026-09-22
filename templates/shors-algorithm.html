@@ -76,6 +76,21 @@
   </div>
 </div>
 
+<!-- ===================== STEP 4 — THE REAL-WORLD RESPONSE, ALREADY UNDERWAY ===================== -->
+<div class="lesson-step" data-step="step4">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">4</div>
+    <h3>Post-quantum cryptography: replacing the vulnerable math now</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">A large enough fault-tolerant quantum computer doesn't exist yet (NISQ, Module 5, covers exactly why that's still hard) — but data encrypted today can potentially be recorded now and decrypted later once one does, which makes this a present-tense engineering problem, not a distant hypothetical one. The field's response is <strong>post-quantum cryptography</strong>: classical encryption schemes built on math problems Shor's algorithm (and every other known quantum algorithm) provides no speedup against — mainly problems based on structured lattices, rather than factoring or the related discrete-logarithm problem BB84 and RSA both ultimately lean on in different ways.</p>
+    <p class="muted">This isn't speculative research anymore — NIST finalized its first standardized post-quantum algorithms (including CRYSTALS-Kyber for encryption and CRYSTALS-Dilithium for digital signatures) in 2024, and major browsers and cloud providers have already begun deploying them alongside classical algorithms. The gcd arithmetic you ran in Step 2 is a toy version of the exact threat driving that real migration.</p>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step4"> Post-quantum crypto: already standardized, already being deployed
+    </label>
+  </div>
+</div>
+
 {{ lesson_nav(prev_lesson, next_lesson) }}
 
 {% endblock %}

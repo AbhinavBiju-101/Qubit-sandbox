@@ -77,6 +77,21 @@
   </div>
 </div>
 
+<!-- ===================== STEP 4 — ONE NUMBER FOR "HOW GOOD IS THIS DEVICE" ===================== -->
+<div class="lesson-step" data-step="step4">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">4</div>
+    <h3>Benchmarking a real device: quantum volume</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Raw qubit count alone is a poor way to compare devices — a 100-qubit chip with weak connectivity and mediocre fidelity can be less useful than a well-connected 27-qubit chip with excellent gates. <strong>Quantum volume</strong> (introduced by IBM) tries to capture the whole picture in one number: it runs increasingly demanding random circuits (more qubits and more circuit depth together) and reports the largest square circuit — n qubits, n layers deep — the device can run successfully often enough. It bundles qubit count, connectivity, and the exact <span class="mono">(1-ε)ᴺ</span> curve from Step 2 into a single comparable figure.</p>
+    <p class="muted">It's not the only metric in use (others weight gate speed or specific application performance differently), and it's specifically not a measure of anything past the NISQ era — once real error correction is running, a "logical qubit count" replaces it as the number that actually matters. For now, though, quantum volume is the closest thing the field has to a single "how good is this chip" score.</p>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step4"> Quantum volume bundles count, connectivity, and fidelity into one number
+    </label>
+  </div>
+</div>
+
 {{ lesson_nav(prev_lesson, next_lesson) }}
 
 {% endblock %}

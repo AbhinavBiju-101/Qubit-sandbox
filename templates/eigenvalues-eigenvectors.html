@@ -84,6 +84,21 @@
   </div>
 </div>
 
+<!-- ===================== STEP 4 — WHEN EVERY VECTOR IS AN EIGENVECTOR ===================== -->
+<div class="lesson-step" data-step="step4">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">4</div>
+    <h3>Degenerate eigenvalues: more than one eigenvector, same number</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Z and X each have two <em>different</em> eigenvalues (+1 and −1), each with exactly one eigenvector (up to a phase). Some operators aren't so clean: the identity matrix <span class="mono">I</span> sends <em>every</em> vector to itself unchanged — <span class="mono">I|v⟩ = 1·|v⟩</span> for literally any <span class="mono">|v⟩</span>. Every vector in the whole space is an eigenvector of I, all sharing the single eigenvalue 1. That's called a <strong>degenerate</strong> eigenvalue — the same word Particle in a Box and The 3D Box used for energy levels shared by multiple distinct states, because it's the identical idea: one number, more than one eigenvector behind it.</p>
+    <p class="muted">Degeneracy matters practically because a measurement that returns a degenerate eigenvalue tells you less than a non-degenerate one — you learn <em>which number</em> you got, but not which of the several eigenvectors sharing it the state collapsed to.</p>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step4"> Degenerate eigenvalue = one number, more than one eigenvector
+    </label>
+  </div>
+</div>
+
 {{ lesson_nav(prev_lesson, next_lesson) }}
 
 {% endblock %}

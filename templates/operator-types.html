@@ -23,13 +23,16 @@
     <h3>Three definitions, in matrix arithmetic</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted"><span class="mono">M†</span> means "conjugate-transpose <span class="mono">M</span>" — flip it and conjugate every entry (exactly the bra-from-ket operation, applied to a whole matrix). Three properties, three roles:</p>
+    <p class="muted">Every matrix in quantum mechanics falls into a small number of named categories, and which one a given matrix belongs to tells you exactly what job it's allowed to do. <span class="mono">M†</span> means "conjugate-transpose <span class="mono">M</span>" — flip it across its diagonal and conjugate every entry (exactly the bra-from-ket operation, applied to a whole matrix instead of one vector).</p>
+    <p class="muted"><strong>Hermitian</strong> (<span class="mono">M† = M</span>) matrices are the ones that represent <strong>observables</strong> — anything you could physically measure, like the Z operator from Measurement & Stern-Gerlach. The defining reason this property matters: a theorem guarantees every Hermitian matrix has only <em>real</em> eigenvalues. That's not a coincidence — it's exactly why a measurement never hands you an imaginary number back. Eigenvalues and Eigenvectors, next lesson, is built entirely on this fact.</p>
+    <p class="muted"><strong>Unitary</strong> (<span class="mono">M†M = I</span>) matrices are the ones that represent <strong>gates</strong> — anything that evolves a state forward in time, like every H/X/Y/Z button you've ever clicked. The defining reason: unitary matrices are exactly the matrices that preserve a state's total probability at 1 no matter what they do to it. A gate that wasn't unitary would let probabilities leak away or exceed 100%, which isn't physically meaningful — so "is it a valid gate?" and "is it unitary?" are the same question.</p>
+    <p class="muted"><strong>Projection</strong> (<span class="mono">M² = M</span>) matrices represent <strong>measurement outcomes</strong> themselves — like <span class="mono">|0⟩⟨0|</span>, the operator that "asks" whether a state is |0⟩. Applying a projector twice does exactly what applying it once did, which is the algebraic way of saying "a state that's already collapsed onto an outcome stays collapsed onto it" — measuring an already-measured qubit again, in the same basis, just confirms the same answer.</p>
     <div class="grid-3" style="margin-top:12px;">
-      <div class="stat"><span class="num" style="font-size:1rem;">Hermitian</span><span class="label"><span class="mono">M† = M</span> — observables. Guarantees real eigenvalues, so measurement outcomes are always real numbers.</span></div>
-      <div class="stat"><span class="num" style="font-size:1rem;">Unitary</span><span class="label"><span class="mono">M†M = I</span> — gates. Guarantees the state stays normalized; every gate you've ever clicked is one.</span></div>
-      <div class="stat"><span class="num" style="font-size:1rem;">Projection</span><span class="label"><span class="mono">M² = M</span> — measurement. Applying it twice does nothing new, exactly like "already collapsed, stays collapsed."</span></div>
+      <div class="stat"><span class="num" style="font-size:1rem;">Hermitian</span><span class="label"><span class="mono">M† = M</span> — observables, real eigenvalues guaranteed.</span></div>
+      <div class="stat"><span class="num" style="font-size:1rem;">Unitary</span><span class="label"><span class="mono">M†M = I</span> — gates, probability always preserved.</span></div>
+      <div class="stat"><span class="num" style="font-size:1rem;">Projection</span><span class="label"><span class="mono">M² = M</span> — measurement, idempotent by construction.</span></div>
     </div>
-    <div class="callout blue">A matrix can be more than one at once — Z is both Hermitian <em>and</em> unitary, which is exactly why it can be measured (as an observable) or applied (as a gate).</div>
+    <div class="callout blue">A matrix can be more than one at once — Z is both Hermitian <em>and</em> unitary, which is exactly why it can be measured (as an observable) or applied (as a gate). Those aren't two coincidentally-similar matrices; they're the literal same one, doing two different jobs depending how you use it.</div>
     <label class="mark-done-check" style="margin-top:16px;">
       <input type="checkbox" data-step-check="step1"> M†=M observable, M†M=I gate, M²=M measurement
     </label>
@@ -74,6 +77,21 @@
     <p class="muted"><span class="mono">[[1,1],[0,1]]</span> is neither Hermitian, unitary, nor a projection — which is exactly why it never shows up as a gate or an observable anywhere in this app. Every legitimate quantum gate has to be unitary; a matrix that isn't simply doesn't correspond to any physically realizable operation on a qubit.</p>
     <label class="mark-done-check" style="margin-top:18px;">
       <input type="checkbox" data-step-check="step3"> Not every matrix is a valid gate or observable
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 4 — THE UMBRELLA CATEGORY ===================== -->
+<div class="lesson-step" data-step="step4">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">4</div>
+    <h3>Hermitian and unitary are both special cases of one bigger idea</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Both Hermitian and unitary matrices share one deeper property: they <strong>commute with their own conjugate-transpose</strong> — <span class="mono">MM† = M†M</span>. Any matrix with that property is called <strong>normal</strong>, and it's the actual condition a theorem (the spectral theorem) needs to guarantee a clean set of orthonormal eigenvectors, the kind Eigenvalues and Eigenvectors relies on. Hermitian and unitary matrices are simply the two normal-matrix families that show up constantly in quantum mechanics — not a coincidence that both happen to diagonalize nicely, but a shared reason underneath.</p>
+    <p class="muted">The non-Hermitian example from Step 2, <span class="mono">[[1,1],[0,1]]</span>, fails to be normal too — which is the deeper reason it couldn't be classified as anything useful: without normality, there's no guarantee of finding orthonormal eigenvectors for it at all.</p>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step4"> Hermitian and unitary are both "normal" — that's what guarantees clean eigenvectors
     </label>
   </div>
 </div>

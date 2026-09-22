@@ -82,6 +82,21 @@
   </div>
 </div>
 
+<!-- ===================== STEP 4 — WHAT REAL HARDWARE ACTUALLY RUNS ===================== -->
+<div class="lesson-step" data-step="step4">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">4</div>
+    <h3>Surface codes: the 2D version that's actually deployed</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">The 5-qubit code above only protects against bit-flips. A real quantum computer needs protection against both bit-flip and phase-flip errors (and everything in between) simultaneously, arranged so every physical qubit is only ever wired to its nearest neighbors — matching how chips are actually fabricated (recall Hardware Lab's chip layout). The dominant real answer is the <strong>surface code</strong>: data qubits and syndrome-measurement qubits arranged in a 2D checkerboard grid, running the same core idea as this lesson's parity checks, just repeated in both directions and continuously in time rather than once.</p>
+    <p class="muted">There's a genuine threshold: if the per-gate physical error rate is below roughly 1%, adding more physical qubits per logical qubit (a "larger code distance") makes the logical error rate <em>fall</em> — error correction actually winning. Above that threshold, adding more qubits makes things worse instead. That threshold, and how close current hardware's real gate fidelities (NISQ, next lesson) sit to it, is one of the field's central open engineering problems right now.</p>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step4"> Surface codes: this lesson's idea, in 2D, with a real error-rate threshold
+    </label>
+  </div>
+</div>
+
 {{ lesson_nav(prev_lesson, next_lesson) }}
 
 {% endblock %}

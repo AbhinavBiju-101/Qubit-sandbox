@@ -105,6 +105,21 @@
   </div>
 </div>
 
+<!-- ===================== STEP 4 — REAL DETECTORS AREN'T PERFECT ===================== -->
+<div class="lesson-step" data-step="step4">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">4</div>
+    <h3>Everything above assumed a perfect measurement</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">The projective measurement you just simulated — clean collapse onto an exact eigenvector, with probabilities given exactly by <span class="mono">|⟨outcome|ψ⟩|²</span> — is the textbook ideal. Real hardware readout is noisier: a superconducting qubit's measurement might report "0" when the qubit was actually in |1⟩, typically a few percent of the time on current devices. That's called <strong>readout error</strong>, and it's a separate, additional problem on top of the gate errors NISQ (Module 5) covers.</p>
+    <p class="muted">The general mathematical tool for describing imperfect, noisy, or partial measurements is called a <strong>POVM</strong> (positive operator-valued measure) — a generalization of the clean projectors from Operator Types that can describe "measure, but with some chance of getting it wrong" directly in the math. This app always simulates the ideal case; real device calibration reports (the kind Reality Check pulls numbers from) are where you'd see the actual readout-error rate for a given piece of hardware.</p>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step4"> Real measurement has its own error rate, separate from gate errors
+    </label>
+  </div>
+</div>
+
 {{ lesson_nav(prev_lesson, next_lesson) }}
 
 {% endblock %}

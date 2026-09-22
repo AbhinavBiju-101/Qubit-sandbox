@@ -92,6 +92,21 @@
   </div>
 </div>
 
+<!-- ===================== STEP 4 — TWO-QUBIT TIME EVOLUTION ===================== -->
+<div class="lesson-step" data-step="step4">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">4</div>
+    <h3>Where two-qubit gates actually come from</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Everything above evolved one qubit under its own Hamiltonian. A CNOT or CZ gate between two qubits comes from exactly the same equation, just with a Hamiltonian that <em>couples</em> them — a term describing how each qubit's energy depends on the other's state. Physically, that coupling is usually a tunable interaction (a shared resonator, or a direct capacitive link) that superconducting hardware can switch on for a precise duration to implement a specific two-qubit gate, then switch back off.</p>
+    <p class="muted">So the picture that started with a single Bloch vector precessing extends cleanly: single-qubit gates are time evolution under an isolated Hamiltonian (this lesson), two-qubit gates are time evolution under a coupling Hamiltonian, and Hardware Lab's chip layout is, among other things, a map of exactly which qubits have that coupling switched into existence at all.</p>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step4"> Two-qubit gates are time evolution under a coupling term
+    </label>
+  </div>
+</div>
+
 {{ lesson_nav(prev_lesson, next_lesson) }}
 
 {% endblock %}

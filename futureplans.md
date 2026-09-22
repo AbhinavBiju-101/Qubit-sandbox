@@ -7,7 +7,50 @@ reflects the single combined, current state after each merge.
 
 ---
 
-## Recently shipped (this round — Bloch sphere upgrade, custom qubit setter, account scroll fix, card icons)
+## Recently shipped (this round — 4th-step sweep completed across Modules 3-6; theory gap fixed)
+
+- **Bug fix, called out directly: Operator Types' Step 1 theory was too
+  compressed** (three terse stat-card labels, no real prose explaining
+  *why* Hermitian/Unitary/Projection matter). Rewrote it with a full
+  paragraph per property — what it means physically, and the specific
+  theorem each one is standing in for (real eigenvalues, preserved
+  probability, idempotent collapse) — with the stat cards kept as a
+  quick-reference summary underneath instead of the only explanation.
+  Worth checking the other 20 lessons below for the same failure mode
+  if anything still reads thin.
+- **All 21 remaining Module 3-6 lessons now have the 4th "explain
+  more, cover more" step**, completing the sweep Module 2 started two
+  rounds ago. Every module's own step 4 is listed in the lesson files
+  themselves; the short version: Module 3 connects the math to what's
+  already been simulated (outer products → projectors, CNOT as a 4×4
+  matrix, the 2ⁿ-dimension wall, degenerate eigenvalues, the
+  Robertson uncertainty bound); Module 4 connects the physics to real
+  systems (electron microscopes, quantum dots, alpha decay, scanning
+  tunneling microscopy, real atomic orbital degeneracy) plus one
+  genuinely mind-bending verified-real experiment (delayed choice,
+  framed carefully — no backward-in-time causation implied); Module 5
+  goes from toy code to what's actually deployed (T2≤2T1, surface
+  codes, quantum volume); Module 6 covers the field's real present-
+  tense response (E91/device-independent QKD, NIST's already-
+  standardized post-quantum cryptography).
+  New computed content, not just prose, where it was cheap and added
+  real value: a live 2ⁿ-amplitude calculator (Tensor Products) and a
+  real Stefan-Boltzmann P=σT⁴ calculator (Blackbody Radiation) —
+  the latter's solar-temperature output checked against the known
+  real value (~64 MW/m² at 5800K) before shipping. Step counts (3→4)
+  updated for all 21 lessons in both `app.py` and `lessons-data.js`;
+  verified via grep that every touched template has exactly 4
+  `data-step` blocks, not silently 3 or 5.
+- **All factual claims added this round were ones I was confident
+  in from training** (Stefan-Boltzmann's exact constant, T2≤2T1,
+  NIST's 2024 PQC standardization, E91's 1991 date, Gamow's 1928
+  alpha-decay theory) — nothing here needed a web search, and nothing
+  time-sensitive was asserted as still-current without flagging it
+  as such (quantum volume's role, current fidelity numbers).
+
+---
+
+## Recently shipped (previous round — Bloch sphere upgrade, custom qubit setter, account scroll fix, card icons)
 
 - **Bug fix: `/account`'s "Lesson progress" section grew the whole page.**
   Now `max-height:420px; overflow-y:auto` on that one panel — scrolls
@@ -55,14 +98,9 @@ reflects the single combined, current state after each merge.
 
 ## Explicitly deferred, not silently dropped
 
-Two asks from this round are real but too large to fold into this
-pass without diluting quality. Flagging both here rather than doing a
-thin, rushed version of either:
+One ask from two rounds ago is now done (the 4th-step sweep — see
+above) and removed from this list. One remains:
 
-- **Sweeping the "4th step, more explanation" treatment (started on
-  Module 2 last round) through Modules 3, 4, 5, and 6** — 27 more
-  lessons. Needs a decision on ordering/priority before starting; see
-  the open question left for the person in the chat transcript.
 - **A standalone "widgets gallery"** the way Module 1's `BUILTIN_WIDGETS`
   implicitly feeds one (worth checking exactly what that currently
   renders and where, before assuming Module 2-6's simulations are

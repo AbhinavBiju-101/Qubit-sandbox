@@ -82,6 +82,21 @@
   </div>
 </div>
 
+<!-- ===================== STEP 4 — H IS A CHANGE OF BASIS ===================== -->
+<div class="lesson-step" data-step="step4">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">4</div>
+    <h3>The Hadamard gate is a basis-change matrix in disguise</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">H doesn't just happen to send |0⟩ to |+⟩ and |1⟩ to |−⟩ — that <em>is</em> what a change-of-basis matrix does, by definition: it takes coordinates written in one basis and rewrites them in another. H is exactly the matrix that translates between the Z basis and the X basis, in both directions (it's its own inverse — apply it twice and you're back where you started).</p>
+    <p class="muted">That's the real reason H shows up constantly in this app: any time a lesson needed to "measure in the X basis" without a dedicated tool for it (Measurement & Stern-Gerlach's SG simulator, the sequential cascade, BB84's basis switching), the trick was always the same — apply H to rotate the basis you care about onto the Z basis you already know how to measure, then rotate back afterward if needed.</p>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step4"> H = the Z↔X basis-change matrix, used everywhere under the hood
+    </label>
+  </div>
+</div>
+
 {{ lesson_nav(prev_lesson, next_lesson) }}
 
 {% endblock %}

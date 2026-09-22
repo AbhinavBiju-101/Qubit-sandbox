@@ -104,6 +104,22 @@
   </div>
 </div>
 
+<!-- ===================== STEP 4 — WHERE PHASE DOES REAL WORK ===================== -->
+<div class="lesson-step" data-step="step4">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">4</div>
+    <h3>Invisible to one qubit, decisive to two</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">A phase on a single, isolated qubit really is unobservable on its own — Step 3 just proved that directly. But the moment two amplitudes with different phases get <em>added together</em>, that phase becomes the entire story. Wave-Particle Duality's interference fringes are exactly this: two paths' amplitudes summing, with phase determining whether they add up (bright fringe) or cancel out (dark fringe).</p>
+    <p class="muted">You've also already used this algorithmically: Grover's Search's oracle step flipped a sign — a pure phase change, invisible on its own, exactly like this lesson's slider. It was only the diffusion step, which <em>adds</em> that phased amplitude to the others, that turned it into a visible 25%→100% probability jump. Same mechanism, two different lessons.</p>
+    <div class="callout blue">Rule of thumb worth keeping: a phase on a single amplitude never matters. A phase <em>difference</em> between amplitudes that later get combined always might.</div>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step4"> Phase alone is invisible; phase differences under addition are not
+    </label>
+  </div>
+</div>
+
 {{ lesson_nav(prev_lesson, next_lesson) }}
 
 {% endblock %}

@@ -85,6 +85,27 @@
   </div>
 </div>
 
+<!-- ===================== STEP 4 — WHY N QUBITS GET HARD TO SIMULATE ===================== -->
+<div class="lesson-step" data-step="step4">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">4</div>
+    <h3>The 2ⁿ wall</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Step 1 said dimensions multiply — 2 qubits need 4 amplitudes, 3 need 8, and in general n qubits need <span class="mono">2ⁿ</span> complex numbers to describe a fully general (possibly entangled) state. Pick n below and see how fast that grows.</p>
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · 2ⁿ CALCULATOR</div>
+      <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.85rem;"><span class="muted">n qubits</span><span id="n-qubits-val">10</span></div>
+      <input type="range" id="n-qubits-slider" min="1" max="60" step="1" value="10">
+      <div class="stat" style="margin-top:14px;"><span class="num" id="n-qubits-amps" style="font-size:1.1rem;">1,024</span><span class="label">complex amplitudes needed</span></div>
+    </div>
+    <p class="muted" style="margin-top:14px;">Past roughly 50 qubits, that number exceeds what every computer on Earth combined could store as ordinary floating-point numbers — which is the actual, concrete reason a classical computer can't just brute-force-simulate a large quantum computer's full state, and why this app's own multi-qubit engine stays deliberately small (2-5 qubits) everywhere it's used.</p>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step4"> 2ⁿ amplitudes — tiny for n=2, impossible for n=50
+    </label>
+  </div>
+</div>
+
 {{ lesson_nav(prev_lesson, next_lesson) }}
 
 {% endblock %}
@@ -131,5 +152,12 @@
   });
 
   initLessonProgress('tensor-products');
+
+  document.getElementById('n-qubits-slider').addEventListener('input', () => {
+    const n = +document.getElementById('n-qubits-slider').value;
+    document.getElementById('n-qubits-val').textContent = n;
+    const amps = Math.pow(2, n);
+    document.getElementById('n-qubits-amps').textContent = amps.toLocaleString();
+  });
 </script>
 {% endblock %}

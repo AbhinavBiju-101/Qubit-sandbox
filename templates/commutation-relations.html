@@ -73,6 +73,21 @@
   </div>
 </div>
 
+<!-- ===================== STEP 4 — THE GENERAL UNCERTAINTY BOUND ===================== -->
+<div class="lesson-step" data-step="step4">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">4</div>
+    <h3>From "nonzero commutator" to an actual number</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">The qualitative statement from Step 1 — nonzero commutator means can't both be definite — has a precise quantitative version, the Robertson uncertainty relation: <span class="mono">ΔA · ΔB ≥ |⟨[A,B]⟩| / 2</span>, where <span class="mono">ΔA</span> and <span class="mono">ΔB</span> are each observable's spread of possible outcomes on the state. When <span class="mono">[A,B]=0</span>, the right side is zero and there's no obstruction — both can be simultaneously definite, exactly like two commuting gates in Matrices as Gates landing in the same place regardless of order.</p>
+    <p class="muted">Plug in Z and X on the state Step 2 checked: <span class="mono">|0⟩</span> has zero spread in Z (100% certain) and maximum spread in X (50/50), which is exactly what "certain in one basis forces maximal uncertainty in a non-commuting one" looks like as actual numbers, not just a slogan.</p>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step4"> ΔA·ΔB ≥ |⟨[A,B]⟩|/2 — the qualitative rule, quantified
+    </label>
+  </div>
+</div>
+
 {{ lesson_nav(prev_lesson, next_lesson) }}
 
 {% endblock %}
