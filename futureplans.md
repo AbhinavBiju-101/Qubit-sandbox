@@ -7,7 +7,74 @@ reflects the single combined, current state after each merge.
 
 ---
 
-## Recently shipped (this round — card bugs fixed; Module 2 deepened)
+## Recently shipped (this round — Bloch sphere upgrade, custom qubit setter, account scroll fix, card icons)
+
+- **Bug fix: `/account`'s "Lesson progress" section grew the whole page.**
+  Now `max-height:420px; overflow-y:auto` on that one panel — scrolls
+  internally instead of pushing everything below it down the page.
+- **`bloch.js` upgraded — every lesson using `createBlochWidget()`
+  benefits automatically, no template changes needed anywhere.**
+  Added: ket labels at all six cardinal points (|0⟩,|1⟩,|+⟩,|−⟩,|+i⟩,|−i⟩),
+  reference X/Y/Z axis lines, projection ("shadow") guide lines from
+  the vector tip down to the equatorial plane and back to the origin
+  (the standard textbook way of reading theta/phi off a drawn vector),
+  and a front/back depth cue: this projection only pushes the Y-axis
+  diagonally (X and Z stay true-length, in-plane), so Y<0 is exactly
+  "behind the sphere" — drawn dashed and faded, on both the live state
+  vector and the reference Y-axis's own negative half, consistently.
+  `set(theta, phi, mag)`'s signature is unchanged, so this is a pure
+  drop-in — verified the six pole projections land exactly where
+  expected (Node, pure-math check on the extracted projection
+  functions) before shipping.
+- **New "Custom State" tab on `/sandbox`.** Single-qubit: theta/phi
+  sliders driving a live Bloch sphere, *or* raw α/β amplitude inputs
+  (auto-normalized on "Normalize & apply", global phase correctly
+  stripped via the same convention `Qubit.bloch()` already uses) —
+  both paths show the live wavefunction and the nearest named ket
+  (|0⟩/|1⟩/|+⟩/|−⟩/|+i⟩/|−i⟩, or "general superposition" if it's none
+  of those). Two-qubit: independent A1,B1 / A2,B2 amplitude entry per
+  qubit, each auto-normalized, with two separate Bloch spheres and the
+  computed tensor-product joint wavefunction — explicitly cross-linked
+  to Tensor Products (Module 3), including the "there's no way to reach
+  an entangled state this way" point. The angle↔amplitude round-trip
+  math (including unnormalized, arbitrary-global-phase input) and the
+  named-ket detector were verified in Node against known values before
+  shipping, not just eyeballed.
+- **Lesson cards on `/lessons` for Modules 2-6 got per-lesson icons and
+  rotating colors**, matching Module 1's per-lesson variety instead of
+  one repeated pencil icon and one flat module-wide color. 25 new
+  hand-authored SVG icons (one per lesson, thematically matched —
+  a magnifying glass for Grover's Search, a key for BB84, a cube for
+  the 3D box, etc.), added as a `LESSON_ICONS` dict in `lessons.html`
+  fed by a new `icon` key on every lesson dict in `app.py`. All 25
+  validated as well-formed SVG/XML before shipping (a malformed path
+  injected via `|safe` fails silently in a browser, so this was worth
+  checking programmatically rather than trusting hand-typed path data).
+
+---
+
+## Explicitly deferred, not silently dropped
+
+Two asks from this round are real but too large to fold into this
+pass without diluting quality. Flagging both here rather than doing a
+thin, rushed version of either:
+
+- **Sweeping the "4th step, more explanation" treatment (started on
+  Module 2 last round) through Modules 3, 4, 5, and 6** — 27 more
+  lessons. Needs a decision on ordering/priority before starting; see
+  the open question left for the person in the chat transcript.
+- **A standalone "widgets gallery"** the way Module 1's `BUILTIN_WIDGETS`
+  implicitly feeds one (worth checking exactly what that currently
+  renders and where, before assuming Module 2-6's simulations are
+  "missing" from it versus just not surfaced the same way) — each
+  Module 2-6 lesson *does* already have a genuine unique interactive
+  widget (verified working, not templated filler — see the last two
+  rounds' Node-based functional verification), so this is about
+  discoverability/reuse outside the lesson flow, not missing content.
+
+---
+
+## Recently shipped (previous round — card bugs fixed; Module 2 deepened)
 
 - **Bug fix: per-lesson descriptions were missing on Module 2-6 cards.**
   `_module_catalog()`'s list comprehensions only carried id/title/href/

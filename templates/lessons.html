@@ -129,6 +129,39 @@
   {% endfor %}
 </div>
 
+{% set LESSON_ICONS = {
+  'teleport': '<circle cx="5" cy="12" r="2.4"/><circle cx="19" cy="12" r="2.4"/><path d="M8 12h8" stroke-dasharray="2 2"/><path d="M12 6l1.4 2.4L16 9.8l-2.6 1.4L12 13.6l-1.4-2.4L8 9.8l2.6-1.4z" fill="currentColor" stroke="none"/>',
+  'dense': '<path d="M19 5l-6 6M19 5h-5M19 5v5"/><path d="M5 19l6-6M5 19h5M5 19v-5"/>',
+  'oracle': '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9.3 9.5a2.7 2.7 0 0 1 5.2 0c0 1.6-2.2 2-2.2 3.7"/><circle cx="12" cy="16.7" r="0.6" fill="currentColor" stroke="none"/>',
+  'search': '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-5-5"/>',
+  'complex': '<path d="M12 3v18M3 12h18"/><circle cx="16" cy="8" r="1.8" fill="currentColor" stroke="none"/><path d="M12 12l4-4" stroke-dasharray="2 2"/>',
+  'braket': '<path d="M9 4l-5 8 5 8"/><path d="M15 4l5 8-5 8"/>',
+  'matrix': '<rect x="4" y="4" width="16" height="16" rx="1"/><path d="M4 10h16M4 16h16M10 4v16M16 4v16"/>',
+  'measure': '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>',
+  'waveeq': '<path d="M2 12c2-6 4-6 6 0s4 6 6 0 4-6 6 0"/>',
+  'basis': '<path d="M4 20V4M1 7l3-3 3 3"/><path d="M4 20h16M17 17l3 3-3 3"/>',
+  'tensor': '<circle cx="12" cy="12" r="8"/><path d="M9 9l6 6M15 9l-6 6"/>',
+  'operator': '<rect x="4" y="7" width="16" height="10" rx="2"/><path d="M9 12h6M9 15h3"/>',
+  'eigen': '<path d="M4 20L20 4"/><path d="M12 4h8v8"/>',
+  'commute': '<path d="M4 8h12l-3-3m3 3-3 3"/><path d="M20 16H8l3 3m-3-3 3-3"/>',
+  'duality': '<path d="M6 3v18M18 3v18"/><path d="M2 12c2-4 3-4 4 0s2 4 4 0 2-4 4 0 2 4 4 0 2-4 4 0"/>',
+  'blackbody': '<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5.5 5.5l2 2M16.5 16.5l2 2M18.5 5.5l-2 2M7.5 16.5l-2 2"/>',
+  'debroglie': '<path d="M2 8c2-4 4-4 6 0s4 4 6 0 4-4 6 0"/><path d="M2 16h20" stroke-dasharray="2 2"/>',
+  'box': '<rect x="4" y="4" width="16" height="16" rx="1"/><path d="M7 12c1.5-4 3-4 5 0s3.5 4 5 0"/>',
+  'tunnel': '<path d="M11 3v18M14 3v18"/><path d="M3 12h9m0 0-2-2m2 2-2 2"/><path d="M14 12h7"/>',
+  'cube': '<path d="M12 2L3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/>',
+  'decohere': '<circle cx="12" cy="12" r="8" opacity="1"/><circle cx="12" cy="12" r="5" opacity="0.55"/><circle cx="12" cy="12" r="2" opacity="0.3" fill="currentColor" stroke="none"/>',
+  'shield': '<path d="M12 3l7 3v6c0 5-3 7.5-7 9-4-1.5-7-4-7-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  'chip': '<rect x="7" y="7" width="10" height="10" rx="1"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M7.5 7.5L5.5 5.5M16.5 7.5l2-2M7.5 16.5l-2 2M16.5 16.5l2 2"/>',
+  'key': '<circle cx="7.5" cy="15.5" r="3.5"/><path d="M10 13l9-9M15 4h4v4"/>',
+  'factor': '<circle cx="12" cy="6.5" r="1.5" fill="currentColor" stroke="none"/><path d="M5 12h14"/><circle cx="12" cy="17.5" r="1.5" fill="currentColor" stroke="none"/>',
+} %}
+{% set LESSON_COLORS = [
+  ('var(--primary-soft)', 'var(--primary)'),
+  ('var(--green-soft)', 'var(--green)'),
+  ('var(--amber-soft)', 'var(--amber-dim)'),
+  ('var(--surface-alt)', 'var(--text-muted)'),
+] %}
 {% for m in community_modules %}
 <div class="section-title" style="margin-top:40px; display:flex; align-items:center; justify-content:space-between; gap:14px;">
   <div>
@@ -143,12 +176,13 @@
 </div>
 <div class="grid-3" style="align-items:stretch; margin-top:16px;">
   {% for l in m.lessons %}
+  {% set bg, fg = LESSON_COLORS[loop.index0 % 4] %}
   <a href="{{ l.href }}" class="card-link">
     <div class="lesson-card" data-lockable="{{ 'true' if m.kind == 'builtin' else 'false' }}">
-      <div class="licon" style="background:{{ 'var(--primary-soft); color:var(--primary)' if m.kind == 'builtin' else 'var(--green-soft); color:var(--green)' }};">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      <div class="licon" style="background:{{ bg }}; color:{{ fg }};">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">{{ (LESSON_ICONS[l.icon] if l.icon in LESSON_ICONS else '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>') | safe }}</svg>
       </div>
-      <span class="pill {{ '' if m.kind == 'builtin' else 'green' }} lock-pill" style="margin-bottom:10px; width:fit-content;">{{ l.steps }} step{{ 's' if l.steps != 1 }}</span>
+      <span class="pill lock-pill" style="margin-bottom:10px; width:fit-content;">{{ l.steps }} step{{ 's' if l.steps != 1 }}</span>
       <h3>{{ l.title }}</h3>
       <p>{{ l.description or "No description given." }}</p>
       <div class="lesson-progress-row lock-progress" data-lesson-id="{{ l.id }}" data-lesson-steps="{{ l.steps }}">

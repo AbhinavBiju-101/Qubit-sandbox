@@ -11,6 +11,7 @@
   <div class="tag" data-topic="single">Single Qubit</div>
   <div class="tag" data-topic="two">Two Qubits</div>
   <div class="tag" data-topic="physical">Physical Qubit</div>
+  <div class="tag" data-topic="custom">Custom State</div>
 </div>
 
 <!-- ===================== SINGLE QUBIT SANDBOX ===================== -->
@@ -132,6 +133,66 @@
   </div>
 </div>
 
+<!-- ===================== CUSTOM STATE SANDBOX ===================== -->
+<div class="sandbox-panel" id="panel-custom" style="display:none;">
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-label">CUSTOM SINGLE QUBIT · θ, φ</div>
+      <svg id="cust-bloch" viewBox="0 0 300 300" style="width:100%; max-width:280px; display:block; margin:0 auto;"></svg>
+      <div style="margin-top:14px;">
+        <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.85rem;"><span class="muted">θ (polar, 0=|0⟩, 180°=|1⟩)</span><span id="cust-theta-val">0°</span></div>
+        <input type="range" id="cust-theta-slider" min="0" max="180" step="1" value="0">
+        <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.85rem; margin-top:10px;"><span class="muted">φ (azimuth)</span><span id="cust-phi-val">0°</span></div>
+        <input type="range" id="cust-phi-slider" min="0" max="360" step="1" value="0">
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-label">SET FROM AMPLITUDES (auto-normalized)</div>
+      <div class="grid-2">
+        <div>
+          <label class="muted" style="font-size:0.78rem;">α (real, imag)</label>
+          <div style="display:flex; gap:6px; margin-top:4px;"><input type="number" id="cust-a-re" value="1" step="0.1"><input type="number" id="cust-a-im" value="0" step="0.1"></div>
+        </div>
+        <div>
+          <label class="muted" style="font-size:0.78rem;">β (real, imag)</label>
+          <div style="display:flex; gap:6px; margin-top:4px;"><input type="number" id="cust-b-re" value="0" step="0.1"><input type="number" id="cust-b-im" value="0" step="0.1"></div>
+        </div>
+      </div>
+      <button id="cust-normalize-btn" class="primary block" style="margin-top:14px;">Normalize &amp; apply</button>
+      <hr class="hair" style="margin:16px 0;">
+      <div class="mono" style="font-size:0.86rem; color:var(--text-muted);">
+        <div>ψ = <span id="cust-wavefn" style="color:var(--text);">1.00|0⟩ + 0.00|1⟩</span></div>
+        <div style="margin-top:6px;">Nearest named ket: <span id="cust-named-ket" style="color:var(--primary);">|0⟩</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:18px;">
+    <div class="panel-label">CUSTOM TWO QUBITS (independent, tensor-producted)</div>
+    <div class="grid-2">
+      <div>
+        <div class="muted" style="font-size:0.85rem; margin-bottom:8px;">Qubit 1: A1 (α), B1 (β)</div>
+        <svg id="cust-bloch1" viewBox="0 0 220 220" style="width:100%; max-width:180px; display:block; margin:0 auto 12px;"></svg>
+        <div style="display:flex; gap:6px;"><input type="number" id="cust-a1-re" value="1" step="0.1"><input type="number" id="cust-a1-im" value="0" step="0.1"></div>
+        <div style="display:flex; gap:6px; margin-top:6px;"><input type="number" id="cust-b1-re" value="0" step="0.1"><input type="number" id="cust-b1-im" value="0" step="0.1"></div>
+        <div class="mono muted" id="cust-named-ket1" style="font-size:0.8rem; margin-top:8px;">|0⟩</div>
+      </div>
+      <div>
+        <div class="muted" style="font-size:0.85rem; margin-bottom:8px;">Qubit 2: A2 (α), B2 (β)</div>
+        <svg id="cust-bloch2" viewBox="0 0 220 220" style="width:100%; max-width:180px; display:block; margin:0 auto 12px;"></svg>
+        <div style="display:flex; gap:6px;"><input type="number" id="cust-a2-re" value="1" step="0.1"><input type="number" id="cust-a2-im" value="0" step="0.1"></div>
+        <div style="display:flex; gap:6px; margin-top:6px;"><input type="number" id="cust-b2-re" value="0" step="0.1"><input type="number" id="cust-b2-im" value="0" step="0.1"></div>
+        <div class="mono muted" id="cust-named-ket2" style="font-size:0.8rem; margin-top:8px;">|0⟩</div>
+      </div>
+    </div>
+    <button id="cust-normalize2-btn" class="primary block" style="margin-top:14px;">Normalize both &amp; apply</button>
+    <div class="mono" style="font-size:0.86rem; color:var(--text-muted); margin-top:14px; word-break:break-word;">
+      <div>Joint |ψ⟩ = <span id="cust-joint-wavefn" style="color:var(--text);">—</span></div>
+    </div>
+    <p class="muted" style="font-size:0.8rem; margin-top:10px;">This builds an <em>unentangled</em> joint state — exactly the tensor-product construction from Module 3's <a href="{{ url_for('tensor_products') }}">Tensor Products</a> lesson. There's no way to reach an entangled state like a Bell pair from two independently-set qubits — that's the same fact that lesson's factoring search demonstrates from the other direction.</p>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -139,7 +200,7 @@
 <script src="{{ url_for('static', filename='js/twoqubit.js') }}"></script>
 <script src="{{ url_for('static', filename='js/bloch.js') }}"></script>
 <script>
-  const panels = { single: 'panel-single', two: 'panel-two', physical: 'panel-physical' };
+  const panels = { single: 'panel-single', two: 'panel-two', physical: 'panel-physical', custom: 'panel-custom' };
   function showTopic(topic) {
     Object.keys(panels).forEach(k => {
       document.getElementById(panels[k]).style.display = (k === topic) ? '' : 'none';
@@ -164,7 +225,7 @@
   // to link to one specific widget). Hash wins if both are present,
   // since a hash is what someone would paste as a direct link to a
   // specific widget from outside this page.
-  const HASH_TO_TOPIC = { bloch: 'single', single: 'single', two: 'two', physical: 'physical' };
+  const HASH_TO_TOPIC = { bloch: 'single', single: 'single', two: 'two', physical: 'physical', custom: 'custom' };
   const hashTopic = HASH_TO_TOPIC[window.location.hash.replace('#', '')];
   const queryTopic = panels[params.get('topic')] ? params.get('topic') : null;
   const initialTopic = hashTopic || queryTopic || 'single';
@@ -259,5 +320,106 @@
     document.getElementById('sb-coherence-val').textContent = Math.max(0, sbMagnitude * 100).toFixed(0) + '%';
     document.getElementById('sb-coherence-val').style.color = sbMagnitude > 0.5 ? 'var(--primary)' : (sbMagnitude > 0.2 ? 'var(--amber)' : 'var(--red)');
   }, 120);
+
+  // ============================================================
+  // Custom State — direct theta/phi or amplitude control, single
+  // and (independent, tensor-producted) two-qubit.
+  // ============================================================
+  function namedKet(theta, phi) {
+    const TAU = Math.PI * 2;
+    const p = ((phi % TAU) + TAU) % TAU; // normalize to [0, 2*pi)
+    const near = (a, b, eps) => Math.abs(a - b) < eps;
+    if (near(theta, 0, 0.03)) return '|0⟩';
+    if (near(theta, Math.PI, 0.03)) return '|1⟩';
+    if (near(theta, Math.PI/2, 0.03)) {
+      if (near(p, 0, 0.03) || near(p, TAU, 0.03)) return '|+⟩';
+      if (near(p, Math.PI, 0.03)) return '|−⟩';
+      if (near(p, Math.PI/2, 0.03)) return '|+i⟩';
+      if (near(p, 3*Math.PI/2, 0.03)) return '|−i⟩';
+    }
+    return '(general superposition — no simple name)';
+  }
+  function fmtWavefn(a, b) {
+    return `${C.fmt(a,2)}|0⟩ + ${C.fmt(b,2)}|1⟩`;
+  }
+  // theta,phi -> canonical amplitudes (alpha real & non-negative),
+  // same convention Qubit.bloch()/RY() already use elsewhere.
+  function anglesToAmps(theta, phi) {
+    return { a: C.make(Math.cos(theta/2)), b: C.make(Math.sin(theta/2)*Math.cos(phi), Math.sin(theta/2)*Math.sin(phi)) };
+  }
+  // raw (possibly unnormalized, possibly arbitrary-global-phase)
+  // amplitudes -> theta,phi, stripping the global phase the Bloch
+  // sphere can't represent anyway.
+  function ampsToAngles(a, b) {
+    const norm = Math.sqrt(C.abs2(a) + C.abs2(b));
+    if (norm < 1e-9) return { theta: 0, phi: 0 };
+    const an = C.scale(a, 1/norm), bn = C.scale(b, 1/norm);
+    const theta = 2 * Math.acos(Math.min(1, C.abs(an)));
+    const phi = C.abs(bn) < 1e-9 ? 0 : (C.arg(bn) - C.arg(an));
+    return { theta, phi };
+  }
+
+  const custWidget = createBlochWidget(document.getElementById('cust-bloch'));
+  const custThetaSlider = document.getElementById('cust-theta-slider');
+  const custPhiSlider = document.getElementById('cust-phi-slider');
+
+  function custRefreshFromAngles() {
+    const theta = (+custThetaSlider.value) * Math.PI / 180;
+    const phi = (+custPhiSlider.value) * Math.PI / 180;
+    custWidget.set(theta, phi);
+    document.getElementById('cust-theta-val').textContent = custThetaSlider.value + '°';
+    document.getElementById('cust-phi-val').textContent = custPhiSlider.value + '°';
+    const { a, b } = anglesToAmps(theta, phi);
+    document.getElementById('cust-a-re').value = a.re.toFixed(3);
+    document.getElementById('cust-a-im').value = a.im.toFixed(3);
+    document.getElementById('cust-b-re').value = b.re.toFixed(3);
+    document.getElementById('cust-b-im').value = b.im.toFixed(3);
+    document.getElementById('cust-wavefn').textContent = fmtWavefn(a, b);
+    document.getElementById('cust-named-ket').textContent = namedKet(theta, phi);
+  }
+  custThetaSlider.addEventListener('input', custRefreshFromAngles);
+  custPhiSlider.addEventListener('input', custRefreshFromAngles);
+
+  document.getElementById('cust-normalize-btn').addEventListener('click', () => {
+    const a = C.make(+document.getElementById('cust-a-re').value, +document.getElementById('cust-a-im').value);
+    const b = C.make(+document.getElementById('cust-b-re').value, +document.getElementById('cust-b-im').value);
+    const { theta, phi } = ampsToAngles(a, b);
+    custThetaSlider.value = Math.round(theta * 180 / Math.PI);
+    custPhiSlider.value = Math.round(((phi * 180 / Math.PI) % 360 + 360) % 360);
+    custRefreshFromAngles();
+  });
+  custRefreshFromAngles();
+
+  // ---- Custom two-qubit (independent, tensor-producted) ----
+  const custWidget1 = createBlochWidget(document.getElementById('cust-bloch1'));
+  const custWidget2 = createBlochWidget(document.getElementById('cust-bloch2'));
+
+  function custRefreshTwo() {
+    const a1raw = C.make(+document.getElementById('cust-a1-re').value, +document.getElementById('cust-a1-im').value);
+    const b1raw = C.make(+document.getElementById('cust-b1-re').value, +document.getElementById('cust-b1-im').value);
+    const a2raw = C.make(+document.getElementById('cust-a2-re').value, +document.getElementById('cust-a2-im').value);
+    const b2raw = C.make(+document.getElementById('cust-b2-re').value, +document.getElementById('cust-b2-im').value);
+
+    const ang1 = ampsToAngles(a1raw, b1raw), ang2 = ampsToAngles(a2raw, b2raw);
+    const q1 = anglesToAmps(ang1.theta, ang1.phi), q2 = anglesToAmps(ang2.theta, ang2.phi);
+
+    custWidget1.set(ang1.theta, ang1.phi);
+    custWidget2.set(ang2.theta, ang2.phi);
+    document.getElementById('cust-named-ket1').textContent = namedKet(ang1.theta, ang1.phi);
+    document.getElementById('cust-named-ket2').textContent = namedKet(ang2.theta, ang2.phi);
+
+    // write back the normalized, canonical-phase amplitudes so the
+    // input fields show what's actually being used
+    document.getElementById('cust-a1-re').value = q1.a.re.toFixed(3); document.getElementById('cust-a1-im').value = q1.a.im.toFixed(3);
+    document.getElementById('cust-b1-re').value = q1.b.re.toFixed(3); document.getElementById('cust-b1-im').value = q1.b.im.toFixed(3);
+    document.getElementById('cust-a2-re').value = q2.a.re.toFixed(3); document.getElementById('cust-a2-im').value = q2.a.im.toFixed(3);
+    document.getElementById('cust-b2-re').value = q2.b.re.toFixed(3); document.getElementById('cust-b2-im').value = q2.b.im.toFixed(3);
+
+    const c00 = C.mul(q1.a, q2.a), c01 = C.mul(q1.a, q2.b), c10 = C.mul(q1.b, q2.a), c11 = C.mul(q1.b, q2.b);
+    document.getElementById('cust-joint-wavefn').textContent =
+      `${C.fmt(c00,2)}|00⟩ + ${C.fmt(c01,2)}|01⟩ + ${C.fmt(c10,2)}|10⟩ + ${C.fmt(c11,2)}|11⟩`;
+  }
+  document.getElementById('cust-normalize2-btn').addEventListener('click', custRefreshTwo);
+  custRefreshTwo();
 </script>
 {% endblock %}
