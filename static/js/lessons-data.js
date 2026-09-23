@@ -11,17 +11,17 @@
 =================================================================== */
 
 const QS_LESSON_DEFS = [
-  { id: 'qm-basics', title: 'QM Basics', href: '/qm-basics', steps: 3, gated: false, tag: 'Lesson 0 · Start here' },
-  { id: 'single-qubit', title: 'Single Qubit', href: '/single-qubit', steps: 5, gated: false, tag: 'Lesson 1 · Superposition' },
-  { id: 'two-qubit', title: 'Two Qubits', href: '/two-qubit', steps: 3, gated: true, tag: 'Lesson 2 · Measurement' },
-  { id: 'physical-qubit', title: 'Physical Qubit', href: '/physical-qubit', steps: 4, gated: true, tag: 'Lesson 3 · Hardware' },
-  { id: 'hardware-lab', title: 'Hardware Lab', href: '/hardware-lab', steps: 3, gated: true, tag: 'Lesson 4 · Deep Dive' },
-  { id: 'reality-check', title: 'Reality Check', href: '/reality-check', steps: 4, gated: true, tag: 'Lesson 5 · Scaling' },
+  { id: 'qm-basics', title: 'QM Basics', href: '/qm-basics', steps: 6, gated: false, tag: 'Lesson 0 · Start here' },
+  { id: 'single-qubit', title: 'Single Qubit', href: '/single-qubit', steps: 7, gated: false, tag: 'Lesson 1 · Superposition' },
+  { id: 'two-qubit', title: 'Two Qubits', href: '/two-qubit', steps: 6, gated: true, tag: 'Lesson 2 · Measurement' },
+  { id: 'physical-qubit', title: 'Physical Qubit', href: '/physical-qubit', steps: 6, gated: true, tag: 'Lesson 3 · Hardware' },
+  { id: 'hardware-lab', title: 'Hardware Lab', href: '/hardware-lab', steps: 5, gated: true, tag: 'Lesson 4 · Deep Dive' },
+  { id: 'reality-check', title: 'Reality Check', href: '/reality-check', steps: 6, gated: true, tag: 'Lesson 5 · Scaling' },
   // Module 2 — Quantum Algorithms
-  { id: 'quantum-teleportation', title: 'Quantum Teleportation', href: '/quantum-teleportation', steps: 4, gated: true, tag: 'Module 2 · Lesson 1' },
-  { id: 'superdense-coding', title: 'Superdense Coding', href: '/superdense-coding', steps: 4, gated: true, tag: 'Module 2 · Lesson 2' },
-  { id: 'deutsch-jozsa', title: 'Deutsch-Jozsa', href: '/deutsch-jozsa', steps: 4, gated: true, tag: 'Module 2 · Lesson 3' },
-  { id: 'grovers-search', title: "Grover's Search", href: '/grovers-search', steps: 4, gated: true, tag: 'Module 2 · Lesson 4' },
+  { id: 'quantum-teleportation', title: 'Quantum Teleportation', href: '/quantum-teleportation', steps: 5, gated: true, tag: 'Module 2 · Lesson 1' },
+  { id: 'superdense-coding', title: 'Superdense Coding', href: '/superdense-coding', steps: 5, gated: true, tag: 'Module 2 · Lesson 2' },
+  { id: 'deutsch-jozsa', title: 'Deutsch-Jozsa', href: '/deutsch-jozsa', steps: 5, gated: true, tag: 'Module 2 · Lesson 3' },
+  { id: 'grovers-search', title: "Grover's Search", href: '/grovers-search', steps: 5, gated: true, tag: 'Module 2 · Lesson 4' },
   // Module 3 — The Physics and Math Underneath
   { id: 'complex-numbers', title: 'Complex Numbers', href: '/complex-numbers', steps: 4, gated: true, tag: 'Module 3 · Lesson 1' },
   { id: 'bra-ket', title: 'Bra-Ket, Demystified', href: '/bra-ket', steps: 4, gated: true, tag: 'Module 3 · Lesson 2' },

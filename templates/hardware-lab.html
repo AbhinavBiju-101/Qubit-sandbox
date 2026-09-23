@@ -7,7 +7,7 @@
 
 <div class="pill" style="margin-bottom:14px;">ONE LAYER DEEPER THAN PHYSICAL QUBIT</div>
 <h1 style="margin-bottom:6px;">Inside the hardware, one layer deeper.</h1>
-<p class="muted" style="font-size:1.05rem;">Three steps: the classical baseline you're used to, the zero-resistance trick that makes a qubit possible, and an actual chip-layout view instead of labeled boxes.</p>
+<p class="muted" style="font-size:1.05rem;">Five steps: the classical baseline you're used to, why a circuit has discrete quantum states at all, the zero-resistance trick that makes a qubit possible, an actual chip-layout view instead of labeled boxes, and a genuinely surprising fact about scale.</p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -63,16 +63,40 @@
       </div>
     </div>
 
-    <label class="mark-done-check" style="margin-top:18px;">
+    <details style="margin-top:14px;">
+      <summary style="cursor:pointer; font-size:0.9rem; color:var(--text-muted);">Stop and think: the gate oxide is drawn as a thin insulating layer. Why does it need to be an insulator instead of a conductor, if its whole job is to control the channel with a voltage?</summary>
+      <div class="callout blue" style="margin-top:10px;">If the oxide conducted, the gate would just short directly into the channel — current would flow straight through the gate terminal instead of being <em>influenced</em> by it, and you'd lose the ability to control the channel with voltage alone (worse, you'd be constantly drawing current just to hold the gate at a voltage, burning power for no reason). Because it's an insulator, the gate can sit at any voltage indefinitely, drawing essentially no current, while still reaching <em>through</em> the oxide electrically to attract or repel charge in the channel beneath it. That "control without current flow" trick — an electric field doing work without any charge actually crossing the barrier — is quietly the same principle that makes capacitively coupling a resonator to a transmon possible (Step 4's chip layout, and the Physical Qubit lesson's readout stage): influence without a direct, disruptive electrical connection.</div>
+    </details>
+
+    <label class="mark-done-check" style="margin-top:16px;">
       <input type="checkbox" data-step-check="step1"> I can point to the gate, source, drain, and channel
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 2 — LC OSCILLATOR / ZERO RESISTANCE ===================== -->
+<!-- ===================== STEP 2 — WHY QUANTIZED AT ALL ===================== -->
 <div class="lesson-step" data-step="step2">
   <div class="lesson-step-head">
     <div class="lesson-step-num">2</div>
+    <h3>Why does a circuit have discrete quantum states at all?</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Before touching the LC loop in Step 3, it's worth asking a question the Physical Qubit lesson skipped over: an ordinary inductor-capacitor circuit is just charge sloshing back and forth, no different in principle from a swinging pendulum or a mass on a spring. Why would something that mundane have quantized energy levels — discrete rungs, like |0⟩ and |1⟩ — instead of a smooth, continuous range of possible energies the way a real-world pendulum does?</p>
+
+    <p class="muted">The honest answer is: <em>everything</em> technically has quantized energy levels, including a real pendulum — but for an object as large and warm as a pendulum, the spacing between adjacent levels is so absurdly tiny compared to its total energy that the discreteness is completely unmeasurable, and treating its energy as continuous is an excellent approximation. What makes a superconducting LC loop different is scale and temperature working together: at the cryogenic temperatures from the Physical Qubit lesson's Step 6, there's no thermal energy around to blur the discreteness with noise, and the circuit is engineered (specific L and C values, extremely low loss) so that its natural quantum energy spacing is large enough to resolve with real microwave electronics. Quantization was never unique to circuits — cooling and careful engineering are what make it <em>visible</em> here.</p>
+
+    <div class="callout blue">This is the same idea in reverse from Lesson 0's closing note about wave functions: a qubit's two-level state vector is the finite, simplified special case of a much more general continuous quantum description. A plain (unshunted) LC loop, treated fully quantum mechanically, is actually a <strong>quantum harmonic oscillator</strong> — infinitely many evenly-spaced energy levels, not just two. That evenness is precisely the problem Physical Qubit, Step 2 identified: you can't isolate "just the bottom two levels" of an evenly-spaced ladder. The Josephson junction's nonlinearity is what breaks the even spacing and finally carves out a genuine two-level qubit from what would otherwise be an oscillator with too many usable levels.</div>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step2"> I see why cold + careful engineering makes quantization visible
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — LC OSCILLATOR / ZERO RESISTANCE ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
     <h3>The trick: zero resistance</h3>
   </div>
   <div class="lesson-step-body">
@@ -110,19 +134,19 @@
     </div>
 
     <div class="callout" style="margin-top:18px;">
-      <strong>This is exactly the mechanism a superconducting qubit uses.</strong> Below its critical temperature, the material's electrical resistance is not just low — it's zero. An LC loop made of superconductor really does oscillate losslessly. The one thing missing to make it a <em>qubit</em>: a plain LC loop's energy levels are evenly spaced, so you can't address "the lowest two levels only" — that's what the Josephson junction fixes (see the <a href="{{ url_for('physical_qubit') }}">Physical Qubit</a> lesson), by acting as a nonlinear inductor.
+      <strong>This is exactly the mechanism a superconducting qubit uses.</strong> Below its critical temperature, the material's electrical resistance is not just low — it's zero. An LC loop made of superconductor really does oscillate losslessly, which is exactly the "extremely low loss" condition Step 2 needed for its quantized energy spacing to actually be usable — resistance and decoherence are, physically, close cousins: both are unwanted energy leaking out where it shouldn't. The one thing missing to make it a <em>qubit</em>: a plain LC loop's energy levels are evenly spaced, so you can't address "the lowest two levels only" — that's what the Josephson junction fixes (see the <a href="{{ url_for('physical_qubit') }}">Physical Qubit</a> lesson), by acting as a nonlinear inductor.
     </div>
 
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step2"> I dragged resistance to zero and watched it stop decaying
+      <input type="checkbox" data-step-check="step3"> I dragged resistance to zero and watched it stop decaying
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 3 — CHIP LAYOUT ===================== -->
-<div class="lesson-step" data-step="step3">
+<!-- ===================== STEP 4 — CHIP LAYOUT ===================== -->
+<div class="lesson-step" data-step="step4">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">3</div>
+    <div class="lesson-step-num">4</div>
     <h3>What it actually looks like on a chip</h3>
   </div>
   <div class="lesson-step-body">
@@ -141,7 +165,26 @@
     </div>
 
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step3"> I clicked through all four chip parts
+      <input type="checkbox" data-step-check="step4"> I clicked through all four chip parts
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 5 — WHY SO BIG ===================== -->
+<div class="lesson-step" data-step="step5">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">5</div>
+    <h3>A surprising fact: this chip is enormous</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Look again at Step 4's layout, and compare it to Step 1's transistor. A modern classical transistor's gate is a few nanometers across — small enough that roughly ten billion of them fit on a chip the size of a fingernail. A single transmon qubit, capacitor pads included, is typically a few hundred micrometers to a couple of millimeters across — <strong>a hundred thousand times larger</strong> in linear dimension, or roughly ten billion times larger in area. That's a strange result: the qubit is the more exotic, more delicately engineered device, and yet it's enormous by comparison. Worth pausing on why, since it isn't simply "quantum engineering is less mature yet."</p>
+
+    <p class="muted">The size isn't a fabrication limitation at all — it's forced by physics that has nothing to do with quantum mechanics specifically. The resonator from Step 4 has to resonate at a particular microwave frequency (a few GHz), and a resonator's physical length is tied to the wavelength of the signal it resonates with — for a few-GHz microwave, that wavelength, even slowed down by the on-chip materials, is on the order of centimeters, so a resonator built to a convenient fraction of it naturally comes out millimeters long. The capacitor pads are sized the way they are to hit a specific capacitance value that controls the transmon's sensitivity to charge noise (Physical Qubit lesson) — and at these frequencies, the capacitance needed corresponds to a physically large parallel-plate area, not a nanoscale one. None of this is about needing "room" for quantum effects to happen; quantum effects don't require any particular size. It's electromagnetic engineering constraints, the same kind that make a radio antenna a specific length rather than the length you'd prefer.</p>
+
+    <div class="callout amber">This single fact is a big part of why "just add more qubits" is a much harder sentence to make true than the equivalent for transistors. Classical computing rode Moore's Law by relentlessly shrinking transistors — smaller devices, more of them, same chip area, roughly for free. A superconducting qubit's size is set by microwave wavelength physics, not fabrication precision, so it doesn't shrink the same way; packing more qubits onto a chip mostly means making the chip bigger, and bigger chips bring their own wiring, cooling, and crosstalk problems. The <a href="{{ url_for('reality_check') }}">Reality Check lesson</a> puts real numbers on exactly this bottleneck — it's the concrete reason today's real machines have hundreds of qubits, not the millions or billions that "billions of transistors" might make you expect by analogy.</div>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step5"> I see why wavelength physics, not fabrication skill, sets the qubit's size
     </label>
   </div>
 </div>

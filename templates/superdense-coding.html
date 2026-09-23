@@ -7,7 +7,7 @@
 
 <div class="pill green" style="margin-bottom:14px;">MODULE 2 · QUANTUM ALGORITHMS</div>
 <h1 style="margin-bottom:6px;">Teleportation's mirror image.</h1>
-<p class="lede muted" style="font-size:1.05rem;">Teleportation sends 1 qubit's state using entanglement + 2 classical bits. Superdense coding runs it backwards: send 2 classical bits using entanglement + 1 qubit.</p>
+<p class="lede muted" style="font-size:1.05rem;">Teleportation sends 1 qubit's state using entanglement + 2 classical bits. Superdense coding runs it backwards: send 2 classical bits using entanglement + 1 qubit. Five steps, including a puzzle worth actually getting stuck on before the answer.</p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -23,23 +23,53 @@
     <h3>One qubit, four possible messages</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">Alice and Bob share a Bell pair, made in advance. Alice wants to send Bob one of four 2-bit messages — 00, 01, 10, or 11. She applies one of four gates to <em>her</em> half only (I, X, Z, or XZ), then physically sends that one qubit to Bob. Bob, now holding both qubits, applies CNOT then H and measures both — recovering Alice's exact 2 bits, every time, no errors.</p>
-    <p class="muted">A single unentangled qubit can only ever carry 1 bit reliably. Pre-shared entanglement is what lets one qubit's physical trip carry two classical bits instead — the entanglement was the "prepayment" that makes the extra capacity possible.</p>
-    <div class="callout blue">Same four gates you already know from Single Qubit — I, X, Z, and X-then-Z — now doing the job of a 2-bit label instead of a Bloch rotation.</div>
+    <p class="muted">Alice and Bob share a Bell pair, made in advance. Alice wants to send Bob one of four 2-bit messages — 00, 01, 10, or 11. She applies one of four gates to <em>her</em> half only (I, X, Z, or X-then-Z), then physically sends that one qubit to Bob. Bob, now holding both qubits, applies CNOT then H and measures both — recovering Alice's exact 2 bits, every time, no errors.</p>
+
+    <p class="muted">Here's the puzzle worth sitting with before Step 2 resolves it: a single, unentangled qubit can only ever carry 1 bit of classical information reliably, even though its state technically takes a continuum of numbers (α, β) to describe. This is a real, provable limit called the <strong>Holevo bound</strong> — having infinitely many possible states to encode into doesn't help, because measuring can only ever extract one classical answer, and any attempt to cram more in just makes that one answer noisier, not richer. So how does entanglement let one qubit's physical trip carry <em>two</em> bits, seemingly beating a hard theoretical limit?</p>
+
+    <div class="callout amber">It doesn't beat the limit — it changes which qubit the limit applies to. The Holevo bound caps what you can extract from measuring <em>one qubit in isolation</em>. Bob never does that: by the time he measures anything, he's holding <em>both</em> halves of the pair and makes one joint 2-qubit measurement. The bound says nothing about what a joint measurement on two qubits together can reveal — and Step 2 shows that joint measurement is exactly what four different single-qubit encodings can be turned into: four perfectly distinguishable, orthogonal two-qubit states.</div>
+
     <label class="mark-done-check" style="margin-top:16px;">
-      <input type="checkbox" data-step-check="step1"> One qubit's trip, two bits recovered
+      <input type="checkbox" data-step-check="step1"> I see why the Holevo bound doesn't actually forbid this
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 2 — SEND A MESSAGE ===================== -->
+<!-- ===================== STEP 2 — THE ALGEBRA ===================== -->
 <div class="lesson-step" data-step="step2">
   <div class="lesson-step-head">
     <div class="lesson-step-num">2</div>
+    <h3>The algebra: four gates, four orthogonal Bell states</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Start from the shared pair <span class="mono">|Φ+⟩ = (|00⟩+|11⟩)/√2</span>, and apply each of Alice's four possible encodings to <em>only her</em> qubit (the first ket in each term). Each one lands on a different one of the four Bell states from Two Qubits — the exact same four states the Quantum Teleportation lesson's algebra step decoded in the opposite direction:</p>
+
+    <table style="margin-top:12px;">
+      <tr><th>Message</th><th>Alice applies</th><th>Result</th><th>Bell state</th></tr>
+      <tr><td class="mono">00</td><td class="mono">I (nothing)</td><td class="mono">(|00⟩+|11⟩)/√2</td><td class="mono">Φ+</td></tr>
+      <tr><td class="mono">10</td><td class="mono">Z</td><td class="mono">(|00⟩−|11⟩)/√2</td><td class="mono">Φ-</td></tr>
+      <tr><td class="mono">01</td><td class="mono">X</td><td class="mono">(|10⟩+|01⟩)/√2</td><td class="mono">Ψ+</td></tr>
+      <tr><td class="mono">11</td><td class="mono">X then Z</td><td class="mono">(|10⟩−|01⟩)/√2</td><td class="mono">Ψ- <span class="muted">(up to overall sign)</span></td></tr>
+    </table>
+
+    <p class="muted" style="margin-top:14px;">Check the Z row yourself: Z leaves |0⟩ alone and flips the sign of |1⟩, so applying it to just Alice's qubit turns <span class="mono">|00⟩+|11⟩</span> into <span class="mono">|00⟩−|11⟩</span> — exactly Φ-. Check the X row the same way: X swaps |0⟩⇄|1⟩ on Alice's qubit only, turning <span class="mono">|00⟩+|11⟩</span> into <span class="mono">|10⟩+|01⟩</span> — Ψ+. Four single-qubit gates, four completely distinct, mutually orthogonal 2-qubit outcomes — and orthogonal quantum states, unlike non-orthogonal ones, <em>can</em> always be perfectly distinguished by some measurement (Bob's CNOT-then-H, the same disentangling trick from Teleportation, Step 3, run in the opposite direction — here to reveal a message instead of to prepare one).</p>
+
+    <div class="callout blue">This is the real mechanism, stated plainly: Alice isn't sneaking 2 bits into 1 qubit's own degrees of freedom. She's using her local gate to steer which of 4 pre-agreed, perfectly distinguishable joint states the <em>pair</em> ends up in — and the "reading" happens only once, jointly, on both qubits together. The information was always genuinely spread across both qubits; her single-qubit trip just delivers the second half.</div>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step2"> I verified at least one row of the table by hand
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — SEND A MESSAGE ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
     <h3>Encode, send, decode</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">Pick Alice's 2-bit message. We'll create the shared Bell pair, apply her encoding gate to her qubit only, then run Bob's decoding circuit and measure — watch the recovered bits match what she picked.</p>
+    <p class="muted">Pick Alice's 2-bit message. We'll create the shared Bell pair, apply her encoding gate to her qubit only, then run Bob's decoding circuit and measure — watch the recovered bits match what she picked, and match Step 2's table exactly.</p>
 
     <div class="panel" style="margin-top:16px;">
       <div class="panel-label">SANDBOX · SUPERDENSE CODING</div>
@@ -58,36 +88,36 @@
     </div>
 
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step2"> I sent all four possible messages
+      <input type="checkbox" data-step-check="step3"> I sent all four possible messages
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 3 — BONUS ===================== -->
-<div class="lesson-step" data-step="step3">
-  <div class="lesson-step-head">
-    <div class="lesson-step-num">3</div>
-    <h3>Bonus: not faster-than-light either</h3>
-  </div>
-  <div class="lesson-step-body">
-    <p class="muted">Bob can't decode anything until Alice's physical qubit actually reaches him — the entanglement was shared in advance, but the 2 bits of information only exist for Bob once both qubits are back in the same place. Superdense coding compresses <em>what has to travel</em>, not the universe's speed limit.</p>
-    <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step3"> Still bounded by one qubit's physical trip
-    </label>
-  </div>
-</div>
-
-<!-- ===================== STEP 4 — THE COST OF THE CAPACITY ===================== -->
+<!-- ===================== STEP 4 — BONUS ===================== -->
 <div class="lesson-step" data-step="step4">
   <div class="lesson-step-head">
     <div class="lesson-step-num">4</div>
+    <h3>Bonus: not faster-than-light either</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Bob can't decode anything until Alice's physical qubit actually reaches him — the entanglement was shared in advance, but the 2 bits of information only exist for Bob once both qubits are back in the same place for that joint measurement from Step 2. This is the same no-communication guarantee from Two Qubits, Step 6, showing up from the other side: entanglement alone, before Alice's qubit physically arrives, gives Bob nothing distinguishable — his half looks like a plain 50/50 coin no matter which of the four messages Alice eventually sends. Superdense coding compresses <em>what has to travel</em>, not the universe's speed limit.</p>
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step4"> Still bounded by one qubit's physical trip
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 5 — THE COST OF THE CAPACITY ===================== -->
+<div class="lesson-step" data-step="step5">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">5</div>
     <h3>It isn't free bandwidth</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">The "2 bits from 1 qubit" headline hides a real cost: the Bell pair had to be created and shared <em>in advance</em>, which itself took a full qubit's worth of quantum communication (plus keeping it coherent until Alice was ready to use it — Decoherence, in Module 5, is exactly the enemy here). Count that setup qubit and the total quantum communication is 2 qubits for 2 bits — no better than sending them classically.</p>
-    <p class="muted">The actual advantage shows up when the entanglement can be distributed <em>ahead of time</em>, during idle capacity, and then spent later exactly when a burst of classical communication is needed — pre-shared entanglement as a stockpiled resource, not a per-message cost. That timing-shift, not a raw bit-count trick, is superdense coding's real practical angle in proposed quantum-network protocols.</p>
+    <p class="muted">The "2 bits from 1 qubit" headline hides a real cost: the Bell pair had to be created and shared <em>in advance</em>, which itself took a full qubit's worth of quantum communication (plus keeping it coherent until Alice was ready to use it — Decoherence, in Module 5, is exactly the enemy here). Count that setup qubit and the total quantum communication is 2 qubits for 2 bits — no better than sending them classically. The Holevo bound from Step 1 hasn't been cheated after all, once you count everything that had to travel quantum-mechanically, not just Alice's final trip.</p>
+    <p class="muted">The actual advantage shows up when the entanglement can be distributed <em>ahead of time</em>, during idle capacity, and then spent later exactly when a burst of classical communication is needed — pre-shared entanglement as a stockpiled resource, not a per-message cost. That timing-shift, not a raw bit-count trick, is superdense coding's real practical angle in proposed quantum-network protocols, and it's the same resource — a stockpile of shared Bell pairs — that Quantum Teleportation spends to move a state instead of a message.</p>
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step4"> The entanglement setup is a real cost, just a pre-paid one
+      <input type="checkbox" data-step-check="step5"> The entanglement setup is a real cost, just a pre-paid one
     </label>
   </div>
 </div>

@@ -7,7 +7,7 @@
 
 <div class="pill" style="margin-bottom:14px;">LESSON 5 · SCALING</div>
 <h1 style="margin-bottom:6px;">From 10 qubits to 100 — what actually gets harder.</h1>
-<p class="muted" style="font-size:1.05rem;">Four steps: today's real hardware, how the system architecture fits together, the actual scaling bottleneck, and one bonus idea for dodging it entirely.</p>
+<p class="muted" style="font-size:1.05rem;">Six steps: today's real hardware, why qubit count alone is a misleading headline number, how the full system fits together, the actual scaling bottleneck, one bonus idea for dodging it entirely, and where Module 1 leaves you.</p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -23,7 +23,7 @@
     <h3>Today's hardware, for real</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">Qubit count alone is a poor proxy for a "better" computer once error rates enter the picture — but it's still worth knowing where things actually stand.</p>
+    <p class="muted">Qubit count alone is a poor proxy for a "better" computer once error rates enter the picture (Step 2 makes that precise) — but it's still worth knowing where things actually stand.</p>
     <div class="panel" style="margin-top:14px;">
       <div class="panel-label">APPROXIMATE, MOVES FAST</div>
       <table>
@@ -45,10 +45,46 @@
   </div>
 </div>
 
-<!-- ===================== STEP 2 — ARCHITECTURE ===================== -->
+<!-- ===================== STEP 2 — WHY COUNT ALONE MISLEADS ===================== -->
 <div class="lesson-step" data-step="step2">
   <div class="lesson-step-head">
     <div class="lesson-step-num">2</div>
+    <h3>Why qubit count alone is a misleading headline number</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">The Physical Qubit lesson's readout fidelity and the Hardware Lab lesson's noise sources both show up here in a very concrete way: every single gate in a circuit has some small chance of a small error, and those chances don't add up gently — they <strong>compound multiplicatively</strong>, the same way "99% reliable" parts wired in series produce a much-less-than-99%-reliable whole system. If one gate succeeds with probability <span class="mono">f</span>, then a circuit of <span class="mono">N</span> such gates succeeds with probability roughly <span class="mono">fᴺ</span> — and exponentials shrink fast.</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · COMPOUNDING GATE ERROR</div>
+      <div style="display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;">
+        <button class="small" data-fid="0.999">99.9% per gate</button>
+        <button class="small primary" data-fid="0.995">99.5% per gate</button>
+        <button class="small" data-fid="0.99">99% per gate</button>
+      </div>
+      <div style="display:flex; align-items:center; gap:16px; margin-bottom:14px;">
+        <span class="mono" style="width:110px; font-size:0.82rem;">Gates in circuit</span>
+        <input type="range" id="gates-slider" min="1" max="500" value="100" style="flex:1;">
+        <span class="mono" id="gates-val" style="width:44px; text-align:right;">100</span>
+      </div>
+      <div class="stat">
+        <span class="num" id="circuit-success">60.6%</span>
+        <span class="label">chance the whole circuit runs with zero errors</span>
+      </div>
+      <p class="muted" style="font-size:0.82rem; margin-top:12px; margin-bottom:0;">At 99.5% per-gate fidelity — roughly where today's best 2-qubit gates sit — a circuit of just 100 gates already only succeeds cleanly about 61% of the time. A useful algorithm might need thousands of gates; at 1,000 gates, that same 99.5% fidelity gives well under 1% clean-run probability.</p>
+    </div>
+
+    <p class="muted" style="margin-top:14px;">This is exactly why Google Willow's "below-threshold" result in Step 1's table is such a big deal, and worth explaining rather than just citing: quantum <strong>error correction</strong> is a way to spread one logical qubit's information across many physical qubits so that errors on individual physical qubits can be detected and corrected without ever directly measuring (and thus collapsing) the protected information. "Below threshold" means adding more physical qubits to the error-correcting code made the logical error rate go <em>down</em> instead of up — the whole approach only pays off once physical qubits are reliable enough to cross that line. This is why raw qubit count and genuinely useful quantum computation are two different milestones, and why a system with fewer, better qubits can be more useful than one with more, noisier ones.</p>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step2"> I saw how fast compounding error eats a circuit's success rate
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — ARCHITECTURE ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
     <h3>How the pieces talk to each other</h3>
   </div>
   <div class="lesson-step-body">
@@ -58,26 +94,27 @@
         <svg id="arch-svg" viewBox="0 0 320 380" style="width:100%; max-width:320px; display:block; margin:0 auto;"></svg>
       </div>
       <div>
-        <p class="muted"><strong style="color:var(--text);">Classical computer → control system:</strong> a conventional server compiles your circuit into a schedule of microwave pulses, and sends that schedule to room-temperature control electronics.</p>
-        <p class="muted"><strong style="color:var(--text);">Control → qubits:</strong> those pulses travel down coaxial lines into the dilution refrigerator, getting attenuated and filtered at each temperature stage, until they reach the chip.</p>
-        <p class="muted"><strong style="color:var(--text);">Qubits → readout → classical computer:</strong> resonator signals travel back up through cryogenic amplifiers to room-temperature digitizers, closing the loop.</p>
+        <p class="muted"><strong style="color:var(--text);">Classical computer → control system:</strong> a conventional server compiles your circuit into a schedule of microwave pulses — literally the pulse-area-and-phase recipe from the Physical Qubit lesson's control step — and sends that schedule to room-temperature control electronics.</p>
+        <p class="muted"><strong style="color:var(--text);">Control → qubits:</strong> those pulses travel down coaxial lines into the dilution refrigerator, getting attenuated and filtered at each of several temperature stages on the way down, until they reach the chip at its coldest point (~10–15&nbsp;mK, from Physical Qubit's Step 6).</p>
+        <p class="muted"><strong style="color:var(--text);">Qubits → readout → classical computer:</strong> resonator signals travel back up through cryogenic amplifiers to room-temperature digitizers, closing the loop — this is the dispersive-readout chain from Physical Qubit's Step 5, drawn end to end.</p>
         <p class="muted"><strong style="color:var(--text);">Why cooling is required:</strong> superconductivity disappears above a critical temperature, and even below it, thermal energy comparable to the qubit's transition energy will randomly flip or dephase it.</p>
       </div>
     </div>
+    <div class="callout blue" style="margin-top:16px;">Every arrow in this diagram is a place a gate error or readout error (Step 2) can sneak in — filters and attenuators distort pulses slightly, amplifiers add noise to the return signal. "One qubit chip" in Step 1's table is really shorthand for this entire loop working reliably, thousands or millions of times per experiment.</div>
     <label class="mark-done-check" style="margin-top:16px;">
-      <input type="checkbox" data-step-check="step2"> I traced the full control → qubit → readout loop
+      <input type="checkbox" data-step-check="step3"> I traced the full control → qubit → readout loop
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 3 — BOTTLENECK ===================== -->
-<div class="lesson-step" data-step="step3">
+<!-- ===================== STEP 4 — BOTTLENECK ===================== -->
+<div class="lesson-step" data-step="step4">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">3</div>
+    <div class="lesson-step-num">4</div>
     <h3>The bottleneck: wiring, not physics</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">Each physical qubit typically needs its own control line running from room temperature down into the dilution refrigerator. At 10 qubits, that's a manageable bundle. At 100, it's a real fan-out problem — and the fridge's limited cooling power at its coldest stage means you can't just keep adding wires.</p>
+    <p class="muted">Each physical qubit typically needs its own control line running from room temperature down into the dilution refrigerator. At 10 qubits, that's a manageable bundle. At 100, it's a real fan-out problem — and the fridge's limited cooling power at its coldest stage means you can't just keep adding wires. This connects directly to the Hardware Lab lesson's "why is the chip so big" surprise: it isn't just the qubits themselves that don't shrink easily, it's everything wired to them.</p>
 
     <div style="display:flex; align-items:flex-end; gap:40px; justify-content:center; margin:22px 0; flex-wrap:wrap;">
       <div style="text-align:center;">
@@ -90,18 +127,18 @@
       </div>
     </div>
 
-    <p class="muted">The industry's answer is <strong style="color:var(--text);">cryo-CMOS control</strong> — putting some control electronics physically inside the fridge, closer to the chip, so a single cable can carry instructions for many qubits instead of one wire per qubit. It trades wiring complexity for a new problem: those control chips now have to work reliably at temperatures conventional electronics were never designed for.</p>
+    <p class="muted">The industry's answer is <strong style="color:var(--text);">cryo-CMOS control</strong> — putting some control electronics physically inside the fridge, closer to the chip, so a single cable can carry instructions for many qubits instead of one wire per qubit. It trades wiring complexity for a new problem: those control chips now have to work reliably at temperatures conventional electronics were never designed for, and any heat they generate has to be removed by the same limited-cooling-power fridge stage.</p>
 
     <label class="mark-done-check" style="margin-top:14px;">
-      <input type="checkbox" data-step-check="step3"> I can explain why it's wiring, not physics
+      <input type="checkbox" data-step-check="step4"> I can explain why it's wiring, not physics
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 4 — BONUS ROOM TEMP ===================== -->
-<div class="lesson-step" data-step="step4">
+<!-- ===================== STEP 5 — BONUS ROOM TEMP ===================== -->
+<div class="lesson-step" data-step="step5">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">4</div>
+    <div class="lesson-step-num">5</div>
     <h3>Bonus: does it have to be this cold?</h3>
   </div>
   <div class="lesson-step-body">
@@ -122,7 +159,37 @@
     </div>
     <p class="muted" style="margin-top:14px; font-size:0.9rem;">None of these are commercially practical replacements for superconducting qubits yet — the point of the bonus question is showing you understand <em>why</em> cold matters, well enough to reason about how to route around it.</p>
     <label class="mark-done-check" style="margin-top:12px;">
-      <input type="checkbox" data-step-check="step4"> I can name one alternative and its trade-off
+      <input type="checkbox" data-step-check="step5"> I can name one alternative and its trade-off
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 6 — CLOSING SYNTHESIS ===================== -->
+<div class="lesson-step" data-step="step6">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">6</div>
+    <h3>Where Module 1 leaves you</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Worth pulling the whole module into one line before moving on: a qubit's state is two numbers that have to be squared to become probabilities and can cancel each other out before they do (<a href="{{ url_for('qm_basics') }}">Lesson 0</a>); every gate is a length-preserving rotation of that state, and phase is real even when a direct measurement can't see it (<a href="{{ url_for('single_qubit') }}">Lesson 1</a>); combining qubits multiplies the state space instead of adding it, and some joint states can't be pulled back apart into separate descriptions at all (<a href="{{ url_for('two_qubit') }}">Lesson 2</a>); all of that runs on real superconducting circuits that are simultaneously more fragile and, per-qubit, far larger than any transistor (<a href="{{ url_for('physical_qubit') }}">Lesson 3</a> and <a href="{{ url_for('hardware_lab') }}">Lesson 4</a>); and today's machines are bottlenecked less by exotic physics than by wiring, cooling, and compounding gate error (this lesson).</p>
+
+    <p class="muted">Two directions from here, and this app is built to support either:</p>
+
+    <div class="grid-2" style="margin-top:14px;">
+      <div class="panel">
+        <div class="panel-label">GO WIDE · MODULE 2, ALGORITHMS</div>
+        <p class="muted" style="font-size:0.9rem;">See the interference and entanglement from Lessons 0–2 turned into actual computational advantage: <a href="{{ url_for('deutsch_jozsa') }}">Deutsch-Jozsa</a> (the simplest circuit that's provably faster than any classical one), <a href="{{ url_for('grovers_search') }}">Grover's Search</a> (interference used to find a needle in a haystack quadratically faster), <a href="{{ url_for('bb84') }}">BB84</a> (measurement-basis uncertainty from Lesson 0, Step 6, turned into unbreakable cryptography), and <a href="{{ url_for('quantum_teleportation') }}">Quantum Teleportation</a> / <a href="{{ url_for('superdense_coding') }}">Superdense Coding</a> (the entanglement-without-communication idea from Lesson 2, Step 6, turned into genuine resources).</p>
+      </div>
+      <div class="panel">
+        <div class="panel-label">GO DEEP · MODULE 3, THE FORMAL MATH</div>
+        <p class="muted" style="font-size:0.9rem;">Everything here was described in words and sliders; Module 3 gives it the standard notation and rigor: <a href="{{ url_for('bra_ket') }}">Bra-Ket notation</a> formalizes the |ψ⟩ shorthand from Lesson 0, <a href="{{ url_for('matrices_as_gates') }}">Matrices as Gates</a> makes precise what "unitary" and "rotation" mean from Lesson 1, and <a href="{{ url_for('tensor_products') }}">Tensor Products</a> formalizes the ⊗ operation this lesson's Step 3 used informally. <a href="{{ url_for('decoherence') }}">Decoherence</a> and <a href="{{ url_for('nisq') }}">NISQ</a> pick up exactly where this lesson's error-compounding calculator left off, with the real math behind it.</p>
+      </div>
+    </div>
+
+    <div class="callout blue" style="margin-top:16px;">Neither path requires re-deriving anything from this module — but if a term in Module 2 or 3 ever feels unfamiliar, there's a decent chance it was quietly foreshadowed somewhere in Lessons 0–5, and it's worth a quick trip back here rather than pushing through confused.</div>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step6"> I know where I'm headed next
     </label>
   </div>
 </div>
@@ -136,6 +203,31 @@
 <script>
   const ns = 'http://www.w3.org/2000/svg';
   function el(tag, attrs) { const e = document.createElementNS(ns, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; }
+
+  // ---- Step 2: compounding gate error calculator ----
+  let currentFidelity = 0.995;
+  const gatesSlider = document.getElementById('gates-slider');
+  const gatesVal = document.getElementById('gates-val');
+  const circuitSuccess = document.getElementById('circuit-success');
+  const fidButtons = document.querySelectorAll('[data-fid]');
+
+  function refreshCompounding() {
+    const n = +gatesSlider.value;
+    gatesVal.textContent = n;
+    const success = Math.pow(currentFidelity, n);
+    circuitSuccess.textContent = (success * 100).toFixed(success < 0.1 ? 2 : 1) + '%';
+    circuitSuccess.style.color = success > 0.5 ? 'var(--primary)' : (success > 0.1 ? 'var(--amber)' : 'var(--red)');
+  }
+  fidButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentFidelity = +btn.dataset.fid;
+      fidButtons.forEach(b => b.className = 'small');
+      btn.className = 'small primary';
+      refreshCompounding();
+    });
+  });
+  gatesSlider.addEventListener('input', refreshCompounding);
+  refreshCompounding();
 
   const arch = document.getElementById('arch-svg');
   const nodes = [

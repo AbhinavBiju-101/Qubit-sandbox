@@ -7,7 +7,7 @@
 
 <div class="pill amber" style="margin-bottom:14px;">LESSON 3 · HARDWARE</div>
 <h1 style="margin-bottom:6px;">What "|0⟩" actually is, physically.</h1>
-<p class="muted" style="font-size:1.05rem;">Four steps: the hardware chain, how it's controlled, how it's measured, and why it has to be so cold.</p>
+<p class="muted" style="font-size:1.05rem;">Six steps: why build a qubit at all, the hardware chain, the tension every design has to balance, how it's controlled, how it's measured, and why it has to be so cold.</p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -16,10 +16,29 @@
 
 {{ lesson_nav(prev_lesson, next_lesson) }}
 
-<!-- ===================== STEP 1 — HARDWARE CHAIN ===================== -->
+<!-- ===================== STEP 1 — WHY BUILD A QUBIT AT ALL ===================== -->
 <div class="lesson-step" data-step="step1">
   <div class="lesson-step-head">
     <div class="lesson-step-num">1</div>
+    <h3>Why build a qubit out of a circuit at all?</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Everything in Lessons 0–2 was pure math — α, β, gates, entanglement — none of it cared what a qubit was <em>made of</em>. That's deliberate: quantum mechanics doesn't require a circuit specifically, it requires any physical system with (at least) two distinguishable, controllable, measurable energy levels. A single trapped ion has one. So does a photon's polarization, or the spin of a single electron. All of these are real, working qubit technologies today, and none of them involve superconductors at all.</p>
+
+    <p class="muted">Superconducting circuits — the technology this lesson (and IBM's, Google's, and most industrial quantum computers') focuses on — are sometimes called <strong>artificial atoms</strong>: instead of relying on a naturally occurring two-level system, engineers build a tiny electrical circuit whose lowest two quantized energy states behave like |0⟩ and |1⟩. The appeal is manufacturing, not physics: a circuit can be fabricated with the same lithography techniques as ordinary computer chips, at a size and reproducibility natural atoms don't offer. The cost, as this lesson's remaining steps show, is that a circuit is a much noisier, more fragile environment than a genuinely isolated atom — which is precisely why so much of the engineering here exists to fight problems that a trapped-ion qubit barely has to think about.</p>
+
+    <div class="callout blue">No single qubit technology has "won" — trapped ions currently hold longer coherence times, photonic qubits move information without needing cooling at all, and superconducting circuits currently lead on gate speed and manufacturability. The <a href="{{ url_for('reality_check') }}">Reality Check lesson</a> compares real published qubit counts and error rates across exactly this landscape. This lesson goes deep on one technology, superconducting circuits, because it's the one with the clearest circuit-diagram story to tell.</div>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step1"> I see why "artificial atom" is the right framing
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 2 — HARDWARE CHAIN ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
     <h3>The hardware chain</h3>
   </div>
   <div class="lesson-step-body">
@@ -35,48 +54,91 @@
         <p id="info-body" class="muted"></p>
       </div>
     </div>
+
+    <details style="margin-top:16px;">
+      <summary style="cursor:pointer; font-size:0.9rem; color:var(--text-muted);">Stop and think: the Josephson junction's whole job is described as adding "nonlinearity." Why does that specifically matter — why not just use a plain LC circuit (an inductor and capacitor), which also has quantized energy levels?</summary>
+      <div class="callout blue" style="margin-top:10px;">A plain LC circuit's energy levels are <strong>evenly spaced</strong> — like rungs on a ladder that are all the same height apart. That's a problem for building a qubit: a microwave pulse tuned to drive the 0→1 transition would, by the same token, equally well drive the 1→2 transition, the 2→3 transition, and so on — you could never cleanly address "just |0⟩ and |1⟩" because every other rung is exactly as easy to reach. The Josephson junction's nonlinear inductance breaks that even spacing (an effect called <strong>anharmonicity</strong>): the 0→1 gap becomes measurably different from the 1→2 gap, so a pulse tuned precisely to the 0→1 frequency mostly leaves the higher levels alone. This is the single physical fact that turns "a quantized electrical oscillator" into "a usable two-level qubit" — everything else in the chain exists to make that one property (a good, well-isolated |0⟩/|1⟩ pair) controllable and readable.</div>
+    </details>
+
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step1"> I clicked through all four stages
+      <input type="checkbox" data-step-check="step2"> I clicked through all four stages and read the nonlinearity answer
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 2 — CONTROL ===================== -->
-<div class="lesson-step" data-step="step2">
-  <div class="lesson-step-head">
-    <div class="lesson-step-num">2</div>
-    <h3>How it's controlled</h3>
-  </div>
-  <div class="lesson-step-body">
-    <p class="muted">Microwave pulses tuned to the transmon's transition frequency (typically 4–6&nbsp;GHz) are sent down a control line. The pulse's <em>length</em> and <em>phase</em> set the rotation angle and axis on the Bloch sphere — the same H / X / RY logic from the Single Qubit lesson, just implemented as a physical pulse instead of a button click.</p>
-    <label class="mark-done-check" style="margin-top:12px;">
-      <input type="checkbox" data-step-check="step2"> Makes sense — pulses are gates
-    </label>
-  </div>
-</div>
-
-<!-- ===================== STEP 3 — READOUT ===================== -->
+<!-- ===================== STEP 3 — THE CENTRAL TENSION ===================== -->
 <div class="lesson-step" data-step="step3">
   <div class="lesson-step-head">
     <div class="lesson-step-num">3</div>
-    <h3>How it's measured</h3>
+    <h3>The tension every stage in that chain is fighting</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">A probe tone is sent into the coupled resonator. Its resonant frequency shifts slightly depending on whether the qubit is in |0⟩ or |1⟩ (dispersive readout). The reflected signal is amplified by a cryogenic amplifier, then digitized at room temperature to yield a 0 or 1.</p>
-    <label class="mark-done-check" style="margin-top:12px;">
-      <input type="checkbox" data-step-check="step3"> Makes sense — the resonator reports the state indirectly
+    <p class="muted">Here's a question worth sitting with before Steps 4–5 explain control and readout in detail: a qubit needs to be reachable — you have to be able to send it pulses and read its state out — but Lesson 1 already established that <em>any</em> unwanted interaction with the outside world acts like an accidental measurement, collapsing the very superposition you're trying to compute with. Those two needs are in direct tension. A perfectly isolated qubit would have beautiful coherence and be completely useless, because nothing could ever talk to it. A qubit wired directly and strongly to the outside world would be easy to control and read, and would decohere almost instantly.</p>
+
+    <p class="muted">Every stage in the Step 2 chain is a specific, engineered compromise between those two extremes, not an accident of design: the resonator couples to the transmon only weakly and only at a very specific frequency, so it's nearly invisible to the qubit except when you deliberately probe it. The control line is similarly tuned to talk to the qubit only via precisely resonant microwave pulses, staying quiet the rest of the time. Even the choice to use <em>superconductors</em> at all — materials with exactly zero electrical resistance below a critical temperature — is part of this compromise: resistance would mean constant, uncontrolled energy leakage into heat, which is exactly the kind of unwanted "measurement" a qubit can't survive.</p>
+
+    <div class="callout amber">This tension — talk to it without disturbing it — isn't specific to superconducting circuits; it's the central engineering challenge for <em>every</em> qubit technology, trapped ions and photonic qubits included, and it's why building a good quantum computer is overwhelmingly an engineering problem once the physics is understood. The <a href="{{ url_for('hardware_lab') }}">Hardware Lab lesson</a> goes deeper on the circuit engineering side of this trade-off, including the transistor-level comparison and an actual chip-layout diagram.</div>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step3"> I see why every stage is a compromise, not just a component
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 4 — DECOHERENCE / BONUS ===================== -->
+<!-- ===================== STEP 4 — CONTROL ===================== -->
 <div class="lesson-step" data-step="step4">
   <div class="lesson-step-head">
     <div class="lesson-step-num">4</div>
+    <h3>How it's controlled</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Microwave pulses tuned to the transmon's transition frequency (typically 4–6&nbsp;GHz) are sent down a control line. Two knobs on that pulse map directly onto the two things a rotation needs, from <a href="{{ url_for('single_qubit') }}">Lesson 1</a>: the pulse's <strong>area</strong> (roughly, its amplitude × how long it lasts) sets the rotation <em>angle</em> — this is the physical implementation of the RY(θ) slider from Lesson 1, Step 6, where a bigger pulse area is a bigger θ — and the pulse's <strong>phase</strong> (which point in the microwave's oscillation it's synchronized to) sets the rotation <em>axis</em>, choosing between an X-like rotation, a Y-like rotation, or anything in between.</p>
+
+    <table style="margin-top:14px; max-width:480px;">
+      <tr><th>Pulse</th><th>Bloch-sphere effect</th></tr>
+      <tr><td class="mono">Small area</td><td>Small-angle rotation — a "partial" gate</td></tr>
+      <tr><td class="mono">Area tuned for 180°</td><td>A full flip — the physical X gate</td></tr>
+      <tr><td class="mono">Area tuned for 90°, phase A</td><td>Rotates to the equator along one axis — one flavor of Hadamard-like gate</td></tr>
+      <tr><td class="mono">Same 90° area, phase shifted 90°</td><td>Rotates to the equator along a <em>different</em> axis — a different gate entirely, same pulse length</td></tr>
+    </table>
+
+    <p class="muted" style="margin-top:14px;">That last row is worth pausing on: two pulses can have identical duration and amplitude and still implement completely different gates, purely because of a phase difference — the same "phase is invisible until it isn't" idea from Lesson 1, Step 4, now showing up as an actual dial an engineer turns, not just a mathematical bookkeeping device.</p>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step4"> I see the pulse-area ↔ angle and phase ↔ axis correspondence
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 5 — READOUT ===================== -->
+<div class="lesson-step" data-step="step5">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">5</div>
+    <h3>How it's measured</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">A probe tone is sent into the coupled resonator. Its resonant frequency shifts slightly depending on whether the qubit is in |0⟩ or |1⟩ — an effect called <strong>dispersive readout</strong>, and the name is precise: the qubit and resonator are coupled just weakly enough ("dispersively," rather than strongly) that probing the resonator tells you about the qubit without directly driving qubit transitions in the process. That weakness is Step 3's tension made concrete in one specific number — the coupling strength is engineered to be exactly strong enough to shift the resonator's frequency measurably, and exactly weak enough not to constantly perturb the qubit on its own.</p>
+
+    <p class="muted">The reflected signal is faint, so it's amplified by a cryogenic amplifier before being digitized at room temperature into a classical 0 or 1. That amplification step isn't free: every stage adds some noise, so any single measurement has some chance of reporting the wrong answer even when the underlying qubit state was unambiguous — a number called <strong>readout fidelity</strong>, typically around 98–99.9% on today's hardware. This is a genuinely different source of error from the statistical shot noise you saw in Lesson 1, Step 5 (which comes from Born's rule itself and would exist even with perfect hardware) — readout error is added on top, purely by imperfect engineering, and it's part of what the error-correction material later in the curriculum exists to compensate for.</p>
+
+    <div class="callout blue">One consequence worth previewing: because a single measurement isn't perfectly reliable, and because measuring collapses the state anyway (Lesson 1, Step 5), real quantum algorithms virtually always run the same circuit many times and look at the statistics — exactly the "1,000 shots" pattern from every sandbox in this app, not a simplification made for teaching purposes.</div>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step5"> Makes sense — the resonator reports the state indirectly, imperfectly
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 6 — DECOHERENCE / BONUS ===================== -->
+<div class="lesson-step" data-step="step6">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">6</div>
     <h3>Bonus: why so cold</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">Dilution refrigerators cool the chip to ~10–15&nbsp;mK — colder than deep space. Below, a qubit is prepared in an equal superposition and left alone. Watch what raising the temperature does to how long it stays coherent.</p>
+    <p class="muted">Dilution refrigerators cool the chip to ~10–15&nbsp;mK — colder than deep space. The reason traces directly back to Step 3's tension: heat is random energy, and random energy is exactly the kind of uncontrolled "poking" that acts like an unwanted measurement. Warmer surroundings mean more stray photons bouncing around at the qubit's own transition frequency, and thermal physics (the Boltzmann/Bose-Einstein statistics that govern how many such photons exist at a given temperature) says that population grows extremely fast as temperature rises — which is why the difference between 15&nbsp;mK and, say, 1&nbsp;K is enormous for a qubit even though both sound "extremely cold" to a human.</p>
+
+    <p class="muted">Decoherence actually comes in two distinguishable flavors, worth naming since you'll see both terms again: <strong>T1</strong> (energy relaxation) is how long, on average, before an excited |1⟩ spontaneously decays down to |0⟩, losing energy to its environment — like a struck bell's ring dying out. <strong>T2</strong> (dephasing) is how long before the qubit loses track of its <em>phase</em> — exactly the phase from Step 4 and Lesson 1, Step 4 — even without necessarily flipping |0⟩⇄|1⟩ at all. T2 is typically shorter than T1, and it's the more fragile of the two precisely because phase is the more fragile kind of information: it's invisible to a direct measurement (Lesson 1, Step 4 again) but still perfectly real and perfectly easy to scramble.</p>
 
     <div class="panel" style="margin-top:16px;">
       <div class="panel-label">SANDBOX · TEMPERATURE</div>
@@ -99,11 +161,13 @@
 
     <div class="callout" style="margin-top:18px;">
       <strong>What happens if temperature rises significantly:</strong>
-      thermal energy starts randomly kicking the qubit between |0⟩ and |1⟩ (bit flips), stray thermal photons fill the resonator and add noise to every readout, and if the chip rises past the material's superconducting critical temperature the Josephson junction stops being a junction at all — it's just a resistor, and there is no qubit left to measure.
+      thermal energy starts randomly kicking the qubit between |0⟩ and |1⟩ (bit flips, a T1 process), stray thermal photons fill the resonator and add noise to every readout, and if the chip rises past the material's superconducting critical temperature the Josephson junction stops being a junction at all — it's just a resistor, and there is no qubit left to measure.
     </div>
 
+    <p class="muted" style="margin-top:14px;">Put a number on why this matters: today's best superconducting qubits have T1 in the hundreds of microseconds, and a single gate takes tens of nanoseconds — meaning, in principle, thousands of gates before coherence runs out. In practice, gate <em>errors</em> (not just decoherence) dominate well before that budget is exhausted, which is exactly the state of the field the <a href="{{ url_for('nisq') }}">NISQ lesson</a> and <a href="{{ url_for('reality_check') }}">Reality Check lesson</a> quantify with real numbers — this temperature slider is the physical root of the error rates you'll see reported there as simple percentages.</p>
+
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step4"> I dragged the slider to max and watched coherence collapse
+      <input type="checkbox" data-step-check="step6"> I dragged the slider to max and watched coherence collapse
     </label>
   </div>
 </div>

@@ -7,7 +7,9 @@
 
 <div class="pill blue" style="margin-bottom:14px;">LESSON 0 · START HERE IF YOU'RE NEW</div>
 <h1 style="margin-bottom:6px;">The four numbers under everything else.</h1>
-<p class="lede muted" style="font-size:1.05rem;">The <a href="{{ url_for('single_qubit') }}">Single Qubit lesson</a> just asserts "a qubit's state is a pair of complex numbers." This lesson is where that comes from. Three steps, no code — the math is small enough to do with sliders.</p>
+<p class="lede muted" style="font-size:1.05rem;">The <a href="{{ url_for('single_qubit') }}">Single Qubit lesson</a> just asserts "a qubit's state is a pair of complex numbers." This lesson is where that comes from — and, just as importantly, <em>why</em> quantum probability isn't the same thing as the probability you already know from coins and dice. Six steps, no code — the math is small enough to do with sliders and a pencil.</p>
+
+<div class="callout" style="margin-bottom:4px;">Before you start: if someone asked you "what's the difference between a quantum bit and a bit you just haven't looked at yet?", could you answer? If not, that question is exactly what this lesson is for. Hold onto it — Step 1 attacks it directly, and Step 5 finishes the argument.</div>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -16,10 +18,36 @@
 
 {{ lesson_nav(prev_lesson, next_lesson) }}
 
-<!-- ===================== STEP 1 — STATE VECTORS ===================== -->
+<!-- ===================== STEP 1 — WHY NOT JUST A HIDDEN CLASSICAL BIT? ===================== -->
 <div class="lesson-step" data-step="step1">
   <div class="lesson-step-head">
     <div class="lesson-step-num">1</div>
+    <h3>Isn't "probably 0, probably 1" just... a coin under a cup?</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Before any formalism, it's worth asking why we need new math at all. A classical bit under uncertainty already has "probabilities" — flip a coin, slap your hand over it, and you'd say "50% heads, 50% tails" even though the coin is already sitting there showing one definite face. The uncertainty is entirely in <em>your knowledge</em>, not in the coin. Physicists call this a <strong>hidden variable</strong>: a definite fact that exists whether or not you've looked yet.</p>
+
+    <p class="muted">So here's the natural first guess: maybe a qubit is the same deal — it's secretly always either 0 or 1, and "superposition" is just a fancy word for "we don't know which yet." If that guess were right, this whole lesson would be unnecessary; ordinary probability theory would be enough, and quantum computers wouldn't be able to do anything a classical computer with enough coin flips couldn't also do.</p>
+
+    <div class="callout amber">That guess turns out to be <strong>wrong</strong> — provably, not just "unfashionable." Experiments (Bell tests, which the entanglement material in the <a href="{{ url_for('two_qubit') }}">Two Qubits lesson</a> touches on) rule out <em>any</em> hidden-variable explanation of quantum outcomes, coin-under-a-cup or otherwise. A qubit isn't a bit you haven't checked yet — it's a genuinely different kind of object, and the two numbers α and β aren't a summary of your ignorance, they're a complete physical description.</div>
+
+    <p class="muted" style="margin-top:14px;">The clearest sign that something un-coin-like is going on is <strong>interference</strong>: two quantum possibilities can be combined so that they <em>cancel each other out</em> and something that was going to happen stops happening. Classical probabilities can never do that — a probability can be diluted by adding more possibilities, but a possibility that's ≥0% likely can never be pushed down to exactly 0% by adding <em>another</em> possibility on top of it. Amplitudes can, because unlike probabilities, amplitudes are allowed to be negative. Step 5 below makes this concrete with actual numbers.</p>
+
+    <details style="margin-top:14px;">
+      <summary style="cursor:pointer; font-size:0.9rem; color:var(--text-muted);">Stop and think: if a qubit isn't a hidden classical bit, what <em>is</em> α actually a measure of?</summary>
+      <div class="callout blue" style="margin-top:10px;">There's no deeper answer than "it's what the math needs to reproduce what we observe" — this is genuinely one of the places where physics stops explaining <em>why</em> and just describes <em>how accurately</em>. α and β aren't standing in for some more fundamental hidden fact; the amplitude pair <em>is</em> the complete description. That can feel unsatisfying the first time you hit it, and that reaction is normal — it's one of the most argued-about points in the philosophy of physics. For building a quantum computer, though, you don't need to resolve it: you just need the rules for how α and β behave, which is exactly what Steps 2–6 give you.</div>
+    </details>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step1"> I see why "secretly already 0 or 1" isn't the same idea
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 2 — STATE VECTORS ===================== -->
+<div class="lesson-step" data-step="step2">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">2</div>
     <h3>A state is a list of numbers, not a "thing"</h3>
   </div>
   <div class="lesson-step-body">
@@ -27,27 +55,31 @@
 
     <div class="panel" style="margin-top:14px; text-align:center;">
       <div class="mono" style="font-size:1.3rem; letter-spacing:0.02em;">|ψ⟩ = α|0⟩ + β|1⟩</div>
-      <p class="muted" style="font-size:0.86rem; margin-top:10px; margin-bottom:0;">α and β are called <strong>probability amplitudes</strong>. |0⟩ and |1⟩ are just labels for "the outcome-0 slot" and "the outcome-1 slot" — not numbers themselves.</p>
+      <p class="muted" style="font-size:0.86rem; margin-top:10px; margin-bottom:0;">α and β are called <strong>probability amplitudes</strong>. |0⟩ and |1⟩ are just labels for "the outcome-0 slot" and "the outcome-1 slot" — not numbers themselves. The whole expression is shorthand for the ordinary pair (α, β); the "|…⟩" notation (a <strong>ket</strong>) is just a box drawn around a vector so it's unmistakably a quantum state and not, say, an average or an interval. You'll meet its full grammar, including "bras" ⟨ψ|, in the Module 3 <a href="{{ url_for('bra_ket') }}">Bra-Ket lesson</a> — you don't need any of that here.</p>
     </div>
 
-    <p class="muted" style="margin-top:16px;">This is why quantum computing scales the way it does. This "space of all possible states" is called a <strong>Hilbert space</strong>, and its size is <span class="mono">2ⁿ</span> for <span class="mono">n</span> qubits — 1 qubit needs 2 numbers, 2 qubits need 4 (see the <a href="{{ url_for('two_qubit') }}">Two Qubits lesson</a>), 300 qubits would need more numbers than there are atoms in the observable universe. Every qubit you add doubles the list, it doesn't just add one more entry.</p>
+    <p class="muted" style="margin-top:16px;">Two special cases are worth naming because you'll see them everywhere from now on: <span class="mono">|0⟩</span> itself is really shorthand for α=1, β=0 — "definitely outcome 0" — and <span class="mono">|1⟩</span> is α=0, β=1. Every other pair of numbers is a genuine superposition of the two. So "|0⟩" and "a state" aren't different kinds of thing; |0⟩ is simply the one state at the far edge of the range, the same way "certainty" is the edge case of "probability."</p>
 
-    <div class="callout blue">The "wave function" you may have heard of is the same idea in the more general, continuous case (position, momentum) — a qubit is the finite, two-outcome special case, which is exactly why it's the easiest place to start.</div>
+    <p class="muted">This is why quantum computing scales the way it does. This "space of all possible states" is called a <strong>Hilbert space</strong>, and its size is <span class="mono">2ⁿ</span> for <span class="mono">n</span> qubits — 1 qubit needs 2 numbers, 2 qubits need 4 (see the <a href="{{ url_for('two_qubit') }}">Two Qubits lesson</a>), 300 qubits would need more numbers than there are atoms in the observable universe. Every qubit you add doubles the list, it doesn't just add one more entry — a fact you'll see again as the entire reason quantum computers are hard to simulate classically, and the entire reason they're potentially powerful.</p>
+
+    <div class="callout blue">The "wave function" you may have heard of is the same idea in the more general, continuous case (position, momentum) — a qubit is the finite, two-outcome special case, which is exactly why it's the easiest place to start. Everywhere physicists write ψ(x) for a particle's position, picture the same α|0⟩+β|1⟩ structure, just with infinitely many labeled slots (one per possible x) instead of two.</div>
 
     <label class="mark-done-check" style="margin-top:16px;">
-      <input type="checkbox" data-step-check="step1"> Got it — a state is just α and β
+      <input type="checkbox" data-step-check="step2"> Got it — a state is just α and β
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 2 — AMPLITUDES & BORN'S RULE ===================== -->
-<div class="lesson-step" data-step="step2">
+<!-- ===================== STEP 3 — AMPLITUDES & BORN'S RULE ===================== -->
+<div class="lesson-step" data-step="step3">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">2</div>
+    <div class="lesson-step-num">3</div>
     <h3>Amplitudes aren't probabilities — you have to square them</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">This is the single most important rule in this lesson, known as <strong>Born's rule</strong>: the probability of measuring outcome 0 is <span class="mono">α²</span>, not <span class="mono">α</span>. (Real quantum mechanics uses complex α, β, and the rule is technically <span class="mono">|α|²</span> — squared magnitude — but restricting to real numbers here keeps the sliders honest without losing the point. Complex phase shows up starting in the Single Qubit lesson's Bloch sphere.)</p>
+    <p class="muted">This is the single most important rule in this lesson, known as <strong>Born's rule</strong> (after Max Born, who proposed it in 1926 and eventually won a Nobel Prize for it): the probability of measuring outcome 0 is <span class="mono">α²</span>, not <span class="mono">α</span>. (Real quantum mechanics uses complex α, β, and the rule is technically <span class="mono">|α|²</span> — squared magnitude — but restricting to real numbers here keeps the sliders honest without losing the point. Complex phase shows up starting in the Single Qubit lesson's Bloch sphere.)</p>
+
+    <p class="muted">Why square it, instead of just calling α the probability directly? Two reasons, and it's worth actually sitting with them rather than accepting "that's the rule": first, α on its own is allowed to be negative (Step 5 explains why that has to be true), and a negative probability is meaningless — squaring fixes that automatically. Second, and more deeply, amplitudes need to be able to <em>add and cancel</em> before you turn them into probabilities, because that cancellation (interference) is the entire reason quantum systems behave differently from classical random ones. Squaring is the last step that converts "the wave-like quantity that can interfere" into "the number you'd actually bet on." Every alternative you might imagine — using |α|, or α³, or not squaring at all — fails to reproduce actual experiments; α² is the one rule nature turned out to use, confirmed to extraordinary precision.</p>
 
     <div class="panel" style="margin-top:16px;">
       <div class="panel-label">SANDBOX · DRAG α, WATCH THE PROBABILITIES</div>
@@ -56,7 +88,7 @@
         <input type="range" id="alpha-slider" min="0" max="100" value="71" style="flex:1;">
         <span class="mono" id="alpha-val" style="width:56px; text-align:right;">0.71</span>
       </div>
-      <p class="muted" style="font-size:0.82rem; margin-top:6px;">β is <em>not</em> a free choice — it's forced to <span class="mono">β = √(1 − α²)</span> so the state stays normalized (Step 3 shows why that matters). This slider is really choosing one point on a quarter-circle.</p>
+      <p class="muted" style="font-size:0.82rem; margin-top:6px;">β is <em>not</em> a free choice — it's forced to <span class="mono">β = √(1 − α²)</span> so the state stays normalized (Step 4 shows why that matters). This slider is really choosing one point on a quarter-circle, traced out on the right.</p>
 
       <div class="grid-2" style="margin-top:20px;">
         <div>
@@ -65,33 +97,51 @@
             <div style="flex:1; background:var(--surface-alt); border:1px solid var(--line); border-radius:999px; height:20px; overflow:hidden;"><div id="p0-bar" style="height:100%; width:50%; background:var(--primary); border-radius:999px; transition:width 0.15s ease;"></div></div>
             <div class="mono" id="p0-val" style="width:60px; text-align:right;">50.0%</div>
           </div>
-        </div>
-        <div>
-          <div class="mono" style="font-size:0.72rem; color:var(--text-faint); margin-bottom:8px;">P(measure 1) = β²</div>
+          <div class="mono" style="font-size:0.72rem; color:var(--text-faint); margin-bottom:8px; margin-top:18px;">P(measure 1) = β²</div>
           <div style="display:flex; align-items:center; gap:10px;">
             <div style="flex:1; background:var(--surface-alt); border:1px solid var(--line); border-radius:999px; height:20px; overflow:hidden;"><div id="p1-bar" style="height:100%; width:50%; background:var(--amber); border-radius:999px; transition:width 0.15s ease;"></div></div>
             <div class="mono" id="p1-val" style="width:60px; text-align:right;">50.0%</div>
           </div>
+        </div>
+        <div>
+          <svg id="quarter-circle" viewBox="0 0 220 220" style="width:100%; max-width:220px; display:block; margin:0 auto;">
+            <line x1="20" y1="200" x2="20" y2="10" stroke="var(--line-strong)" stroke-width="1.5"/>
+            <line x1="20" y1="200" x2="210" y2="200" stroke="var(--line-strong)" stroke-width="1.5"/>
+            <path d="M 200 200 A 180 180 0 0 0 20 20" fill="none" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="3 4"/>
+            <line id="qc-radius" x1="20" y1="200" x2="200" y2="200" stroke="var(--primary)" stroke-width="2"/>
+            <circle id="qc-point" cx="200" cy="200" r="6" fill="var(--primary)"/>
+            <text x="20" y="212" font-size="10" fill="var(--text-faint)" font-family="var(--font-mono)">0</text>
+            <text x="204" y="212" font-size="10" fill="var(--text-faint)" font-family="var(--font-mono)">α</text>
+            <text x="2" y="14" font-size="10" fill="var(--text-faint)" font-family="var(--font-mono)">β</text>
+          </svg>
+          <p class="muted" style="font-size:0.78rem; text-align:center; margin-top:6px; margin-bottom:0;">(α, β) traces this quarter-circle as you drag — never inside it, never outside it. Step 4 explains why.</p>
         </div>
       </div>
 
       <div class="callout" style="margin-top:16px;">α² + β² = <span class="mono" id="sum-check">1.000</span> — always exactly 1, no matter where you drag the slider. That's not a coincidence, it's the constraint that made β dependent on α in the first place. Next step: what breaks if you don't enforce it.</div>
     </div>
 
+    <details style="margin-top:16px;">
+      <summary style="cursor:pointer; font-size:0.9rem; color:var(--text-muted);">Stop and think: at what slider position are P(0) and P(1) exactly equal — and have you seen that particular α before?</summary>
+      <div class="callout blue" style="margin-top:10px;">α = β = 1/√2 ≈ 0.707 — the value the slider starts on. This exact number, <span class="mono">1/√2</span>, is the single most common amplitude in all of quantum computing: it's what the Hadamard gate produces from |0⟩, it's the amplitude behind every "50/50 coin-flip" quantum circuit, and you'll be typing <span class="mono">0.707</span> or <span class="mono">1/√2</span> constantly from the Single Qubit lesson onward. Worth memorizing now.</div>
+    </details>
+
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step2"> I dragged α to at least 3 different values
+      <input type="checkbox" data-step-check="step3"> I dragged α to at least 3 different values
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 3 — NORMALIZATION ===================== -->
-<div class="lesson-step" data-step="step3">
+<!-- ===================== STEP 4 — NORMALIZATION ===================== -->
+<div class="lesson-step" data-step="step4">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">3</div>
+    <div class="lesson-step-num">4</div>
     <h3>Why "normalized" isn't optional</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">Probabilities have to add up to 100%, full stop — that's not a quantum thing, it's just what "probability" means. So α² + β² = 1 isn't a nice-to-have, it's a hard requirement on any valid state vector. Try feeding in a vector that violates it:</p>
+    <p class="muted">Probabilities have to add up to 100%, full stop — that's not a quantum thing, it's just what "probability" means. So α² + β² = 1 isn't a nice-to-have, it's a hard requirement on any valid state vector. Geometrically, that requirement has a clean picture: (α, β) is a point in the plane, and <span class="mono">√(α² + β²)</span> is nothing more than that point's ordinary distance from the origin (Pythagoras). Requiring α² + β² = 1 is just requiring that distance to be exactly 1 — so every valid qubit state, real-number version, is a point on the unit circle (the quarter-circle from Step 3, once you allow negative α or β too, which Step 5 does). "Normalizing" a vector, in any branch of math or physics, always means the same operation: shrink or stretch it, without changing its direction, until it lands exactly on that circle.</p>
+
+    <p class="muted">Try feeding in a vector that violates it, and see what the sandbox does when you ask it for probabilities anyway:</p>
 
     <div class="panel" style="margin-top:16px;">
       <div class="panel-label">SANDBOX · UNNORMALIZED VECTOR</div>
@@ -111,16 +161,114 @@
       <div class="callout" id="norm-result" style="margin-top:18px;">Enter values and click "Check normalization."</div>
     </div>
 
-    <p class="muted" style="margin-top:14px;">Normalizing is nothing exotic — divide every entry by the vector's length (<span class="mono">√(α² + β²)</span>), same as turning any vector into a unit vector. Every gate in the Single Qubit lesson is built to preserve normalization automatically, so you'll never need to do this by hand there — but now you know why it has to.</p>
+    <p class="muted" style="margin-top:14px;">Normalizing is nothing exotic — divide every entry by the vector's length (<span class="mono">√(α² + β²)</span>), same as turning any vector into a unit vector, same operation you'd use to turn a direction like (3,4) into a compass heading. Every gate in the Single Qubit lesson is built to preserve normalization automatically — matrices that do this are called <strong>unitary</strong>, a word you'll meet formally in Module 3 — so you'll never need to normalize by hand there. But now you know why every gate has to have that property in the first place: an operation that <em>didn't</em> preserve length would be manufacturing or destroying probability out of nowhere, which isn't physically allowed.</p>
+
+    <div class="callout amber">Worked example — do this one with a pencil before clicking anything: a state with α = 0.6, β = 0.8. Is it normalized? Check: 0.6² + 0.8² = 0.36 + 0.64 = 1.00 — yes. So this is a perfectly valid qubit state, with P(0) = 36% and P(1) = 64%, even though α and β themselves don't look like "nice" numbers such as 1/√2. Most valid states look exactly this ordinary — 1/√2 is common precisely because Hadamard gates produce it constantly, not because other values are somehow less legitimate.</div>
 
     <label class="mark-done-check" style="margin-top:16px;">
-      <input type="checkbox" data-step-check="step3"> I normalized a vector and saw the probabilities sum to 100%
+      <input type="checkbox" data-step-check="step4"> I normalized a vector and saw the probabilities sum to 100%
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 5 — NEGATIVE AMPLITUDES & INTERFERENCE ===================== -->
+<div class="lesson-step" data-step="step5">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">5</div>
+    <h3>Negative amplitudes: the whole reason quantum ≠ classical randomness</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Everything above quietly used α, β ≥ 0. But amplitudes are allowed to be negative — <span class="mono">α = −0.6, β = 0.8</span> is just as valid a state as <span class="mono">α = 0.6, β = 0.8</span>, because Born's rule squares them: (−0.6)² is still 0.36. Measured on their own, these two states are <em>indistinguishable</em> — same 36%/64% split, every time. So why does the sign matter at all, if it vanishes the moment you measure?</p>
+
+    <p class="muted">Because you don't always measure immediately. Between preparing a state and measuring it, you can apply more gates — and a gate combines amplitudes <em>before</em> anything gets squared. If two routes to the same outcome contribute amplitudes of, say, +0.5 and −0.5, a gate can add them together and get exactly 0 — the outcome becomes <em>impossible</em>, even though each individual route, considered alone, was perfectly possible. This is <strong>interference</strong>, and it has no classical-probability analogue whatsoever: you cannot make an event less likely by giving it a second, independent way to happen. Amplitudes can. That single fact is most of what makes a quantum computer more than a very elaborate coin-flipper — algorithms like the ones in the Module 2 Deutsch-Jozsa and Grover's Search lessons work by arranging for <em>wrong</em> answers to interfere destructively while the <em>right</em> answer interferes constructively.</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · TWO ROUTES TO THE SAME OUTCOME</div>
+      <p class="muted" style="font-size:0.86rem; margin-top:0;">Imagine outcome "1" can be reached two independent ways, contributing amplitudes <span class="mono">a</span> and <span class="mono">b</span> that simply add. Both routes individually have magnitude 1/√2 ≈ 0.707. Toggle the sign of the second route:</p>
+      <div style="display:flex; gap:10px; margin:14px 0;">
+        <button id="mode-constructive" class="small primary">Same sign (constructive)</button>
+        <button id="mode-destructive" class="small">Opposite sign (destructive)</button>
+      </div>
+      <svg id="interference-svg" viewBox="0 0 400 90" style="width:100%; max-width:420px; display:block; margin:0 auto;">
+        <line x1="20" y1="45" x2="380" y2="45" stroke="var(--line-strong)" stroke-width="1.5"/>
+        <line x1="200" y1="10" x2="200" y2="80" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3"/>
+        <line id="arrow-a" x1="200" y1="45" x2="285" y2="45" stroke="var(--primary)" stroke-width="4"/>
+        <line id="arrow-b" x1="285" y1="45" x2="370" y2="45" stroke="var(--amber)" stroke-width="4"/>
+        <circle id="arrow-sum" cx="370" cy="45" r="6" fill="var(--text)"/>
+      </svg>
+      <div id="interference-readout" class="mono" style="text-align:center; font-size:0.9rem; margin-top:8px;">a = +0.707, b = +0.707 → sum = 1.414 → P(1) = sum² = 200%??</div>
+      <div class="callout" id="interference-explain" style="margin-top:14px;">Constructive case shown: the two routes' amplitudes stack, and the resulting probability is <em>higher</em> than either route alone would give — the two routes are reinforcing each other, the same way two overlapping ripples on a pond can make a taller wave. (A real circuit always keeps the total probability across <em>all</em> outcomes at 100% — this simplified two-route toy is here to isolate the addition step, not to be a complete, normalized circuit.)</div>
+    </div>
+
+    <p class="muted" style="margin-top:14px;">Compare that to the classical version of "two routes to the same outcome": if a coin can land heads 50% of the time via route A or 50% of the time via route B, the two probabilities can only ever add toward more-likely, or at best stay capped at 100% — they can never subtract down to zero the way the amplitudes above just did. That asymmetry — probabilities only pile up, amplitudes can cancel — is the concrete answer to the question Step 1 asked you to hold onto.</p>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step5"> I toggled constructive/destructive and saw the sum change
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 6 — THE QUESTION YOU ASK CHANGES THE ANSWER ===================== -->
+<div class="lesson-step" data-step="step6">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">6</div>
+    <h3>"0 or 1" isn't the only question you're allowed to ask</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Every sandbox so far measured in what's called the <strong>standard basis</strong>: "is it 0 or 1?" — the two poles |0⟩ and |1⟩. That's a choice, not a law of nature. You could instead ask "is it closer to the diagonal direction |+⟩, or the opposite diagonal |−⟩?", where |+⟩ and |−⟩ are themselves defined as specific superpositions: <span class="mono">|+⟩ = (|0⟩ + |1⟩)/√2</span> and <span class="mono">|−⟩ = (|0⟩ − |1⟩)/√2</span>. That's a completely legitimate, equally real measurement — real quantum hardware can and does measure in bases other than the standard one.</p>
+
+    <p class="muted">Here's the part worth sitting with: the <em>same</em> state gives different-looking answers depending which question you ask it. A state sitting exactly at |+⟩ gives a definite, 100%-certain answer if you ask "+/−?" — but ask that identical state "0 or 1?" instead, and you get a genuine 50/50 coin flip. Nothing about the qubit changed; only the question did. "Uncertain" isn't a property of the state on its own — it's a property of the state <em>relative to a chosen measurement</em>.</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">SANDBOX · SAME STATE, TWO QUESTIONS</div>
+      <div style="display:flex; align-items:center; gap:16px; margin-top:6px;">
+        <span class="mono" style="width:36px; font-size:0.82rem;">angle</span>
+        <input type="range" id="basis-slider" min="0" max="90" value="45" style="flex:1;">
+        <span class="mono" id="basis-val" style="width:44px; text-align:right;">45°</span>
+      </div>
+      <p class="muted" style="font-size:0.8rem; margin-top:6px;">This angle places the state at α = cos(angle), β = sin(angle) — still normalized, still one point on the same quarter-circle from Step 3.</p>
+
+      <div class="grid-2" style="margin-top:18px;">
+        <div>
+          <div class="mono" style="font-size:0.72rem; color:var(--text-faint); margin-bottom:6px;">ASK "0 OR 1?" (standard basis)</div>
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+            <span class="mono" style="width:60px; font-size:0.78rem;">P(0)</span>
+            <div style="flex:1; background:var(--surface-alt); border:1px solid var(--line); border-radius:999px; height:16px; overflow:hidden;"><div id="b-p0-bar" style="height:100%; width:50%; background:var(--primary); border-radius:999px;"></div></div>
+            <div class="mono" id="b-p0-val" style="width:52px; text-align:right; font-size:0.8rem;">50%</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span class="mono" style="width:60px; font-size:0.78rem;">P(1)</span>
+            <div style="flex:1; background:var(--surface-alt); border:1px solid var(--line); border-radius:999px; height:16px; overflow:hidden;"><div id="b-p1-bar" style="height:100%; width:50%; background:var(--amber); border-radius:999px;"></div></div>
+            <div class="mono" id="b-p1-val" style="width:52px; text-align:right; font-size:0.8rem;">50%</div>
+          </div>
+        </div>
+        <div>
+          <div class="mono" style="font-size:0.72rem; color:var(--text-faint); margin-bottom:6px;">ASK "+ OR −?" (diagonal basis)</div>
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+            <span class="mono" style="width:60px; font-size:0.78rem;">P(+)</span>
+            <div style="flex:1; background:var(--surface-alt); border:1px solid var(--line); border-radius:999px; height:16px; overflow:hidden;"><div id="b-pp-bar" style="height:100%; width:100%; background:var(--green);"></div></div>
+            <div class="mono" id="b-pp-val" style="width:52px; text-align:right; font-size:0.8rem;">100%</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span class="mono" style="width:60px; font-size:0.78rem;">P(−)</span>
+            <div style="flex:1; background:var(--surface-alt); border:1px solid var(--line); border-radius:999px; height:16px; overflow:hidden;"><div id="b-pm-bar" style="height:100%; width:0%; background:var(--text-faint);"></div></div>
+            <div class="mono" id="b-pm-val" style="width:52px; text-align:right; font-size:0.8rem;">0%</div>
+          </div>
+        </div>
+      </div>
+      <div class="callout blue" id="basis-note" style="margin-top:16px;">At 45°, this state is exactly |+⟩: a coin flip if you ask "0 or 1?", but perfectly certain if you ask "+ or −?". Drag toward 0° or 90° and watch the certainty trade places between the two columns.</div>
+    </div>
+
+    <p class="muted" style="margin-top:14px;">This is the idea the <a href="{{ url_for('single_qubit') }}">Single Qubit lesson</a>'s Bloch sphere is built to show off properly: once α and β are complex, "which basis?" turns into "which axis of a 3D sphere?", and the standard and diagonal bases you just explored become just two of infinitely many directions you could measure along. It's also the seed of quantum cryptography's <a href="{{ url_for('bb84') }}">BB84 lesson</a> in Module 2 — a protocol that's secure specifically <em>because</em> measuring in the wrong basis scrambles the answer.</p>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step6"> I found the angle where +/− is certain and 0/1 is a coin flip
     </label>
   </div>
 </div>
 
 <div class="callout blue" style="margin-top:8px;">
-  That's the whole prerequisite: a state is two numbers, probabilities are those numbers squared, and the squares have to sum to 1. Everything in the <a href="{{ url_for('single_qubit') }}">Single Qubit lesson</a> — gates, the Bloch sphere, measurement — is built directly on these three facts, plus one addition: α and β are actually <em>complex</em>, which is what makes the Bloch sphere a sphere instead of a quarter-circle.
+  That's the whole prerequisite, now with the parts that usually get skipped: a state is two numbers, not a hidden classical fact (Step 1); probabilities are those numbers squared (Step 3); the squares have to sum to 1, which just means the state is a point on a circle (Step 4); the numbers can be negative, which lets them cancel in a way plain probabilities never can — the real engine behind quantum algorithms (Step 5); and which measurement you perform is itself a choice, not fixed by the state (Step 6). Everything in the <a href="{{ url_for('single_qubit') }}">Single Qubit lesson</a> — gates, the Bloch sphere, measurement — is built directly on these facts, plus one upgrade: α and β are actually <em>complex</em>, which is what turns the quarter-circle you dragged around above into a full sphere.
 </div>
 
 {{ lesson_nav(prev_lesson, next_lesson) }}
@@ -138,6 +286,19 @@
   const p0Val = document.getElementById('p0-val');
   const p1Val = document.getElementById('p1-val');
   const sumCheck = document.getElementById('sum-check');
+  const qcRadius = document.getElementById('qc-radius');
+  const qcPoint = document.getElementById('qc-point');
+
+  // Quarter-circle geometry: origin at (20,200), radius 180px, α along +x, β along -y.
+  function refreshQuarterCircle(alpha, beta) {
+    const ox = 20, oy = 200, r = 180;
+    const x = ox + alpha * r;
+    const y = oy - beta * r;
+    qcRadius.setAttribute('x2', x);
+    qcRadius.setAttribute('y2', y);
+    qcPoint.setAttribute('cx', x);
+    qcPoint.setAttribute('cy', y);
+  }
 
   function refreshAmplitudes() {
     const alpha = alphaSlider.value / 100;
@@ -150,6 +311,7 @@
     p0Val.textContent = (p0 * 100).toFixed(1) + '%';
     p1Val.textContent = (p1 * 100).toFixed(1) + '%';
     sumCheck.textContent = (p0 + p1).toFixed(3);
+    refreshQuarterCircle(alpha, beta);
   }
   alphaSlider.addEventListener('input', refreshAmplitudes);
   refreshAmplitudes();
@@ -186,6 +348,84 @@
     result.innerHTML = `Divided both by √(α² + β²) = ${norm.toFixed(3)}. New vector: α = ${na.toFixed(3)}, β = ${nb.toFixed(3)} — and now α² + β² = <span class="mono">${(na*na + nb*nb).toFixed(3)}</span>. P(0) = ${(na*na*100).toFixed(1)}%, P(1) = ${(nb*nb*100).toFixed(1)}%.`;
     qsStatsIncrement('gatesApplied', 1);
   });
+
+  // ---- Step 5: interference toggle ----
+  const arrowA = document.getElementById('arrow-a');
+  const arrowB = document.getElementById('arrow-b');
+  const arrowSum = document.getElementById('arrow-sum');
+  const interfReadout = document.getElementById('interference-readout');
+  const interfExplain = document.getElementById('interference-explain');
+  const btnConstructive = document.getElementById('mode-constructive');
+  const btnDestructive = document.getElementById('mode-destructive');
+  const AMP = 0.70710678; // 1/sqrt(2)
+  const PX_PER_UNIT = 120; // pixels per unit amplitude on the arrow diagram, kept inside the 400-wide viewBox
+
+  function refreshInterference(constructive) {
+    const a = AMP;
+    const b = constructive ? AMP : -AMP;
+    const sum = a + b;
+    const startX = 200;
+    const aEndX = startX + a * PX_PER_UNIT;
+    const bEndX = aEndX + b * PX_PER_UNIT;
+    arrowA.setAttribute('x1', startX); arrowA.setAttribute('x2', aEndX);
+    arrowB.setAttribute('x1', aEndX); arrowB.setAttribute('x2', bEndX);
+    arrowSum.setAttribute('cx', bEndX);
+    const prob = sum * sum;
+    const sign = b >= 0 ? '+' : '−';
+    interfReadout.textContent = `a = +${a.toFixed(3)}, b = ${sign}${Math.abs(b).toFixed(3)} → sum = ${sum.toFixed(3)} → (sum)² = ${prob.toFixed(3)}`;
+    if (constructive) {
+      btnConstructive.className = 'small primary';
+      btnDestructive.className = 'small';
+      interfExplain.className = 'callout';
+      interfExplain.innerHTML = `Constructive case: the two routes' amplitudes stack, and the resulting number is <em>larger</em> than either route alone — the two routes reinforce each other, the same way two overlapping ripples on a pond can make a taller wave. (A real circuit always keeps total probability at 100% across <em>all</em> outcomes — this simplified two-route toy isolates the addition step, it isn't a complete normalized circuit.)`;
+    } else {
+      btnConstructive.className = 'small';
+      btnDestructive.className = 'small primary';
+      interfExplain.className = 'callout amber';
+      interfExplain.innerHTML = `Destructive case: the two routes cancel almost entirely — sum ≈ 0, so this outcome becomes <strong>nearly impossible</strong>, even though each route on its own was 50% likely. No combination of ordinary, non-negative probabilities can ever do this. This is the mechanism Grover's Search and Deutsch-Jozsa exploit to cancel out wrong answers.`;
+    }
+  }
+  btnConstructive.addEventListener('click', () => refreshInterference(true));
+  btnDestructive.addEventListener('click', () => refreshInterference(false));
+  refreshInterference(true);
+
+  // ---- Step 6: measurement-basis slider ----
+  const basisSlider = document.getElementById('basis-slider');
+  const basisVal = document.getElementById('basis-val');
+  const bP0Bar = document.getElementById('b-p0-bar'), bP0Val = document.getElementById('b-p0-val');
+  const bP1Bar = document.getElementById('b-p1-bar'), bP1Val = document.getElementById('b-p1-val');
+  const bPpBar = document.getElementById('b-pp-bar'), bPpVal = document.getElementById('b-pp-val');
+  const bPmBar = document.getElementById('b-pm-bar'), bPmVal = document.getElementById('b-pm-val');
+  const basisNote = document.getElementById('basis-note');
+
+  function refreshBasis() {
+    const deg = parseFloat(basisSlider.value);
+    basisVal.textContent = deg + '°';
+    const rad = deg * Math.PI / 180;
+    const alpha = Math.cos(rad), beta = Math.sin(rad);
+    const p0 = alpha * alpha, p1 = beta * beta;
+    // |+> = (|0>+|1>)/sqrt2, |-> = (|0>-|1>)/sqrt2. Projection amplitudes:
+    const ampPlus = (alpha + beta) / Math.SQRT2;
+    const ampMinus = (alpha - beta) / Math.SQRT2;
+    const pPlus = ampPlus * ampPlus, pMinus = ampMinus * ampMinus;
+
+    bP0Bar.style.width = (p0 * 100) + '%'; bP0Val.textContent = (p0 * 100).toFixed(0) + '%';
+    bP1Bar.style.width = (p1 * 100) + '%'; bP1Val.textContent = (p1 * 100).toFixed(0) + '%';
+    bPpBar.style.width = (pPlus * 100) + '%'; bPpVal.textContent = (pPlus * 100).toFixed(0) + '%';
+    bPmBar.style.width = (pMinus * 100) + '%'; bPmVal.textContent = (pMinus * 100).toFixed(0) + '%';
+
+    if (deg === 45) {
+      basisNote.innerHTML = `At 45°, this state is exactly |+⟩: a coin flip if you ask "0 or 1?", but perfectly certain if you ask "+ or −?".`;
+    } else if (deg === 0) {
+      basisNote.innerHTML = `At 0°, this state is exactly |0⟩: certain if you ask "0 or 1?" — but now it's the "+/−?" question that turns into a coin flip. Certainty just changed columns.`;
+    } else if (deg === 90) {
+      basisNote.innerHTML = `At 90°, this state is exactly |1⟩: certain in the standard basis, a coin flip in the diagonal basis.`;
+    } else {
+      basisNote.innerHTML = `Neither question gives a clean 100%/0% split here — but notice the two columns still trade off: whichever basis this state sits closer to gets the more lopsided split.`;
+    }
+  }
+  basisSlider.addEventListener('input', refreshBasis);
+  refreshBasis();
 
   initLessonProgress('qm-basics');
 </script>

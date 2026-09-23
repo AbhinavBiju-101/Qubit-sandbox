@@ -7,7 +7,7 @@
 
 <div class="pill green" style="margin-bottom:14px;">LESSON 2 · MEASUREMENT</div>
 <h1 style="margin-bottom:6px;">Two qubits, four basis states.</h1>
-<p class="muted" style="font-size:1.05rem;">Three steps: understand the state space, prepare and measure it, then see what entanglement changes.</p>
+<p class="muted" style="font-size:1.05rem;">Six steps: see exactly why the state space multiplies instead of adds, prepare and measure it, pin down precisely what "entangled" means, and watch entanglement appear live from two gates you already know.</p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -24,22 +24,51 @@
   </div>
   <div class="lesson-step-body">
     <p class="muted">One qubit has 2 basis states, |0⟩ and |1⟩. Two qubits don't have 2+2 — they have <span class="mono">2×2 = 4</span>: |00⟩, |01⟩, |10⟩, |11⟩. Each one gets its own complex amplitude, so a general 2-qubit state needs <em>4</em> numbers, not 2.</p>
-    <p class="muted">That multiplication, not addition, is why qubit count matters so much: 10 qubits describe a state space of <span class="mono">2¹⁰ = 1,024</span> amplitudes; 20 qubits already need over a million.</p>
-    <div class="callout blue">If neither qubit is touched by a gate that mixes them, the two behave completely independently — that's the "prepare and measure" case in Step 2. Step 3's bonus is what happens once a gate <em>does</em> mix them.</div>
+    <p class="muted">That multiplication, not addition, is why qubit count matters so much: 10 qubits describe a state space of <span class="mono">2¹⁰ = 1,024</span> amplitudes; 20 qubits already need over a million; the <a href="{{ url_for('qm_basics') }}">Lesson 0</a> aside about 300 qubits needing more numbers than atoms in the universe is this exact doubling, just carried out 300 times instead of 2.</p>
+    <div class="callout blue">Multiplying, not adding, is the single fact every serious claim about quantum computers being powerful (or being hard to simulate classically) traces back to. Step 2 shows exactly where the multiplication comes from — it isn't a rule someone made up, it falls straight out of ordinary algebra once you write down what "qubit 1's state, independently of qubit 2's state" has to mean.</div>
     <label class="mark-done-check" style="margin-top:16px;">
       <input type="checkbox" data-step-check="step1"> Got it — four states, not two
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 2 — PREPARE & MEASURE ===================== -->
+<!-- ===================== STEP 2 — TENSOR PRODUCT WORKED EXAMPLE ===================== -->
 <div class="lesson-step" data-step="step2">
   <div class="lesson-step-head">
     <div class="lesson-step-num">2</div>
+    <h3>Where the ×4 actually comes from</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Say qubit 1 is in state <span class="mono">α₀|0⟩ + β₀|1⟩</span> and qubit 2, completely independently, is in state <span class="mono">α₁|0⟩ + β₁|1⟩</span>. "Independently" is the operative word — it means the chance of any joint outcome is just the product of the two separate chances, exactly the way "probability of heads AND rolling a 6" is P(heads)×P(6) for a coin and a die that don't influence each other. Multiplying out the two states term-by-term (an operation called the <strong>tensor product</strong>, written ⊗, which you'll meet formally in the Module 3 <a href="{{ url_for('tensor_products') }}">Tensor Products lesson</a>) does exactly that bookkeeping automatically:</p>
+
+    <div class="panel" style="margin-top:14px;">
+      <div class="panel-label">WORKED EXAMPLE</div>
+      <div class="mono" style="text-align:center; font-size:1.05rem; margin-bottom:14px;">(α₀|0⟩ + β₀|1⟩) ⊗ (α₁|0⟩ + β₁|1⟩) = α₀α₁|00⟩ + α₀β₁|01⟩ + β₀α₁|10⟩ + β₀β₁|11⟩</div>
+      <p class="muted" style="font-size:0.86rem; margin:0 0 12px;">Four amplitudes, because there are four ways to pick "qubit 1's term" × "qubit 2's term." Plug in the most common single-qubit state from Lesson 0 — both qubits sitting at |+⟩, i.e. α₀=β₀=α₁=β₁=1/√2 — and every amplitude above becomes 1/√2 × 1/√2 = <strong>1/2</strong>:</p>
+      <table>
+        <tr><th></th><th>|0⟩ (qubit 2)</th><th>|1⟩ (qubit 2)</th></tr>
+        <tr><td><strong>|0⟩ (qubit 1)</strong></td><td class="mono">1/√2 × 1/√2 = 1/2 → |00⟩</td><td class="mono">1/√2 × 1/√2 = 1/2 → |01⟩</td></tr>
+        <tr><td><strong>|1⟩ (qubit 1)</strong></td><td class="mono">1/√2 × 1/√2 = 1/2 → |10⟩</td><td class="mono">1/√2 × 1/√2 = 1/2 → |11⟩</td></tr>
+      </table>
+      <p class="muted" style="font-size:0.86rem; margin-top:12px; margin-bottom:0;">Each amplitude is 1/2, so each <em>probability</em> — squaring, exactly as in Lesson 0 — is (1/2)² = <strong>25%</strong>. Four equally likely outcomes, which is exactly what "two independent 50/50 coins" should give: P(00) = P(heads,heads) = 0.5 × 0.5 = 25%, checked two different ways.</p>
+    </div>
+
+    <p class="muted" style="margin-top:14px;">This also previews the definition Step 4 makes precise: <em>any</em> state that can be written this way — as one qubit's state ⊗ the other qubit's state — is called a <strong>product state</strong>, and its joint probabilities always factor into the product of two separate probabilities, exactly like the table above. Not every valid 4-number state can be factored like this. The ones that can't are entangled, and that's the whole subject of Steps 4–6.</p>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step2"> I worked through the ⊗ table and got 25% four times
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — PREPARE & MEASURE ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
     <h3>Prepare a target state, then measure it</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">Pick a target below. We'll prepare it from |00⟩ using the minimum number of X gates, then measure both qubits and confirm what came out.</p>
+    <p class="muted">Pick a target below. We'll prepare it from |00⟩ using the minimum number of X gates, then measure both qubits and confirm what came out. Every target here is a computational basis state — each qubit has a definite value with no superposition at all, which makes it the simplest possible case of the product state from Step 2 (α and β are each either exactly 0 or exactly 1, nothing in between). That's also why an X gate alone can never create entanglement, no matter how you combine X(q1) and X(q2): X only ever moves a qubit between two definite values, it never introduces the superposition entanglement needs. Step 5 shows what does.</p>
 
     <div class="grid-2" style="margin-top:18px;">
       <div class="panel">
@@ -75,38 +104,99 @@
     </div>
 
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step2"> I prepared and measured at least 2 different states
+      <input type="checkbox" data-step-check="step3"> I prepared and measured at least 2 different states
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 3 — BONUS ENTANGLEMENT ===================== -->
-<div class="lesson-step" data-step="step3">
+<!-- ===================== STEP 4 — WHAT "ENTANGLED" MEANS ===================== -->
+<div class="lesson-step" data-step="step4">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">3</div>
-    <h3>Bonus: what entanglement changes</h3>
+    <div class="lesson-step-num">4</div>
+    <h3>What "entangled" precisely means (not just "correlated")</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">Minimum gates for a fixed basis state is one story. Here's the more interesting one: apply H to qubit 1, then CNOT from qubit 1 onto qubit 2. Neither qubit has a definite value on its own anymore — but measuring them is no longer independent, either.</p>
+    <p class="muted">Now the precise definition, using Step 2's vocabulary: a two-qubit state is <strong>entangled</strong> exactly when it is <em>not</em> a product state — when there is no way to pick single-qubit states for qubit 1 and qubit 2 that multiply out (⊗) to give it. That's the whole definition; nothing about "mysterious connection" or "communication" is part of it. It's a statement about whether four numbers happen to factor into two pairs of two, the same way "12 factors into 3×4" is a statement purely about the number 12.</p>
+
+    <p class="muted">The canonical example is the <strong>Bell state</strong> Step 5 builds: <span class="mono">(|00⟩ + |11⟩)/√2</span> — amplitude 1/√2 on |00⟩ and |11⟩, exactly 0 on |01⟩ and |10⟩. Try to factor it before you look at the answer:</p>
+
+    <details style="margin-top:14px;">
+      <summary style="cursor:pointer; font-size:0.9rem; color:var(--text-muted);">Stop and think: can you find a, b, c, d with (a|0⟩+b|1⟩) ⊗ (c|0⟩+d|1⟩) = (|00⟩+|11⟩)/√2? Try before revealing.</summary>
+      <div class="callout blue" style="margin-top:10px;">No — and here's why, by contradiction. Expanding the product gives <span class="mono">ac|00⟩ + ad|01⟩ + bc|10⟩ + bd|11⟩</span>. Matching this to the target forces <span class="mono">ac = 1/√2</span>, <span class="mono">ad = 0</span>, <span class="mono">bc = 0</span>, and <span class="mono">bd = 1/√2</span>. From <span class="mono">ad = 0</span>, either a = 0 or d = 0. If a = 0, then ac = 0, contradicting ac = 1/√2. If d = 0, then bd = 0, contradicting bd = 1/√2. Either way, contradiction — so no such a, b, c, d exist. The Bell state is <em>provably</em> not a product of two independent qubit states. This is the same style of proof, not just the same conclusion, that shows up whenever you need to establish two quantum systems are genuinely entangled rather than just correlated-looking.</div>
+    </details>
+
+    <div class="callout amber" style="margin-top:16px;">This is also the precise sense in which an entangled qubit doesn't have "its own state" anymore. For a product state, you can always point to qubit 1's 2 numbers and qubit 2's 2 numbers separately. For the Bell state, there is no such pair of 2-number descriptions — the only complete description is the joint, 4-number one. Individually, each qubit still measures 50/50 on its own (check: adding the |00⟩ and |01⟩ probabilities gives qubit 1's marginal chance of 0, which is 1/2) — it's specifically the <em>relationship</em> between the two outcomes that has no single-qubit description.</div>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step4"> I worked through the by-contradiction proof
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 5 — BONUS ENTANGLEMENT ===================== -->
+<div class="lesson-step" data-step="step5">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">5</div>
+    <h3>Building it live: superposition + CNOT</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Two gates, applied in order, and watch what each one alone does before the second one lands. <span class="mono">CNOT</span> ("controlled-NOT") is the key new ingredient — it's the first gate in this lesson that touches <em>both</em> qubits at once: it flips qubit 2 if and only if qubit 1 is |1⟩, and leaves qubit 2 alone otherwise. Its full truth table, as a genuinely reversible operation (run it twice and you're back where you started — check that against Lesson 1, Step 2's rotation-reversibility idea):</p>
+
+    <table style="max-width:360px; margin-top:12px;">
+      <tr><th>Input (q1,q2)</th><th>Output (q1,q2)</th></tr>
+      <tr><td class="mono">00</td><td class="mono">00 <span class="muted">(control 0, no flip)</span></td></tr>
+      <tr><td class="mono">01</td><td class="mono">01 <span class="muted">(control 0, no flip)</span></td></tr>
+      <tr><td class="mono">10</td><td class="mono">11 <span class="muted">(control 1, flip!)</span></td></tr>
+      <tr><td class="mono">11</td><td class="mono">10 <span class="muted">(control 1, flip!)</span></td></tr>
+    </table>
+
+    <p class="muted" style="margin-top:14px;">On its own, applied to a definite basis state, CNOT does nothing surprising — it's the quantum version of an ordinary reversible logic gate. The surprise only happens when the control qubit is in superposition <em>first</em>: then CNOT has to act on both halves of that superposition simultaneously, and that's exactly what stitches the two qubits into something unfactorable.</p>
 
     <div class="panel" style="margin-top:16px;">
-      <div class="panel-label">SANDBOX · BELL STATE</div>
+      <div class="panel-label">SANDBOX · BELL STATE, ONE GATE AT A TIME</div>
       <div style="text-align:right; margin-bottom:-6px;"><a href="{{ url_for('embed_two_qubit') }}" target="_blank" rel="noopener" style="font-size:0.78rem;">Embeddable version →</a></div>
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <button id="bell-btn" class="small">Create Bell state: H(q1) → CNOT(q1→q2)</button>
-        <button id="bell-shots-btn" class="small">Run 200 shots</button>
+        <button id="reset-bell-btn" class="small ghost">Reset to |00⟩</button>
+        <button id="h1-btn" class="small">1. Apply H to qubit 1</button>
+        <button id="cnot-btn" class="small">2. Apply CNOT(q1→q2)</button>
+        <button id="bell-shots-btn" class="small primary">Run 200 shots</button>
       </div>
+      <div class="mono" style="font-size:0.82rem; color:var(--text-muted); margin-top:12px;">Gates applied: <span id="bell-log" style="color:var(--primary);">—</span></div>
       <div class="grid-4" style="margin-top:20px;">
         <div class="stat"><span class="num" id="bell-00">—</span><span class="label">|00⟩</span></div>
         <div class="stat"><span class="num" id="bell-01">—</span><span class="label">|01⟩</span></div>
         <div class="stat"><span class="num" id="bell-10">—</span><span class="label">|10⟩</span></div>
         <div class="stat"><span class="num" id="bell-11">—</span><span class="label">|11⟩</span></div>
       </div>
-      <p class="muted" style="font-size:0.86rem; margin-top:12px;">Notice what's missing: |01⟩ and |10⟩ stay near zero. The two qubits always agree with each other, even though each one is individually 50/50 — that agreement is what "entangled" actually means, concretely.</p>
+      <div class="callout" id="bell-stage-note" style="margin-top:16px;">Click "Apply H to qubit 1" first — notice you get |00⟩ and |10⟩ each ~50%, |01⟩ and |11⟩ still 0%. That's a superposition, but check it against Step 2: it's still a <em>product state</em> ((|0⟩+|1⟩)/√2 on qubit 1, ⊗ plain |0⟩ on qubit 2) — qubit 2 is still completely uninvolved. Entanglement hasn't happened yet.</div>
     </div>
 
+    <p class="muted" style="margin-top:14px;">Now click CNOT. Watch |01⟩ and |10⟩ both collapse toward 0% while |00⟩ and |11⟩ hold near 50/50 — the two qubits now always agree with each other, even though each one alone is still an individually unpredictable coin flip. That agreement, appearing only once both ingredients (superposition, then a two-qubit gate) are present, is what "entangled" looks like as data instead of as a definition.</p>
+
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step3"> I ran the Bell state shots and saw |01⟩/|10⟩ disappear
+      <input type="checkbox" data-step-check="step5"> I saw the product state after H, then entanglement after CNOT
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 6 — CORRELATION WITHOUT COMMUNICATION ===================== -->
+<div class="lesson-step" data-step="step6">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">6</div>
+    <h3>Does measuring one qubit "send a signal" to the other?</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">A natural — and productive — question after Step 5: if measuring qubit 1 instantly fixes what qubit 2 will show, hasn't information just traveled between them, possibly faster than light? This is worth actually thinking through rather than taking on faith, because the resolution is subtle and it's one physicists spent decades pinning down.</p>
+
+    <details style="margin-top:12px;">
+      <summary style="cursor:pointer; font-size:0.9rem; color:var(--text-muted);">Stop and think: could you use entanglement to send a message?</summary>
+      <div class="callout blue" style="margin-top:10px;">No — and the reason is worth holding onto: <em>you don't control which outcome you get.</em> Measuring your half of a Bell pair gives you 0 or 1 with 50/50 odds, and there's no gate or trick that lets you force a particular result. The other qubit ends up correlated with whatever <em>random</em> outcome you happened to get, not with a message you chose. Someone holding the other qubit, measuring it with zero knowledge of your result, just sees their own 50/50 coin flip too — nothing about their local statistics changes at all. The correlation is only visible after the two of you get together and compare notes over an ordinary classical channel (phone, internet, carrier pigeon) — and that comparison can never go faster than light. This is called the <strong>no-communication theorem</strong>, and it's why entanglement, despite the "spooky action at a distance" reputation, doesn't let anyone violate relativity.</div>
+    </details>
+
+    <p class="muted" style="margin-top:14px;">So what <em>is</em> entanglement good for, if not sending signals? Two things worth previewing here. First, Lesson 0's Step 1 mentioned that Bell tests rule out hidden-variable explanations of quantum mechanics — those tests are precisely built from measuring entangled pairs like the one you just made, in different bases, and checking correlations too strong for any classical "secretly predetermined" explanation to produce. Second, entanglement is a genuine computational and communication <em>resource</em> once you combine it with a classical channel: <a href="{{ url_for('quantum_teleportation') }}">Quantum Teleportation</a> uses a shared Bell pair plus 2 classical bits to move an unknown qubit's exact state elsewhere, and <a href="{{ url_for('superdense_coding') }}">Superdense Coding</a> is its mirror image — both in Module 2, both direct payoffs of the CNOT-plus-superposition trick you just ran.</p>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step6"> I can explain why entanglement alone can't send a message
     </label>
   </div>
 </div>
@@ -158,11 +248,35 @@
     document.getElementById('measured-state').textContent = '|' + result + '⟩';
   });
 
-  document.getElementById('bell-btn').addEventListener('click', () => {
-    tq.reset(); tq.H1(); tq.CNOT();
-    qsStatsIncrement('gatesApplied', 2);
-    ['00','01','10','11'].forEach(k => document.getElementById('bell-'+k).textContent = '0%');
+  document.getElementById('reset-bell-btn').addEventListener('click', () => {
+    tq.reset();
+    document.getElementById('bell-log').textContent = '—';
+    ['00','01','10','11'].forEach(k => document.getElementById('bell-'+k).textContent = '—');
+    document.getElementById('bell-stage-note').className = 'callout';
+    document.getElementById('bell-stage-note').innerHTML = 'Click "Apply H to qubit 1" first — notice you get |00⟩ and |10⟩ each ~50%, |01⟩ and |11⟩ still 0%. That\'s a superposition, but check it against Step 2: it\'s still a <em>product state</em> ((|0⟩+|1⟩)/√2 on qubit 1, ⊗ plain |0⟩ on qubit 2) — qubit 2 is still completely uninvolved. Entanglement hasn\'t happened yet.';
   });
+
+  document.getElementById('h1-btn').addEventListener('click', () => {
+    tq.reset(); tq.H1();
+    qsStatsIncrement('gatesApplied', 1);
+    document.getElementById('bell-log').textContent = tq.log.join(' → ');
+    const p = tq.probs();
+    ['00','01','10','11'].forEach((k,i) => document.getElementById('bell-'+k).textContent = (p[i]*100).toFixed(0) + '%');
+    document.getElementById('bell-stage-note').className = 'callout';
+    document.getElementById('bell-stage-note').innerHTML = 'Still a product state: qubit 1 is in superposition, but qubit 2 is untouched — that\'s why |01⟩ and |11⟩ read 0%. Click "Apply CNOT" next to entangle them.';
+  });
+
+  document.getElementById('cnot-btn').addEventListener('click', () => {
+    if (!tq.log.includes('H(q1)')) { tq.reset(); tq.H1(); }
+    tq.CNOT();
+    qsStatsIncrement('gatesApplied', 1);
+    document.getElementById('bell-log').textContent = tq.log.join(' → ');
+    const p = tq.probs();
+    ['00','01','10','11'].forEach((k,i) => document.getElementById('bell-'+k).textContent = (p[i]*100).toFixed(0) + '%');
+    document.getElementById('bell-stage-note').className = 'callout amber';
+    document.getElementById('bell-stage-note').innerHTML = '<strong>Entangled now.</strong> |01⟩ and |10⟩ dropped to 0%; |00⟩ and |11⟩ hold the probability that used to be split across all four. Each qubit is still individually 50/50 — but now they always agree.';
+  });
+
   document.getElementById('bell-shots-btn').addEventListener('click', () => {
     const counts = tq.sampleShots(200);
     const total = 200;

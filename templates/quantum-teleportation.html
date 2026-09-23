@@ -7,7 +7,7 @@
 
 <div class="pill green" style="margin-bottom:14px;">MODULE 2 · QUANTUM ALGORITHMS</div>
 <h1 style="margin-bottom:6px;">Move a qubit's state without moving the qubit.</h1>
-<p class="lede muted" style="font-size:1.05rem;">The entanglement from Two Qubits, put to work: an unknown state disappears from Alice's qubit and reappears on Bob's, using nothing but a shared Bell pair and two classical bits.</p>
+<p class="lede muted" style="font-size:1.05rem;">The entanglement from Two Qubits, put to work: an unknown state disappears from Alice's qubit and reappears on Bob's, using nothing but a shared Bell pair and two classical bits. Five steps, including the actual algebra most explanations skip.</p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -23,8 +23,8 @@
     <h3>The four-move protocol</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">Alice has a qubit in some state she doesn't even need to know — call it the "secret." She and Bob also share an entangled Bell pair from earlier (Two Qubits, Step 3). The protocol: (1) Alice entangles her secret with her half of the pair, (2) she measures both of her qubits, getting two classical bits, (3) she sends those two bits to Bob over an ordinary channel, (4) Bob applies a small correction — X, Z, both, or neither, depending on the bits — and his qubit becomes the secret.</p>
-    <p class="muted">Nothing traveled faster than light: Bob's qubit isn't usable until Alice's two classical bits physically arrive. What "teleports" is the <em>state</em>, not information on its own — and Alice's original qubit is left randomized in the process, so this isn't cloning either.</p>
+    <p class="muted">Alice has a qubit in some state she doesn't even need to know — call it the "secret." She and Bob also share an entangled Bell pair from earlier (Two Qubits, Step 5). The protocol: (1) Alice entangles her secret with her half of the pair, (2) she measures both of her qubits, getting two classical bits, (3) she sends those two bits to Bob over an ordinary channel, (4) Bob applies a small correction — X, Z, both, or neither, depending on the bits — and his qubit becomes the secret.</p>
+    <p class="muted">Nothing traveled faster than light: Bob's qubit isn't usable until Alice's two classical bits physically arrive — this is the same no-communication guarantee from Two Qubits, Step 6, doing real work here instead of just being a reassurance. What "teleports" is the <em>state</em>, not information on its own — and Alice's original qubit is left randomized in the process. Step 4 makes precise why that last part isn't optional.</p>
     <div class="callout blue">The two classical bits Bob needs are exactly the two measurement outcomes from Alice's Bell-basis measurement — same four possible outcomes as the four Bell states from Two Qubits, just used here to steer a correction instead of being the answer themselves.</div>
     <label class="mark-done-check" style="margin-top:16px;">
       <input type="checkbox" data-step-check="step1"> Entangle, measure, send 2 bits, correct
@@ -32,14 +32,58 @@
   </div>
 </div>
 
-<!-- ===================== STEP 2 — RUN THE PROTOCOL ===================== -->
+<!-- ===================== STEP 2 — THE ALGEBRA ===================== -->
 <div class="lesson-step" data-step="step2">
   <div class="lesson-step-head">
     <div class="lesson-step-num">2</div>
+    <h3>The algebra behind why it works</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Step 1 asserted that Bob's correction is determined by Alice's two measured bits. Worth actually deriving that instead of taking it on faith — it's the single calculation that makes the whole protocol click. Start with the secret <span class="mono">α|0⟩ + β|1⟩</span> on Alice's first qubit, and the shared Bell pair <span class="mono">(|00⟩ + |11⟩)/√2</span> across Alice's second qubit and Bob's qubit. Multiplying these out (the tensor product from Two Qubits, Step 2, now with three qubits) gives an 8-term, 3-qubit state:</p>
+
+    <div class="panel" style="margin-top:14px; text-align:center;">
+      <div class="mono" style="font-size:0.95rem;">(α|0⟩+β|1⟩) ⊗ (|00⟩+|11⟩)/√2 = (α|000⟩ + α|011⟩ + β|100⟩ + β|111⟩) / √2</div>
+    </div>
+
+    <p class="muted" style="margin-top:14px;">That's a valid but unilluminating way to write it — the trick is to regroup <em>Alice's two qubits</em> (the first two kets) into the four Bell states instead of the four computational-basis states. Every 2-qubit state can be rewritten in either basis (this is exactly a change of measurement basis, the idea from Lesson 0, Step 6, now applied to a pair instead of a single qubit). Doing that regrouping — algebra you can expand yourself below — reorganizes the exact same 8 terms into 4 groups, one per Bell outcome, each multiplying a specific version of Bob's qubit:</p>
+
+    <details style="margin-top:14px;">
+      <summary style="cursor:pointer; font-size:0.9rem; color:var(--text-muted);">Expand the algebra (optional, for the "I want to see it myself" reader)</summary>
+      <div class="callout blue" style="margin-top:10px;">
+        Substituting <span class="mono">|00⟩ = (|Φ+⟩+|Φ-⟩)/√2</span>, <span class="mono">|11⟩ = (|Φ+⟩−|Φ-⟩)/√2</span> for Alice's qubits when Bob's qubit is |0⟩, and <span class="mono">|00⟩→(|Φ+⟩+|Φ-⟩)/√2</span> paired with a Bob |1⟩ from the α|011⟩ term, etc., and collecting every term that multiplies each of the four 2-qubit Bell states, the whole 8-term expression regroups exactly into:
+        <div class="mono" style="margin-top:10px; font-size:0.88rem;">
+          ½ [ |Φ+⟩(α|0⟩+β|1⟩) + |Φ-⟩(α|0⟩−β|1⟩) + |Ψ+⟩(α|1⟩+β|0⟩) + |Ψ-⟩(α|1⟩−β|0⟩) ]
+        </div>
+        with a global 1/√2 · 1/√2 = 1/2 out front matching the normalization of 4 equally-likely 25% outcomes.
+      </div>
+    </details>
+
+    <p class="muted" style="margin-top:14px;">Read off that result directly, one row per possible Bell-measurement outcome:</p>
+
+    <table style="margin-top:10px;">
+      <tr><th>Alice measures</th><th>Bob's qubit collapses to</th><th>Fix with</th></tr>
+      <tr><td class="mono">|Φ+⟩</td><td class="mono">α|0⟩ + β|1⟩</td><td>nothing — already correct</td></tr>
+      <tr><td class="mono">|Φ-⟩</td><td class="mono">α|0⟩ − β|1⟩</td><td class="mono">Z</td></tr>
+      <tr><td class="mono">|Ψ+⟩</td><td class="mono">α|1⟩ + β|0⟩</td><td class="mono">X</td></tr>
+      <tr><td class="mono">|Ψ-⟩</td><td class="mono">α|1⟩ − β|0⟩</td><td class="mono">X then Z</td></tr>
+    </table>
+
+    <p class="muted" style="margin-top:14px;">This is the whole engine of the protocol, laid bare: Alice's measurement doesn't create Bob's state from nothing — it <em>reveals</em>, via which of the 4 equally-likely Bell outcomes she got, exactly which fixed, known transformation stands between whatever Bob already effectively has and the original secret. Bob was secretly holding a scrambled version of the secret the entire time (a consequence of the entanglement from Two Qubits), and the two classical bits are just the address of which scramble to undo — never a description of α and β themselves.</p>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step2"> I can read the correction table straight from the four Bell outcomes
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — RUN THE PROTOCOL ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
     <h3>Teleport a secret, one step at a time</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">Pick a secret state for Alice's qubit, then walk through each move. Watch Bob's qubit go from "nothing" to an exact match — read straight off the real 3-qubit state vector, not simulated after the fact.</p>
+    <p class="muted">Pick a secret state for Alice's qubit, then walk through each move. Watch Bob's qubit go from "nothing" to an exact match — read straight off the real 3-qubit state vector, not simulated after the fact. (The sandbox's Bell measurement uses an equivalent circuit trick to Step 2's math — a CNOT then an H on Alice's two qubits converts a direct Bell-basis measurement into an ordinary 0/1 measurement, which is easier to build in hardware. Same four outcomes, same correction table, different route to get there.)</p>
 
     <div class="panel" style="margin-top:16px;">
       <div class="panel-label">SANDBOX · TELEPORTATION</div>
@@ -60,38 +104,45 @@
       </div>
     </div>
 
+    <p class="muted" style="margin-top:14px;">Run it a few times with the same secret. The two measured bits will differ from run to run (they're genuinely random — Step 2's table shows all four outcomes are equally likely, 25% each), and Bob's correction button will apply a different fix each time — but Bob's final qubit always ends up matching the original secret, every single run, regardless of which bits came out.</p>
+
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step2"> Bob's qubit matched the original secret
+      <input type="checkbox" data-step-check="step3"> Bob's qubit matched the original secret, more than once
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 3 — BONUS ===================== -->
-<div class="lesson-step" data-step="step3">
-  <div class="lesson-step-head">
-    <div class="lesson-step-num">3</div>
-    <h3>Bonus: why Alice can't peek first</h3>
-  </div>
-  <div class="lesson-step-body">
-    <p class="muted">If Alice measured her secret directly to "read" it before teleporting, she'd collapse it and could only send classical bits describing one measured outcome — not the full complex state. Teleportation works precisely because Alice never learns α and β; she measures a <em>joint</em> property of her two qubits instead, which is enough to steer Bob's correction without ever revealing the secret itself.</p>
-    <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step3"> Alice teleports the state without ever learning it
-    </label>
-  </div>
-</div>
-
-<!-- ===================== STEP 4 — WHERE THIS IS USED ===================== -->
+<!-- ===================== STEP 4 — BONUS: NO-CLONING ===================== -->
 <div class="lesson-step" data-step="step4">
   <div class="lesson-step-head">
     <div class="lesson-step-num">4</div>
+    <h3>Bonus: why Alice can't peek first — and can't keep a copy either</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">If Alice measured her secret directly to "read" it before teleporting, she'd collapse it (Lesson 1, Step 5) and could only send classical bits describing one measured outcome — not the full complex state. Teleportation works precisely because Alice never learns α and β; she measures a <em>joint</em> property of her two qubits instead (Step 2's Bell-basis measurement), which is enough to steer Bob's correction without ever revealing the secret itself.</p>
+
+    <p class="muted">There's a second, related question worth asking: could Alice keep her original qubit untouched <em>and</em> also send Bob a copy — getting two working copies of the secret out of one? Physically, no, and this is important enough to have a name: the <strong>no-cloning theorem</strong>. It says no quantum operation can take an unknown state and produce two independent copies of it. The argument is short: if a cloning operation existed, it would have to work on <em>every</em> possible input state, including superpositions — but a machine that correctly copies |0⟩→|0⟩|0⟩ and |1⟩→|1⟩|1⟩ can be shown (by linearity — the fact that quantum operations must act the same way on a superposition as on its parts individually) to <em>not</em> correctly copy |+⟩ into |+⟩|+⟩; it produces an entangled mess instead. No consistent rule can clone every state, so cloning simply isn't a legal quantum operation, full stop.</p>
+
+    <div class="callout amber">Teleportation obeys this rule exactly rather than sneaking around it: watch the sandbox above closely and notice Alice's original secret qubit is destroyed by her Bell measurement in Step 3, in the very same click that produces the two bits Bob needs. There is never a moment where two working copies of the secret exist simultaneously — the state moves, it does not duplicate. This is also why the "teleportation" name, despite sounding like science fiction, is honest: like moving an object rather than faxing it, the original genuinely stops being in its original state.</div>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step4"> I can state why no-cloning rules out ever having two copies
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 5 — WHERE THIS IS USED ===================== -->
+<div class="lesson-step" data-step="step5">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">5</div>
     <h3>Where this actually happens outside a browser tab</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">Teleportation is the basic building block of a future <strong>quantum internet</strong> — not for sending messages (classical bits still do that faster and cheaper), but for moving quantum states between physically separate quantum processors so they can act as one larger computer, or for extending entanglement across long distances via a chain of <strong>quantum repeaters</strong> that each teleport entanglement one hop further than a single optical fiber could carry it undegraded.</p>
-    <p class="muted">It's also been demonstrated for real, well beyond a lab bench: China's Micius satellite teleported photon states to a ground station across more than a thousand kilometers in 2017, and it's been repeated between separate superconducting chips on a single circuit board — the same protocol you just ran, just with harder engineering around Steps 1–4 instead of a click.</p>
-    <div class="callout blue">Every one of those real demonstrations still needs a classical channel to send Alice's two bits — the physics you learned in Step 1 isn't a simplification for this app, it's the actual bottleneck research teams are engineering around.</div>
+    <p class="muted">Teleportation is the basic building block of a future <strong>quantum internet</strong> — not for sending messages (classical bits still do that faster and cheaper, and Step 1's classical channel is required either way), but for moving quantum states between physically separate quantum processors so they can act as one larger computer, or for extending entanglement across long distances via a chain of <strong>quantum repeaters</strong> that each teleport entanglement one hop further than a single optical fiber could carry it undegraded.</p>
+    <p class="muted">It's also been demonstrated for real, well beyond a lab bench: China's Micius satellite teleported photon states to a ground station across more than a thousand kilometers in 2017, and it's been repeated between separate superconducting chips on a single circuit board — the same protocol you just ran, just with harder engineering around Steps 1–3 instead of a click.</p>
+    <div class="callout blue">Every one of those real demonstrations still needs a classical channel to send Alice's two bits — the physics you learned in Step 1 isn't a simplification for this app, it's the actual bottleneck research teams are engineering around. And every one of them destroys the source qubit exactly as Step 4 requires — the no-cloning theorem isn't a rule anyone gets to relax with cleverer hardware.</div>
     <label class="mark-done-check" style="margin-top:16px;">
-      <input type="checkbox" data-step-check="step4"> Quantum networking, repeaters, and real satellite demonstrations
+      <input type="checkbox" data-step-check="step5"> Quantum networking, repeaters, and real satellite demonstrations
     </label>
   </div>
 </div>

@@ -7,7 +7,7 @@
 
 <div class="pill blue" style="margin-bottom:14px;">LESSON 1 · SUPERPOSITION</div>
 <h1 style="margin-bottom:6px;">One qubit, in superposition.</h1>
-<p class="lede muted" style="font-size:1.05rem;">Five short steps. Check each one off as you go — every gate click below is a real 2×2 complex matrix multiplying the state, nothing is precomputed.</p>
+<p class="lede muted" style="font-size:1.05rem;">Seven steps. Check each one off as you go — every gate click below is a real 2×2 complex matrix multiplying the state, nothing is precomputed. <em>(New here? <a href="{{ url_for('qm_basics') }}">Lesson 0</a> builds α, β, and Born's rule from scratch with a real quarter-circle instead of a sphere — worth doing first if any of the next paragraph is unfamiliar.)</em></p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -23,23 +23,45 @@
     <h3>What is a qubit, actually?</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">A classical bit is 0 or 1 — nothing in between. A qubit's state is a pair of complex numbers <span class="mono">(α, β)</span> called <strong>amplitudes</strong>, one for |0⟩ and one for |1⟩, with the rule <span class="mono">|α|² + |β|² = 1</span>. <em>(New to this? <a href="{{ url_for('qm_basics') }}">Lesson 0</a> derives where that rule comes from, with real numbers only — worth a detour if this paragraph moved fast.)</em></p>
-    <p class="muted">You never see α and β directly. What you get on measurement is 0 with probability <span class="mono">|α|²</span>, or 1 with probability <span class="mono">|β|²</span> — that's <strong>Born's rule</strong>, and it's the only place randomness enters quantum mechanics.</p>
-    <div class="callout blue">A qubit starting at |0⟩ has α&nbsp;=&nbsp;1, β&nbsp;=&nbsp;0 — measuring it always gives 0. Nothing quantum has happened yet. The interesting part starts in Step 2, once a gate moves that pair of numbers somewhere else.</div>
+    <p class="muted">A classical bit is 0 or 1 — nothing in between. A qubit's state is a pair of complex numbers <span class="mono">(α, β)</span> called <strong>amplitudes</strong>, one for |0⟩ and one for |1⟩, with the rule <span class="mono">|α|² + |β|² = 1</span>. You never see α and β directly. What you get on measurement is 0 with probability <span class="mono">|α|²</span>, or 1 with probability <span class="mono">|β|²</span> — that's <strong>Born's rule</strong>, and it's the only place randomness enters quantum mechanics.</p>
+
+    <p class="muted">Crucially, α and β aren't a stand-in for a hidden classical fact you just haven't looked at yet — they're a complete description in their own right. A qubit isn't a coin spinning in the air that's "really" going to land on a definite face; the superposition is the whole story until the moment you measure. Keep that distinction in mind through this lesson: whenever the Bloch sphere below shows a point <em>between</em> the poles, that's not "50% chance it's secretly at the north pole" — it's a single, definite, in-between state, and Step 4 shows a way to actually detect the difference.</p>
+
+    <div class="callout blue">A qubit starting at |0⟩ has α&nbsp;=&nbsp;1, β&nbsp;=&nbsp;0 — measuring it always gives 0. Nothing quantum has happened yet. The interesting part starts once a gate moves that pair of numbers somewhere else — which raises an obvious question answered in Step 2: what's even allowed to move it, and where can it go?</div>
+
     <label class="mark-done-check" style="margin-top:16px;">
       <input type="checkbox" data-step-check="step1"> I've got the idea — move on
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 2 — GATES / BLOCH SPHERE ===================== -->
+<!-- ===================== STEP 2 — WHY GATES ARE ROTATIONS ===================== -->
 <div class="lesson-step" data-step="step2">
   <div class="lesson-step-head">
     <div class="lesson-step-num">2</div>
+    <h3>Why every gate has to be a rotation</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">A <strong>gate</strong> is just an operation you apply to a qubit's state — mechanically, a 2×2 grid of (complex) numbers that multiplies the (α, β) pair to produce a new (α, β) pair. But not <em>any</em> 2×2 grid is a legal gate. Remember from Lesson 0 that α² + β² has to equal 1, always, no exceptions — a gate that didn't preserve that would take a perfectly valid state and turn it into an invalid one, "creating" or "destroying" probability out of nowhere. So every legal gate is restricted to the one family of operations that's guaranteed to keep a normalized vector normalized: <strong>rotations</strong>. (The formal name for this length-preserving property is <strong>unitary</strong> — you'll meet the matrix condition that defines it precisely in the Module 3 <a href="{{ url_for('matrices_as_gates') }}">Matrices as Gates lesson</a>; for now, "rotation" is the right mental picture and the right word for it.)</p>
+
+    <p class="muted">This is exactly why the <strong>Bloch sphere</strong> — a way to draw a qubit's state as a single point on the surface of a sphere, north pole = |0⟩, south pole = |1⟩, everywhere else a superposition — is the natural picture for a qubit and not just a nice illustration. A rotation of a sphere always keeps every point on the sphere's surface; it can never fling a point off into the middle or out past the edge. "Every gate is a rotation" and "every state stays on the sphere" are the same fact, said two ways.</p>
+
+    <div class="callout">One useful consequence to predict before you even touch the sandbox: rotations are <strong>reversible</strong> — for every gate there's exactly one gate that undoes it (spin the sphere back). That means, on its own, no sequence of gates can ever erase information about a state or make a measurement's outcome any more certain than the geometry allows. All the "processing power" of a quantum computer has to come from <em>where</em> you rotate to and how different paths interfere (Lesson 0, Step 5) — never from gates secretly being lossy.</p></div>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step2"> I see why "rotation" isn't just a metaphor here
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — GATES / BLOCH SPHERE ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
     <h3>Apply gates and watch the state move</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">The <strong>Bloch sphere</strong> is a way to draw a qubit's state as a point on a sphere: the north pole is |0⟩, the south pole is |1⟩, and everywhere else is a superposition. A gate is just a rotation of that point.</p>
+    <p class="muted">Four gates to try, each a rotation around a different axis of the sphere:</p>
 
     <div class="grid-2" style="margin-top:18px;">
       <div class="panel">
@@ -55,28 +77,73 @@
         </div>
       </div>
       <div>
-        <p class="muted" style="font-size:0.92rem;"><strong style="color:var(--text);">H</strong> (Hadamard) rotates |0⟩ to the equator — an exactly 50/50 superposition. <strong style="color:var(--text);">X</strong> flips |0⟩⇄|1⟩ (the quantum NOT gate). <strong style="color:var(--text);">Y</strong> and <strong style="color:var(--text);">Z</strong> rotate around the other two axes.</p>
+        <p class="muted" style="font-size:0.92rem;"><strong style="color:var(--text);">H</strong> (Hadamard) rotates |0⟩ to the equator — an exactly 50/50 superposition, landing specifically on the point called |+⟩. <strong style="color:var(--text);">X</strong> flips |0⟩⇄|1⟩ — a 180° spin around the pole-to-pole axis, hence "quantum NOT." <strong style="color:var(--text);">Y</strong> and <strong style="color:var(--text);">Z</strong> are 180° spins around the other two axes.</p>
         <div class="mono" style="font-size:0.86rem; color: var(--text-muted); background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-sm); padding:14px;">
           <div>State: <span id="state-readout" style="color:var(--text);">|0⟩</span></div>
           <div style="margin-top:6px;">Gates applied: <span id="gate-log" style="color:var(--primary);">—</span></div>
         </div>
+        <details style="margin-top:14px;">
+          <summary style="cursor:pointer; font-size:0.88rem; color:var(--text-muted);">Stop and think: what happens if you reset, then click H twice in a row?</summary>
+          <div class="callout blue" style="margin-top:10px;">You land back exactly on |0⟩. H really does rotate 45° in a certain sense — do it twice and you've gone "all the way," which for this particular rotation means returning home. Nothing was measured in between, so this isn't luck or a coincidence of probabilities — the two H's compose into a rotation that happens to be the identity. That's a hint of interference already: whatever amplitude combination the first H put on the |1⟩ slot has to exactly cancel back out for the second H to return you to pure |0⟩. Step 4 pulls that cancellation apart in slow motion.</div>
+        </details>
       </div>
     </div>
 
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step2"> I tried at least 2 gates
+      <input type="checkbox" data-step-check="step3"> I tried all four gates and the double-H experiment
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 3 — MEASUREMENT ===================== -->
-<div class="lesson-step" data-step="step3">
+<!-- ===================== STEP 4 — HIDDEN PHASE / INTERFERENCE ===================== -->
+<div class="lesson-step" data-step="step4">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">3</div>
+    <div class="lesson-step-num">4</div>
+    <h3>Same probabilities, different qubit — the phase you can't see (until you can)</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Here's a state Born's rule alone can't tell apart from |+⟩: apply <span class="mono">Z</span> to |+⟩ and you land on the point called |−⟩, on the opposite side of the equator. Both |+⟩ and |−⟩ measure 50/50 in the standard 0/1 basis — if all you ever did was measure right away, you could never tell them apart. Does that mean they're really "the same state" as far as anything is concerned? Use the Bloch sphere from Step 3 to find out — it's the same qubit object, so this continues wherever you left it:</p>
+
+    <div class="callout amber" style="margin-top:14px;">
+      <strong>Try this sequence</strong> on the Step 3 sandbox above: click <span class="mono">Reset</span>, then <span class="mono">H</span>, then <span class="mono">Z</span>, then <span class="mono">H</span> again — and watch the state readout after each click.
+    </div>
+
+    <p class="muted" style="margin-top:14px;">After H, you're at |+⟩ (50/50). After Z, you're at |−⟩ — still 50/50, indistinguishable by direct measurement. But after the second H, you land exactly on |1⟩ — a <em>certain</em> outcome, and a different certain outcome than plain H-then-H-with-no-Z-in-between would give you (which was |0⟩, from Step 3's experiment). The extra Z in the middle was invisible to a direct measurement, yet it completely changed what the next gate produced. That invisible-until-it-isn't property is called <strong>phase</strong>, and this experiment is proof it's physically real, not decoration — it's the same interference mechanism from Lesson 0's Step 5, now happening inside an actual gate sequence instead of a toy arrow diagram.</p>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-label">DIAGRAM · THE EQUATOR, VIEWED FROM ABOVE</div>
+      <svg viewBox="0 0 260 260" style="width:100%; max-width:260px; display:block; margin:0 auto;">
+        <circle cx="130" cy="130" r="105" fill="none" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="3 4"/>
+        <line x1="20" y1="130" x2="240" y2="130" stroke="var(--line-strong)" stroke-width="1"/>
+        <line x1="130" y1="20" x2="130" y2="240" stroke="var(--line-strong)" stroke-width="1"/>
+        <circle cx="235" cy="130" r="7" fill="var(--primary)"/>
+        <text x="245" y="126" font-size="12" fill="var(--primary)" font-family="var(--font-mono)">|+⟩</text>
+        <circle cx="25" cy="130" r="7" fill="var(--amber)"/>
+        <text x="-32" y="126" font-size="12" fill="var(--amber)" font-family="var(--font-mono)">|−⟩</text>
+        <text x="200" y="150" font-size="9" fill="var(--text-faint)" font-family="var(--font-mono)">both: 50/50</text>
+        <text x="20" y="150" font-size="9" fill="var(--text-faint)" font-family="var(--font-mono)">both: 50/50</text>
+      </svg>
+      <p class="muted" style="font-size:0.8rem; text-align:center; margin-top:8px; margin-bottom:0;">|+⟩ and |−⟩ sit on opposite sides of the same equator — same "latitude" (so the same 0/1 split), different "longitude" (phase). A direct 0/1 measurement only ever reads latitude. Longitude only shows up once you rotate <em>before</em> measuring, exactly as the H–Z–H experiment just did.</p>
+    </div>
+
+    <p class="muted" style="margin-top:14px;">This is the mechanism, not a metaphor for it: every quantum algorithm that beats a classical computer works by steering the <em>wrong</em> answers' amplitudes to land on opposite phases so a later gate cancels them out, while the <em>right</em> answer's amplitude reinforces. You've now personally produced that cancellation once (H–H) and demonstrated that phase survives even when a measurement can't see it directly (H–Z–H). File this experiment away — Module 2's <a href="{{ url_for('deutsch_jozsa') }}">Deutsch-Jozsa</a> and <a href="{{ url_for('grovers_search') }}">Grover's Search</a> lessons are this exact trick scaled up to real problems.</p>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step4"> I ran H, Z, H and saw it land on |1⟩ instead of |0⟩
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 5 — MEASUREMENT ===================== -->
+<div class="lesson-step" data-step="step5">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">5</div>
     <h3>Measure it — 1,000 shots</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">Each shot is an independent measurement — the qubit doesn't remember previous shots, so re-running gives slightly different counts. That's expected statistical noise, not a bug. Try applying <span class="mono">H</span> in Step 2 first, then run shots here.</p>
+    <p class="muted">Measuring does two things at once, and it's worth separating them clearly: it produces one random outcome (0 or 1, weighted by Born's rule), <em>and</em> it destroys the superposition — the qubit's state genuinely becomes exactly |0⟩ or exactly |1⟩ afterward, not just "as far as you can tell." This is called <strong>collapse</strong>, and unlike the gates in Steps 2–4, it is not reversible; there's no gate that takes a collapsed |0⟩ back to whatever superposition it used to be, because the information about what that superposition was is simply gone. (It's also, not coincidentally, the reason you can't peek at a qubit "gently" to check its amplitudes without disturbing it — a fact with its own name, the <strong>no-cloning theorem</strong>, that the Physical Qubit and Two Qubits lessons lean on.)</p>
+
+    <p class="muted">Each shot below re-prepares the same state and measures fresh — the qubit doesn't remember previous shots, so re-running gives slightly different counts. That's expected statistical noise, not a bug: with <span class="mono">N</span> shots at true probability <span class="mono">p</span>, the count you see typically wanders by about <span class="mono">√(p(1−p)/N)</span> from the true value — for a 50/50 state at N=1000 that's roughly ±1.6 percentage points, which is exactly the size of wobble you should expect to see below. Try applying <span class="mono">H</span> in Step 3 first, then run shots here.</p>
 
     <div class="panel" style="margin-top:16px;">
       <div class="panel-label">SANDBOX · 1000 SHOTS</div>
@@ -106,19 +173,21 @@
     </div>
 
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step3"> I ran 1000 shots and looked at the split
+      <input type="checkbox" data-step-check="step5"> I ran 1000 shots and looked at the split
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 4 — BONUS 75/25 ===================== -->
-<div class="lesson-step" data-step="step4">
+<!-- ===================== STEP 6 — BONUS 75/25 ===================== -->
+<div class="lesson-step" data-step="step6">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">4</div>
+    <div class="lesson-step-num">6</div>
     <h3>Bonus: skew the coin to 75% / 25%</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">A Hadamard always gives 50/50 because it rotates exactly to the equator. To land anywhere else, rotate by a smaller angle instead — that's what <span class="mono">RY(θ)</span> does. For P(0)&nbsp;≈&nbsp;75%, solve <span class="mono">cos²(θ/2) = 0.75</span>, which gives θ&nbsp;≈&nbsp;60°.</p>
+    <p class="muted">A Hadamard always gives 50/50 because it rotates exactly to the equator. To land anywhere else, rotate by a smaller angle instead — that's what <span class="mono">RY(θ)</span> does: a partial rotation toward the equator, stopping wherever you tell it to. This is precisely the quarter-circle slider from <a href="{{ url_for('qm_basics') }}">Lesson 0</a>, Step 3, now literally wrapped around a sphere — dragging θ from 0° to 180° sweeps the same α = cos(θ/2), β = sin(θ/2) path you dragged there by hand, just parameterized by angle instead of by α directly.</p>
+
+    <p class="muted">Work the target angle out algebraically before touching the slider: you want P(0) = cos²(θ/2) = 0.75, so cos(θ/2) = √0.75 ≈ 0.866, so θ/2 = arccos(0.866) ≈ 30°, so <strong>θ ≈ 60°</strong>. Drag to 60° and confirm the readout agrees with the arithmetic.</p>
 
     <div class="panel" style="margin-top:16px; max-width:560px;">
       <div class="panel-label">SANDBOX · RY(θ)</div>
@@ -131,23 +200,27 @@
         <div class="mono">P(0) = <span id="bonus-p0" style="color:var(--primary); font-weight:600;">100.0%</span></div>
         <div class="mono">P(1) = <span id="bonus-p1" style="color:var(--amber); font-weight:600;">0.0%</span></div>
       </div>
-      <button id="bonus-apply" class="small" style="margin-top:16px;">Apply to the qubit in Step 2 &amp; run 1000 shots</button>
+      <button id="bonus-apply" class="small" style="margin-top:16px;">Apply to the qubit in Step 3 &amp; run 1000 shots</button>
     </div>
 
+    <div class="callout blue" style="margin-top:14px;">Notice θ = 180° gives P(0) = cos²(90°) = 0 — a full rotation from pole to pole, i.e. exactly the <span class="mono">X</span> gate from Step 3. RY isn't a different kind of gate from H and X; H, X, and every other single-qubit gate you'll meet are all specific angles (and axes) of the same general rotation. RY(θ) is the whole continuous family, and the named gates are just its convenient, frequently-used stops.</div>
+
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step4"> I found the ~60° angle for 75/25
+      <input type="checkbox" data-step-check="step6"> I found the ~60° angle for 75/25 and checked the arithmetic
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 5 — QISKIT AER COMPARISON ===================== -->
-<div class="lesson-step" data-step="step5">
+<!-- ===================== STEP 7 — QISKIT AER COMPARISON ===================== -->
+<div class="lesson-step" data-step="step7">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">5</div>
+    <div class="lesson-step-num">7</div>
     <h3>How good is our toy simulator, actually?</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">Everything above runs on this app's own from-scratch complex-matrix simulator. This step sends your exact circuit — whatever gates you've applied in Step 2, or the RY(θ) from Step 4 — to a Flask endpoint that runs it on <strong>real IBM Qiskit</strong> (<span class="mono">qiskit-aer</span>'s <span class="mono">AerSimulator</span>), then runs 1,000 shots on both so you can compare the statistical noise directly.</p>
+    <p class="muted">Everything above runs on this app's own from-scratch complex-matrix simulator. This step sends your exact circuit — whatever gates you've applied in Step 3/4, or the RY(θ) from Step 6 — to a Flask endpoint that runs it on <strong>real IBM Qiskit</strong> (<span class="mono">qiskit-aer</span>'s <span class="mono">AerSimulator</span>), then runs 1,000 shots on both so you can compare the statistical noise directly.</p>
+
+    <p class="muted">Worth being precise about what this step can and can't validate. Both simulators compute the <em>exact same</em> Born-rule probabilities from the <em>exact same</em> underlying math — this comparison checks that your sandbox's arithmetic agrees with a production-grade library's arithmetic, not that either one behaves like physical hardware. A real chip's shots also carry <strong>hardware noise</strong> — gate errors, decoherence, readout errors — on top of the shot noise both simulators show here; that's a different, additional effect the <a href="{{ url_for('physical_qubit') }}">Physical Qubit</a> and <a href="{{ url_for('hardware_lab') }}">Hardware Lab</a> lessons deal with directly, and it's why the gap you're about to compare here should track shot noise closely, while a comparison against real hardware would not.</p>
 
     <div class="panel" style="margin-top:16px;">
       <div class="panel-label">SANDBOX vs QISKIT AER · 1000 SHOTS EACH</div>
@@ -187,7 +260,7 @@
     </div>
 
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step5"> I compared my sandbox against Qiskit Aer
+      <input type="checkbox" data-step-check="step7"> I compared my sandbox against Qiskit Aer
     </label>
   </div>
 </div>
@@ -207,7 +280,7 @@
 
   // Machine-readable mirror of the gates applied to `q`, kept separate
   // from q.log (which is a display string like "RY(60.0°)"). This is
-  // what Step 5 sends to /api/compare-shots so the server can replay
+  // what Step 7 sends to /api/compare-shots so the server can replay
   // the exact same circuit in real Qiskit.
   let appliedGates = [];
 
@@ -271,7 +344,7 @@
     document.getElementById('run-shots').click();
   });
 
-  // ---- Step 5: Qiskit Aer comparison ----
+  // ---- Step 7: Qiskit Aer comparison ----
   function resetCompare() {
     ['cmp-own-bar0','cmp-own-bar1','cmp-qk-bar0','cmp-qk-bar1'].forEach(id => document.getElementById(id).style.width = '50%');
     ['cmp-own-count0','cmp-own-count1','cmp-qk-count0','cmp-qk-count1'].forEach(id => document.getElementById(id).textContent = '—');

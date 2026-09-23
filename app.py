@@ -491,12 +491,12 @@ NAV_ITEMS = [
 # (educator-authored) lessons aren't in this sequence — they're
 # freestanding, no prev/next between them for v1.
 LESSON_ORDER = [
-    {"id": "qm-basics", "title": "QM Basics", "href": "/qm-basics", "steps": 3, "description": "State vectors, probability amplitudes, and Born's rule — the prerequisite Single Qubit assumes you already have."},
-    {"id": "single-qubit", "title": "Single Qubit", "href": "/single-qubit", "steps": 5, "description": "Build a real qubit, apply gates, and run 1,000 measurements to see superposition collapse into statistics."},
-    {"id": "two-qubit", "title": "Two Qubits", "href": "/two-qubit", "steps": 3, "description": "Prepare and identify any of the four basis states, then see what entanglement changes about measurement."},
-    {"id": "physical-qubit", "title": "Physical Qubit", "href": "/physical-qubit", "steps": 4, "description": "Josephson junction → transmon → resonator → readout, plus a live temperature/decoherence demo."},
-    {"id": "hardware-lab", "title": "Hardware Lab", "href": "/hardware-lab", "steps": 3, "description": "A deeper look at transistor structure, the LC oscillator/zero-resistance analogy, and an actual chip-layout diagram."},
-    {"id": "reality-check", "title": "Reality Check", "href": "/reality-check", "steps": 4, "description": "Real published qubit counts, a full system architecture, and the actual scaling bottleneck at 100 qubits."},
+    {"id": "qm-basics", "title": "QM Basics", "href": "/qm-basics", "steps": 6, "description": "State vectors, probability amplitudes, Born's rule, interference, and measurement bases — the prerequisite Single Qubit assumes you already have."},
+    {"id": "single-qubit", "title": "Single Qubit", "href": "/single-qubit", "steps": 7, "description": "Build a real qubit, apply gates, uncover hidden phase, and run 1,000 measurements to see superposition collapse into statistics."},
+    {"id": "two-qubit", "title": "Two Qubits", "href": "/two-qubit", "steps": 6, "description": "See exactly why the state space multiplies, prepare and measure basis states, prove what entanglement precisely means, and build it live from H + CNOT."},
+    {"id": "physical-qubit", "title": "Physical Qubit", "href": "/physical-qubit", "steps": 6, "description": "Why circuits at all, Josephson junction → transmon → resonator → readout, the isolation-vs-control tension, and a live temperature/decoherence demo."},
+    {"id": "hardware-lab", "title": "Hardware Lab", "href": "/hardware-lab", "steps": 5, "description": "A deeper look at transistor structure, why circuits are quantized at all, the LC oscillator/zero-resistance analogy, an actual chip-layout diagram, and why the chip is so physically large."},
+    {"id": "reality-check", "title": "Reality Check", "href": "/reality-check", "steps": 6, "description": "Real published qubit counts, why compounding gate error makes count misleading, a full system architecture, the actual scaling bottleneck, and where Module 1 points next."},
 ]
 
 # Module 2 — "Quantum Algorithms". Every lesson reuses either the
@@ -504,10 +504,10 @@ LESSON_ORDER = [
 # engine (multiqubit.js) — real amplitude bookkeeping, not canned
 # outcomes, same as everything else in this app.
 MODULE_2_LESSONS = [
-    {"id": "quantum-teleportation", "title": "Quantum Teleportation", "href": "/quantum-teleportation", "steps": 4, "icon": "teleport", "description": "Move an unknown qubit's state to Bob using a shared Bell pair and two classical bits — no faster-than-light shortcut required."},
-    {"id": "superdense-coding", "title": "Superdense Coding", "href": "/superdense-coding", "steps": 4, "icon": "dense", "description": "Send 2 classical bits using entanglement and a single qubit's physical trip — teleportation's exact mirror image."},
-    {"id": "deutsch-jozsa", "title": "Deutsch-Jozsa", "href": "/deutsch-jozsa", "steps": 4, "icon": "oracle", "description": "Draw a hidden oracle and determine constant vs. balanced in exactly one query, then check yourself against the reveal."},
-    {"id": "grovers-search", "title": "Grover's Search", "href": "/grovers-search", "steps": 4, "icon": "search", "description": "Amplify one marked item from 25% to 100% probability in a single Grover iteration, on a real 4-item search."},
+    {"id": "quantum-teleportation", "title": "Quantum Teleportation", "href": "/quantum-teleportation", "steps": 5, "icon": "teleport", "description": "Move an unknown qubit's state to Bob using a shared Bell pair and two classical bits, derive the correction table from the Bell-basis algebra, and see why no-cloning makes it necessary."},
+    {"id": "superdense-coding", "title": "Superdense Coding", "href": "/superdense-coding", "steps": 5, "icon": "dense", "description": "Send 2 classical bits using entanglement and a single qubit's physical trip, resolve the Holevo-bound puzzle, and derive the Bell-state algebra behind it."},
+    {"id": "deutsch-jozsa", "title": "Deutsch-Jozsa", "href": "/deutsch-jozsa", "steps": 5, "icon": "oracle", "description": "Derive the phase-kickback algebra behind the one-query trick, then draw a hidden oracle and determine constant vs. balanced, checking yourself against the reveal."},
+    {"id": "grovers-search", "title": "Grover's Search", "href": "/grovers-search", "steps": 5, "icon": "search", "description": "Derive the exact reflect-about-the-mean arithmetic behind 25% to 100%, then amplify one marked item in a single Grover iteration on a real 4-item search."},
 ]
 
 # Module 3 — "The Physics and Math Underneath". Placed after Module 2

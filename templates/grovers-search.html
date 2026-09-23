@@ -7,7 +7,7 @@
 
 <div class="pill green" style="margin-bottom:14px;">MODULE 2 · QUANTUM ALGORITHMS</div>
 <h1 style="margin-bottom:6px;">Amplify the answer, shrink everything else.</h1>
-<p class="lede muted" style="font-size:1.05rem;">Search 4 unsorted items for 1 marked one. Classically that's 2.25 tries on average. One Grover iteration gets you there with certainty.</p>
+<p class="lede muted" style="font-size:1.05rem;">Search 4 unsorted items for 1 marked one. Classically that's 2.25 tries on average. One Grover iteration gets you there with certainty. Five steps, including the exact arithmetic behind that 25% → 100% jump.</p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -23,7 +23,7 @@
     <h3>Two moves: mark, then amplify</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">Start every one of the 4 basis states with equal amplitude (25% each) — no idea which one is marked. One Grover iteration is two steps: the <strong>oracle</strong> flips the sign of the marked item's amplitude (nothing else changes — probabilities are still 25% each, since sign doesn't affect <span class="mono">|amplitude|²</span> on its own), then the <strong>diffusion operator</strong> reflects every amplitude about their average. Because the marked item's amplitude is now negative, that reflection pushes it up sharply while pulling the others down.</p>
+    <p class="muted">Start every one of the 4 basis states with equal amplitude (25% each) — no idea which one is marked. One Grover iteration is two steps: the <strong>oracle</strong> flips the sign of the marked item's amplitude (nothing else changes — probabilities are still 25% each, since sign doesn't affect <span class="mono">|amplitude|²</span> on its own), then the <strong>diffusion operator</strong> reflects every amplitude about their average. Because the marked item's amplitude is now negative, that reflection pushes it up sharply while pulling the others down. Step 2 runs the actual numbers.</p>
     <p class="muted">For exactly 4 items and 1 marked one, the arithmetic works out perfectly: a single iteration takes the marked item from 25% to <strong>100%</strong>. That precise number is why 4 items is the cleanest possible demonstration — most sizes need several iterations and never reach exactly 100%.</p>
     <div class="callout blue">Grover's real payoff is at scale: for N items, classical search needs about N/2 tries on average, Grover needs about √N — a quadratic speedup that gets more dramatic the bigger N gets, even though this demo's N=4 makes it look almost too easy.</div>
     <label class="mark-done-check" style="margin-top:16px;">
@@ -32,14 +32,46 @@
   </div>
 </div>
 
-<!-- ===================== STEP 2 — RUN IT ===================== -->
+<!-- ===================== STEP 2 — THE ARITHMETIC ===================== -->
 <div class="lesson-step" data-step="step2">
   <div class="lesson-step-head">
     <div class="lesson-step-num">2</div>
+    <h3>The exact arithmetic behind 25% → 100%</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Worth checking Step 1's headline number by hand — it isn't a coincidence specific to this app, it falls straight out of "reflect about the mean." Start with all four amplitudes equal: <span class="mono">1/2</span> each (since <span class="mono">(1/2)² = 25%</span>, matching Born's rule from Lesson 0). Say item |11⟩ is marked. The oracle flips only its sign:</p>
+
+    <div class="panel" style="margin-top:14px;">
+      <div class="panel-label">AFTER THE ORACLE</div>
+      <div class="mono" style="font-size:0.95rem;">|00⟩: +1/2 &nbsp;&nbsp; |01⟩: +1/2 &nbsp;&nbsp; |10⟩: +1/2 &nbsp;&nbsp; |11⟩: <strong style="color:var(--amber);">−1/2</strong></div>
+    </div>
+
+    <p class="muted" style="margin-top:14px;">The <strong>mean</strong> of these four numbers is <span class="mono">(1/2 + 1/2 + 1/2 − 1/2) / 4 = (1) / 4 = 1/4</span>. The diffusion operator replaces every amplitude <span class="mono">a</span> with <span class="mono">2·mean − a</span> — literally reflecting each point to the opposite side of the average, the same "reflect a point about a line" operation as flipping a number across the midpoint of a number line:</p>
+
+    <table style="margin-top:12px;">
+      <tr><th>Item</th><th>Before</th><th>2 × mean − before</th><th>After</th><th>Probability</th></tr>
+      <tr><td class="mono">|00⟩</td><td class="mono">+1/2</td><td class="mono">2(1/4) − 1/2</td><td class="mono">0</td><td class="mono">0%</td></tr>
+      <tr><td class="mono">|01⟩</td><td class="mono">+1/2</td><td class="mono">2(1/4) − 1/2</td><td class="mono">0</td><td class="mono">0%</td></tr>
+      <tr><td class="mono">|10⟩</td><td class="mono">+1/2</td><td class="mono">2(1/4) − 1/2</td><td class="mono">0</td><td class="mono">0%</td></tr>
+      <tr><td class="mono">|11⟩</td><td class="mono">−1/2</td><td class="mono">2(1/4) − (−1/2)</td><td class="mono"><strong style="color:var(--primary);">1</strong></td><td class="mono"><strong style="color:var(--primary);">100%</strong></td></tr>
+    </table>
+
+    <p class="muted" style="margin-top:14px;">Every unmarked item lands on exactly 0, and the marked item lands on exactly 1 — not "amplified a lot," but every last drop of probability concentrated in one place. Notice <em>why</em> the marked item gets pushed so much further than the others get pulled down: it was the one outlier dragging the mean itself downward (from 1/2 to 1/4), so reflecting it about that already-lowered mean sends it unusually far in the positive direction, while the unmarked items — much closer to the mean to begin with — only get nudged a little. One sign flip, hiding in a single term, was enough to visibly skew the entire group's average and therefore everyone's reflection.</p>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step2"> I verified the mean = 1/4 and the marked item lands exactly on 1
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — RUN IT ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
     <h3>Pick the marked item, watch it get amplified</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">Pick which of the 4 items is "marked," then step through: uniform superposition → oracle → diffusion. Watch the bars.</p>
+    <p class="muted">Pick which of the 4 items is "marked," then step through: uniform superposition → oracle → diffusion. Watch the bars match Step 2's table exactly.</p>
 
     <div class="panel" style="margin-top:16px;">
       <div class="panel-label">SANDBOX · GROVER'S SEARCH (N=4)</div>
@@ -70,33 +102,33 @@
     </div>
 
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step2"> I watched the marked bar jump to 100%
+      <input type="checkbox" data-step-check="step3"> I watched the marked bar jump to 100%
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 3 — BONUS ===================== -->
-<div class="lesson-step" data-step="step3">
-  <div class="lesson-step-head">
-    <div class="lesson-step-num">3</div>
-    <h3>Bonus: why phase, not probability, does the work</h3>
-  </div>
-  <div class="lesson-step-body">
-    <p class="muted">The oracle step alone changes nothing measurable — all four bars are still 25% right after it, because flipping a sign doesn't change <span class="mono">|amplitude|²</span>. It's only the diffusion step, acting on that hidden sign difference, that turns invisible phase information into a visible probability swing. This is the same "phase you can't see directly, but isn't nothing" idea from Complex Numbers, doing real algorithmic work.</p>
-    <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step3"> Phase alone is invisible; diffusion converts it to probability
-    </label>
-  </div>
-</div>
-
-<!-- ===================== STEP 4 — SCALING PAST 4 ITEMS ===================== -->
+<!-- ===================== STEP 4 — BONUS ===================== -->
 <div class="lesson-step" data-step="step4">
   <div class="lesson-step-head">
     <div class="lesson-step-num">4</div>
+    <h3>Bonus: why phase, not probability, does the work</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">The oracle step alone changes nothing measurable — all four bars are still 25% right after it, because flipping a sign doesn't change <span class="mono">|amplitude|²</span>. It's only the diffusion step, acting on that hidden sign difference, that turns invisible phase information into a visible probability swing — Step 2's arithmetic is the receipt for exactly how much swing one sign flip buys. This is the same "phase you can't see directly, but isn't nothing" idea from Single Qubit, Step 4 and Deutsch-Jozsa's phase kickback, doing real algorithmic work a third time.</p>
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step4"> Phase alone is invisible; diffusion converts it to probability
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 5 — SCALING PAST 4 ITEMS ===================== -->
+<div class="lesson-step" data-step="step5">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">5</div>
     <h3>The gap that actually matters: large N</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">For N items with 1 marked, Grover needs about <span class="mono">⌈(π/4)√N⌉</span> iterations — each one an oracle-plus-diffusion pair, just like the single round you ran. Classically, checking items one at a time takes N/2 tries on average. Pick a database size and compare the two directly.</p>
+    <p class="muted">For N items with 1 marked, Grover needs about <span class="mono">⌈(π/4)√N⌉</span> iterations — each one an oracle-plus-diffusion pair, just like the single round you ran and hand-verified in Step 2. Classically, checking items one at a time takes N/2 tries on average. Pick a database size and compare the two directly.</p>
 
     <div class="panel" style="margin-top:16px;">
       <div class="panel-label">SANDBOX · SCALING</div>
@@ -112,9 +144,9 @@
       </div>
     </div>
 
-    <p class="muted" style="margin-top:14px;">This quadratic speedup is also <em>provably the best possible</em> for unstructured search — unlike Shor's algorithm's exponential speedup, no future cleverer quantum algorithm will ever beat √N here. That limit was proven, not just unachieved yet.</p>
+    <p class="muted" style="margin-top:14px;">At N=4, a single iteration reaches exactly 100% because <span class="mono">(π/4)√4 ≈ 1.57</span> rounds to a suspiciously clean 1 — the worked example in Step 2 is really the special case where one round happens to be exactly enough. At larger N, each additional iteration nudges the marked item's probability up a bit more without overshooting, following the same "reflect about the mean" arithmetic repeated over and over, and it takes on the order of √N rounds to climb close to 100%. This quadratic speedup is also <em>provably the best possible</em> for unstructured search — unlike Shor's algorithm's exponential speedup, no future cleverer quantum algorithm will ever beat √N here. That limit was proven, not just unachieved yet.</p>
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step4"> I compared classical vs. Grover scaling at real database sizes
+      <input type="checkbox" data-step-check="step5"> I compared classical vs. Grover scaling at real database sizes
     </label>
   </div>
 </div>

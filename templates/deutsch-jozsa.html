@@ -7,7 +7,7 @@
 
 <div class="pill green" style="margin-bottom:14px;">MODULE 2 · QUANTUM ALGORITHMS</div>
 <h1 style="margin-bottom:6px;">The smallest "quantum actually wins."</h1>
-<p class="lede muted" style="font-size:1.05rem;">A hidden function, one property to determine, one query. Classically this can take two queries in the worst case — small, but a real, provable, permanent advantage.</p>
+<p class="lede muted" style="font-size:1.05rem;">A hidden function, one property to determine, one query. Classically this can take two queries in the worst case — small, but a real, provable, permanent advantage. Five steps, including the actual interference math instead of just asserting it works.</p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -24,7 +24,7 @@
   </div>
   <div class="lesson-step-body">
     <p class="muted">You're handed a hidden function <span class="mono">f(x)</span> that takes one bit and returns one bit, promised to be either <strong>constant</strong> (same output for every input) or <strong>balanced</strong> (outputs 0 for half the inputs, 1 for the other half). For a single-bit input there are only two inputs, so classically you might get lucky on 1 query — but in the worst case you need both queries to be sure.</p>
-    <p class="muted">The quantum trick: put the input in superposition, run the oracle once, and interference cancels out everything except the one bit of information you actually need — constant or balanced — in a single query, guaranteed, every time.</p>
+    <p class="muted">The quantum trick: put the input in superposition, run the oracle once, and interference cancels out everything except the one bit of information you actually need — constant or balanced — in a single query, guaranteed, every time. Step 2 makes that "cancels out" claim precise instead of just asserting it.</p>
     <div class="callout blue">The oracle is wired as <span class="mono">|x⟩|y⟩ → |x⟩|y ⊕ f(x)⟩</span> — the CNOT and X gates you already know from Two Qubits, just relabeled as "the unknown function" for this lesson.</div>
     <label class="mark-done-check" style="margin-top:16px;">
       <input type="checkbox" data-step-check="step1"> Constant vs. balanced, one query settles it
@@ -32,10 +32,45 @@
   </div>
 </div>
 
-<!-- ===================== STEP 2 — RUN IT ===================== -->
+<!-- ===================== STEP 2 — THE ALGEBRA ===================== -->
 <div class="lesson-step" data-step="step2">
   <div class="lesson-step-head">
     <div class="lesson-step-num">2</div>
+    <h3>The algebra: phase kickback and interference</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">The sandbox's circuit starts qubit <span class="mono">y</span> at |1⟩, not |0⟩ — that's not an arbitrary choice, it's the entire trick, and it's worth walking through once by hand. After H on both qubits: <span class="mono">x</span> is <span class="mono">(|0⟩+|1⟩)/√2</span>, and <span class="mono">y</span> is <span class="mono">(|0⟩−|1⟩)/√2</span> — the state this app calls |−⟩ back in Single Qubit, Step 4's phase experiment.</p>
+
+    <p class="muted">Now watch what the oracle <span class="mono">|x⟩|y⟩ → |x⟩|y ⊕ f(x)⟩</span> does to <span class="mono">y = |−⟩</span> specifically. If <span class="mono">f(x) = 0</span>, y is untouched: still <span class="mono">|−⟩</span>. If <span class="mono">f(x) = 1</span>, XOR-ing 1 into y flips it — but flipping |−⟩ (swap the |0⟩ and |1⟩ terms) gives <span class="mono">(|1⟩−|0⟩)/√2 = −|−⟩</span>: the <em>same state</em>, just with an overall minus sign out front. Either way, y itself comes back completely unchanged in every respect a measurement could ever detect — but that minus sign, when <span class="mono">f(x)=1</span>, doesn't just vanish. Because x and y are entangled through the oracle, that sign attaches itself to the <span class="mono">x</span> branch that produced it. This effect — a target qubit that looks untouched, secretly handing its phase to the control — is called <strong>phase kickback</strong>, and it's one of the most reused tricks in every quantum algorithm from here on, Grover's Search included.</p>
+
+    <div class="panel" style="margin-top:14px;">
+      <div class="panel-label">RESULT: x PICKS UP A SIGN PER BRANCH</div>
+      <div class="mono" style="text-align:center; font-size:1rem;">x becomes: [ (−1)<sup>f(0)</sup>|0⟩ + (−1)<sup>f(1)</sup>|1⟩ ] / √2</div>
+    </div>
+
+    <p class="muted" style="margin-top:14px;">Now the final H on x is where Step 1's "interference cancels everything except the answer" stops being a slogan. There are only two cases:</p>
+
+    <details style="margin-top:10px;" open>
+      <summary style="cursor:pointer; font-size:0.9rem; color:var(--text-muted);">Case 1: f is constant (f(0) = f(1))</summary>
+      <div class="callout blue" style="margin-top:10px;">Both signs are the same — either both <span class="mono">+</span> or both <span class="mono">−</span>. Factor out the shared sign (a <em>global</em> phase, which Single Qubit's Step 4 already established is invisible to any measurement) and x is left as plain <span class="mono">(|0⟩+|1⟩)/√2</span>. Applying H to that — literally the double-H experiment from Single Qubit, Step 3, run once instead of twice — lands exactly back on <span class="mono">|0⟩</span>. Measuring x always gives 0.</div>
+    </details>
+    <details style="margin-top:10px;">
+      <summary style="cursor:pointer; font-size:0.9rem; color:var(--text-muted);">Case 2: f is balanced (f(0) ≠ f(1))</summary>
+      <div class="callout blue" style="margin-top:10px;">The signs differ — one <span class="mono">+</span>, one <span class="mono">−</span>. Now x is <span class="mono">(|0⟩−|1⟩)/√2 = |−⟩</span>. Applying H to |−⟩ lands exactly on <span class="mono">|1⟩</span> (the reverse of the H that made |−⟩ from |1⟩ in the first place). Measuring x always gives 1.</div>
+    </details>
+
+    <p class="muted" style="margin-top:14px;">That's the whole mechanism: the relative <em>sign</em> between f(0) and f(1) — invisible to any single measurement on its own, exactly the "phase you can't see until you can" idea from Single Qubit, Step 4 — is exactly what determines whether the final H constructively reinforces toward |0⟩ or destructively flips everything to |1⟩. Nothing about individual outcomes was ever measured or needed; the single global fact "same sign or different sign" is all Step 1's one query was ever really asking for, and interference is precisely the mechanism that turns that fact into a clean, deterministic answer.</p>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step2"> I followed both cases and see where the deterministic 0 or 1 comes from
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — RUN IT ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
     <h3>Get a hidden oracle, query it once</h3>
   </div>
   <div class="lesson-step-body">
@@ -56,36 +91,36 @@
     </div>
 
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step2"> I matched my 1-query verdict to the revealed oracle
+      <input type="checkbox" data-step-check="step3"> I matched my 1-query verdict to the revealed oracle
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 3 — BONUS ===================== -->
-<div class="lesson-step" data-step="step3">
-  <div class="lesson-step-head">
-    <div class="lesson-step-num">3</div>
-    <h3>Bonus: this scales</h3>
-  </div>
-  <div class="lesson-step-body">
-    <p class="muted">With <span class="mono">n</span> input bits, a classical worst case needs <span class="mono">2ⁿ⁻¹ + 1</span> queries to be certain — exponentially many. The quantum algorithm still needs exactly <strong>one</strong>, regardless of <span class="mono">n</span>. The 1-bit version here is the smallest case where that gap already exists; it just isn't dramatic yet at n=1.</p>
-    <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step3"> One query stays one query as n grows
-    </label>
-  </div>
-</div>
-
-<!-- ===================== STEP 4 — WHY THIS ONE ANYWAY ===================== -->
+<!-- ===================== STEP 4 — BONUS ===================== -->
 <div class="lesson-step" data-step="step4">
   <div class="lesson-step-head">
     <div class="lesson-step-num">4</div>
+    <h3>Bonus: this scales</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">With <span class="mono">n</span> input bits, a classical worst case needs <span class="mono">2ⁿ⁻¹ + 1</span> queries to be certain — exponentially many. The quantum algorithm still needs exactly <strong>one</strong>, regardless of <span class="mono">n</span>. Step 2's derivation generalizes cleanly: with n input qubits all starting in superposition and the same |−⟩ trick on the output qubit, the oracle kicks back a sign <span class="mono">(−1)^f(x)</span> onto every one of the <span class="mono">2ⁿ</span> branches simultaneously — not one at a time, all at once, because they were all in superposition together — and the final round of Hadamards on every input qubit is what collapses that entire pattern of signs down to a single readable answer. The 1-bit version here is the smallest case where that gap already exists; it just isn't dramatic yet at n=1.</p>
+    <label class="mark-done-check" style="margin-top:18px;">
+      <input type="checkbox" data-step-check="step4"> One query stays one query as n grows
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 5 — WHY THIS ONE ANYWAY ===================== -->
+<div class="lesson-step" data-step="step5">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">5</div>
     <h3>Nobody runs this for a real problem — and that's the point</h3>
   </div>
   <div class="lesson-step-body">
     <p class="muted">Be honest about what you just built: "is this specific contrived function constant or balanced" isn't a problem anyone actually has. Deutsch-Jozsa's real importance is historical and structural, not practical — published in 1992, it was the first algorithm to give a rigorous, provable case where a quantum computer needs exponentially fewer queries than any possible classical algorithm, for any input size. Before it, "quantum speedup" was a hope; after it, it was a theorem.</p>
-    <p class="muted">Every algorithm since has built on the same trick you just ran: superposition, an oracle, then interference to cancel out everything except the one bit of global information you actually wanted. Grover's Search (next lesson) and Shor's Algorithm (Module 6) are both, at their core, more sophisticated versions of exactly this pattern.</p>
+    <p class="muted">Every algorithm since has built on the same trick you just derived in Step 2: superposition, an oracle that kicks back phase instead of flipping a visible bit, then interference to cancel out everything except the one bit of global information you actually wanted. Grover's Search (next lesson) and Shor's Algorithm (Module 6) are both, at their core, more sophisticated versions of exactly this pattern — Grover's especially reuses phase kickback almost verbatim, just repeated and combined with a reflection step instead of a single Hadamard round.</p>
     <label class="mark-done-check" style="margin-top:16px;">
-      <input type="checkbox" data-step-check="step4"> A proof-of-concept algorithm, not a practical one — and still historically decisive
+      <input type="checkbox" data-step-check="step5"> A proof-of-concept algorithm, not a practical one — and still historically decisive
     </label>
   </div>
 </div>
