@@ -7,7 +7,7 @@
 
 <div class="pill" style="margin-bottom:14px;">MODULE 3 · THE MATH UNDERNEATH</div>
 <h1 style="margin-bottom:6px;">The same state, in two different coordinate systems.</h1>
-<p class="lede muted" style="font-size:1.05rem;">"Hilbert space" is just the name for the vector space quantum states live in. A basis for it is a coordinate system — and every qubit state has infinitely many valid ones.</p>
+<p class="lede muted" style="font-size:1.05rem;">"Hilbert space" is just the name for the vector space quantum states live in. A basis for it is a coordinate system — and every qubit state has infinitely many valid ones. Five steps, including the one identity that holds no matter which basis you pick.</p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -68,31 +68,57 @@
   </div>
 </div>
 
-<!-- ===================== STEP 3 — BONUS ===================== -->
+<!-- ===================== STEP 3 — COMPLETENESS RELATION ===================== -->
 <div class="lesson-step" data-step="step3">
   <div class="lesson-step-head">
     <div class="lesson-step-num">3</div>
+    <h3>The identity that holds for every single basis</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Step 2's Z-basis readout was really computing <span class="mono">c₀ = ⟨0|ψ⟩</span> and <span class="mono">c₁ = ⟨1|ψ⟩</span>, then reassembling <span class="mono">|ψ⟩ = c₀|0⟩ + c₁|1⟩ = |0⟩⟨0|ψ⟩ + |1⟩⟨1|ψ⟩</span>. Factor <span class="mono">|ψ⟩</span> out of the right-hand side and this says <span class="mono">(|0⟩⟨0| + |1⟩⟨1|) |ψ⟩ = |ψ⟩</span> — true for <em>every</em> possible <span class="mono">|ψ⟩</span>, which can only mean the operator in parentheses is the identity matrix, <span class="mono">I</span>. This is called the <strong>completeness relation</strong>: sum the outer product (Bra-Ket, Step 5) of each basis vector with itself, over every vector in an orthonormal basis, and you always get the identity back.</p>
+
+    <p class="muted">Here's the part worth actually checking rather than taking on faith: this holds for <em>any</em> orthonormal basis, not just the computational one — even though the individual pieces look completely different. Compute <span class="mono">|+⟩⟨+| + |−⟩⟨−|</span> by hand:</p>
+
+    <div class="panel" style="margin-top:12px;">
+      <div class="mono" style="font-size:0.85rem; text-align:center;">
+        |+⟩⟨+| = ½[[1,1],[1,1]] &nbsp;&nbsp;&nbsp; |−⟩⟨−| = ½[[1,−1],[−1,1]]<br><br>
+        Sum = ½[[1+1, 1−1],[1−1, 1+1]] = ½[[2,0],[0,2]] = [[1,0],[0,1]] = I
+      </div>
+    </div>
+
+    <p class="muted" style="margin-top:14px;">Same identity matrix, built from two totally different-looking sets of projectors. The completeness relation is the formal reason "which basis?" never changes what a state <em>is</em> — reconstructing it from its own coordinates always gets you back to exactly where you started, regardless of which coordinate system you used to describe it along the way.</p>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step3"> I verified |+⟩⟨+| + |−⟩⟨−| = I by hand
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 4 — BONUS ===================== -->
+<div class="lesson-step" data-step="step4">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">4</div>
     <h3>Bonus: this is why "measurement basis" is a real choice</h3>
   </div>
   <div class="lesson-step-body">
     <p class="muted">Measurement & Stern-Gerlach let you switch the magnet between Z and X — that was switching which orthonormal basis you were reading the state's coordinates in. There was never a "true" basis being hidden from you; both are equally valid coordinate systems for the exact same physical state.</p>
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step3"> Choosing a measurement basis = choosing coordinates, not uncovering a hidden truth
+      <input type="checkbox" data-step-check="step4"> Choosing a measurement basis = choosing coordinates, not uncovering a hidden truth
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 4 — H IS A CHANGE OF BASIS ===================== -->
-<div class="lesson-step" data-step="step4">
+<!-- ===================== STEP 5 — H IS A CHANGE OF BASIS ===================== -->
+<div class="lesson-step" data-step="step5">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">4</div>
+    <div class="lesson-step-num">5</div>
     <h3>The Hadamard gate is a basis-change matrix in disguise</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">H doesn't just happen to send |0⟩ to |+⟩ and |1⟩ to |−⟩ — that <em>is</em> what a change-of-basis matrix does, by definition: it takes coordinates written in one basis and rewrites them in another. H is exactly the matrix that translates between the Z basis and the X basis, in both directions (it's its own inverse — apply it twice and you're back where you started).</p>
+    <p class="muted">H doesn't just happen to send |0⟩ to |+⟩ and |1⟩ to |−⟩ — that <em>is</em> what a change-of-basis matrix does, by definition: it takes coordinates written in one basis and rewrites them in another. H is exactly the matrix that translates between the Z basis and the X basis, in both directions (it's its own inverse — apply it twice and you're back where you started, which Matrices as Gates, Step 2 proved outright).</p>
     <p class="muted">That's the real reason H shows up constantly in this app: any time a lesson needed to "measure in the X basis" without a dedicated tool for it (Measurement & Stern-Gerlach's SG simulator, the sequential cascade, BB84's basis switching), the trick was always the same — apply H to rotate the basis you care about onto the Z basis you already know how to measure, then rotate back afterward if needed.</p>
     <label class="mark-done-check" style="margin-top:16px;">
-      <input type="checkbox" data-step-check="step4"> H = the Z↔X basis-change matrix, used everywhere under the hood
+      <input type="checkbox" data-step-check="step5"> H = the Z↔X basis-change matrix, used everywhere under the hood
     </label>
   </div>
 </div>

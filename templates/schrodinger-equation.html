@@ -7,7 +7,7 @@
 
 <div class="pill" style="margin-bottom:14px;">MODULE 3 · THE MATH UNDERNEATH</div>
 <h1 style="margin-bottom:6px;">Time evolution, watched instead of derived.</h1>
-<p class="lede muted" style="font-size:1.05rem;">No differential equations to solve here — just watch what the equation predicts happen to a Bloch point left running, and to one being deliberately driven.</p>
+<p class="lede muted" style="font-size:1.05rem;">No differential equations to solve by hand here — but the equation itself is written out and solved for you once, so "precession" stops being a word and starts being a derivation. Five steps.</p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -23,7 +23,7 @@
     <h3>Two versions of one equation</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">The <strong>time-independent</strong> Schrödinger equation finds a system's fixed energy levels — for a qubit, that's just |0⟩ and |1⟩ again, now called <strong>energy eigenstates</strong>. The <strong>time-dependent</strong> version says how a state changes moment to moment: each energy eigenstate spins in the complex plane at a rate set by its energy, <span class="mono">e^{-iEt/ħ}</span>.</p>
+    <p class="muted">The <strong>time-independent</strong> Schrödinger equation finds a system's fixed energy levels — for a qubit, that's just |0⟩ and |1⟩ again, now called <strong>energy eigenstates</strong>. The <strong>time-dependent</strong> version, written out in Step 2, says how a state changes moment to moment: each energy eigenstate spins in the complex plane at a rate set by its energy, <span class="mono">e^{-iEt/ħ}</span>.</p>
     <p class="muted">Here's the part that matters for what you'll actually see: if a qubit is sitting purely in <span class="mono">|0⟩</span> or purely in <span class="mono">|1⟩</span>, that spinning is an invisible <em>global</em> phase — nothing observable moves. It's only a <strong>superposition</strong> of the two — different energies spinning at different rates, drifting apart — that shows up as motion on the Bloch sphere. That drift is called <strong>precession</strong>.</p>
     <div class="callout blue">This is the same phase gate from Complex Numbers, just now running continuously instead of by a slider you set once.</div>
     <label class="mark-done-check" style="margin-top:16px;">
@@ -32,10 +32,33 @@
   </div>
 </div>
 
-<!-- ===================== STEP 2 — PRECESSION ===================== -->
+<!-- ===================== STEP 2 — THE EQUATION, WRITTEN AND SOLVED ===================== -->
 <div class="lesson-step" data-step="step2">
   <div class="lesson-step-head">
     <div class="lesson-step-num">2</div>
+    <h3>The equation itself, and where the spinning phase comes from</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Worth actually writing the equation this lesson is named after, once, in full: <span class="mono">iħ d|ψ⟩/dt = H|ψ⟩</span>, where <span class="mono">H</span> is the <strong>Hamiltonian</strong> — the operator (matrix, for a qubit) representing total energy, and <span class="mono">d|ψ⟩/dt</span> is just how fast the state vector is changing, exactly as <span class="mono">dx/dt</span> means "velocity" for ordinary motion. It says: a state's rate of change is entirely determined by applying the energy operator to it — energy isn't just a number a state has, it's the very thing that drives its evolution forward in time.</p>
+
+    <p class="muted">Solving it for a single energy eigenstate <span class="mono">|E⟩</span> — one where <span class="mono">H|E⟩ = E|E⟩</span>, meaning applying H just multiplies by the number E — is genuinely simple calculus, not new physics. Write the evolving state as <span class="mono">c(t)|E⟩</span> for some time-dependent number c(t), substitute into the equation, and the <span class="mono">|E⟩</span> cancels from both sides, leaving <span class="mono">iħ · dc/dt = E · c(t)</span> — an ordinary first-order differential equation for a single number. Rearranging: <span class="mono">dc/dt = (-iE/ħ) · c(t)</span>, which is the textbook "rate of change proportional to the current value" equation — the same form as exponential growth or radioactive decay, except the constant of proportionality here is imaginary. Its solution is:</p>
+
+    <div class="panel" style="margin-top:12px; text-align:center;">
+      <div class="mono" style="font-size:1rem;">c(t) = c(0) · e^{-iEt/ħ}</div>
+    </div>
+
+    <p class="muted" style="margin-top:14px;">That's the whole derivation behind Step 1's claim: an energy eigenstate doesn't just "happen" to acquire a spinning phase — it's forced to by the same calculus that governs any quantity whose rate of change is proportional to itself, just with an imaginary rather than real proportionality constant. An imaginary rate of change is precisely what turns exponential growth into rotation instead — recall from Complex Numbers, Step 2 that multiplying by a magnitude-1 complex number only ever rotates, never grows or shrinks, and <span class="mono">|e^{-iEt/ħ}| = 1</span> for any real E and t. Energy doesn't make amplitudes grow or decay; it makes them spin, at a rate set by exactly how much energy there is.</p>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step2"> I followed the derivation from iħ d|ψ⟩/dt = H|ψ⟩ to e^{-iEt/ħ}
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — PRECESSION ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
     <h3>Watch it precess — and watch a stationary state not</h3>
   </div>
   <div class="lesson-step-body">
@@ -58,15 +81,15 @@
     </div>
 
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step2"> I watched one panel spin and the other hold still
+      <input type="checkbox" data-step-check="step3"> I watched one panel spin and the other hold still
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 3 — RABI DRIVE ===================== -->
-<div class="lesson-step" data-step="step3">
+<!-- ===================== STEP 4 — RABI DRIVE ===================== -->
+<div class="lesson-step" data-step="step4">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">3</div>
+    <div class="lesson-step-num">4</div>
     <h3>Rabi flopping — how a real qubit gets controlled</h3>
   </div>
   <div class="lesson-step-body">
@@ -86,23 +109,25 @@
       <button id="rabi-toggle" class="block" style="margin-top:14px;">Start drive</button>
     </div>
 
+    <p class="muted" style="margin-top:14px;">Notice this is exactly the pulse-area idea from Physical Qubit, Step 4, now animated instead of asserted: P(measure 1) here is <span class="mono">sin²(Ωt/2)</span>, the same functional form as the RY(θ) rotation from Single Qubit, Step 6, with the pulse's own strength and duration standing in for θ. A longer or stronger pulse is a bigger angle, full stop — Rabi flopping <em>is</em> RY(θ), just parameterized by real time instead of a slider.</p>
+
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step3"> I watched the population flop between 0 and 1
+      <input type="checkbox" data-step-check="step4"> I watched the population flop between 0 and 1
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 4 — TWO-QUBIT TIME EVOLUTION ===================== -->
-<div class="lesson-step" data-step="step4">
+<!-- ===================== STEP 5 — TWO-QUBIT TIME EVOLUTION ===================== -->
+<div class="lesson-step" data-step="step5">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">4</div>
+    <div class="lesson-step-num">5</div>
     <h3>Where two-qubit gates actually come from</h3>
   </div>
   <div class="lesson-step-body">
     <p class="muted">Everything above evolved one qubit under its own Hamiltonian. A CNOT or CZ gate between two qubits comes from exactly the same equation, just with a Hamiltonian that <em>couples</em> them — a term describing how each qubit's energy depends on the other's state. Physically, that coupling is usually a tunable interaction (a shared resonator, or a direct capacitive link) that superconducting hardware can switch on for a precise duration to implement a specific two-qubit gate, then switch back off.</p>
     <p class="muted">So the picture that started with a single Bloch vector precessing extends cleanly: single-qubit gates are time evolution under an isolated Hamiltonian (this lesson), two-qubit gates are time evolution under a coupling Hamiltonian, and Hardware Lab's chip layout is, among other things, a map of exactly which qubits have that coupling switched into existence at all.</p>
     <label class="mark-done-check" style="margin-top:16px;">
-      <input type="checkbox" data-step-check="step4"> Two-qubit gates are time evolution under a coupling term
+      <input type="checkbox" data-step-check="step5"> Two-qubit gates are time evolution under a coupling term
     </label>
   </div>
 </div>

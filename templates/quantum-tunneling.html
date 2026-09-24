@@ -7,7 +7,7 @@
 
 <div class="pill amber" style="margin-bottom:14px;">MODULE 4 · WHERE QUANTUM COMES FROM</div>
 <h1 style="margin-bottom:6px;">The wavefunction doesn't stop at the wall.</h1>
-<p class="lede muted" style="font-size:1.05rem;">Classically, a particle without enough energy to clear a barrier just bounces off. Quantum mechanically, its wavefunction leaks through the wall — and sometimes the particle is on the other side.</p>
+<p class="lede muted" style="font-size:1.05rem;">Classically, a particle without enough energy to clear a barrier just bounces off. Quantum mechanically, its wavefunction leaks through the wall — and sometimes the particle is on the other side. Five steps, including why the leak is an exponential specifically, not some other shape.</p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -24,7 +24,7 @@
   </div>
   <div class="lesson-step-body">
     <p class="muted">At a barrier taller than the particle's energy, classical mechanics says: reflect, 100% of the time. Quantum mechanics says the wavefunction doesn't have to hit zero at the wall — instead it decays exponentially <em>inside</em> the barrier. If the barrier is thin enough that the wavefunction hasn't decayed all the way to zero by the far edge, there's a genuine nonzero amplitude to be found beyond it.</p>
-    <p class="muted">The transmission probability falls off as <span class="mono">T ≈ e^{-2κL}</span>, where <span class="mono">L</span> is the barrier's width and <span class="mono">κ</span> grows with how much the barrier exceeds the particle's energy. Thin and low barriers tunnel easily; thick and tall ones effectively don't — but "effectively don't" is never quite "can't."</p>
+    <p class="muted">The transmission probability falls off as <span class="mono">T ≈ e^{-2κL}</span>, where <span class="mono">L</span> is the barrier's width and <span class="mono">κ</span> grows with how much the barrier exceeds the particle's energy. Thin and low barriers tunnel easily; thick and tall ones effectively don't — but "effectively don't" is never quite "can't." Step 2 shows where that exponential shape actually comes from.</p>
     <div class="callout blue">You've already met this mechanism without the name: Hardware Lab's Josephson junction is a Cooper pair tunneling straight through an insulating layer a few nanometers thick. Same formula, same physics — the barrier is just an oxide layer instead of a textbook rectangle.</div>
     <label class="mark-done-check" style="margin-top:16px;">
       <input type="checkbox" data-step-check="step1"> The wavefunction leaks, it doesn't just stop
@@ -32,10 +32,33 @@
   </div>
 </div>
 
-<!-- ===================== STEP 2 — BARRIER SIMULATOR ===================== -->
+<!-- ===================== STEP 2 — WHY EXPONENTIAL DECAY, SPECIFICALLY ===================== -->
 <div class="lesson-step" data-step="step2">
   <div class="lesson-step-head">
     <div class="lesson-step-num">2</div>
+    <h3>Where the exponential comes from</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Outside a barrier, a free particle's wavefunction oscillates — sines and cosines, the same standing-wave shapes from Particle in a Box. Inside a classically forbidden region, it does something qualitatively different: it decays, without wiggling at all. Worth seeing why that switch happens, using the time-independent Schrödinger equation from the Schrödinger Equation lesson: <span class="mono">−(ħ²/2m) d²ψ/dx² + Vψ = Eψ</span>. Rearranged for the second derivative:</p>
+
+    <div class="panel" style="margin-top:12px; text-align:center;">
+      <div class="mono" style="font-size:0.95rem;">d²ψ/dx² = [2m(V − E)/ħ²] · ψ</div>
+    </div>
+
+    <p class="muted" style="margin-top:14px;">Everything hinges on the sign of <span class="mono">V − E</span>. Outside the barrier, <span class="mono">V &lt; E</span>, so the coefficient is negative — and a function whose second derivative is a <em>negative</em> multiple of itself is exactly what sine and cosine are (that's their defining property, the reason they oscillate at all). Inside the barrier, <span class="mono">V &gt; E</span>, flipping the coefficient <em>positive</em> — and a function whose second derivative is a <em>positive</em> multiple of itself is the defining property of real exponentials, <span class="mono">e^{κx}</span> and <span class="mono">e^{−κx}</span>, with <span class="mono">κ = √(2m(V−E))/ħ</span>. Physically sensible boundary conditions (the wavefunction can't blow up to infinity inside a thick barrier) pick out the decaying solution, <span class="mono">e^{−κx}</span>, which is exactly the curve Step 3's canvas draws.</p>
+
+    <p class="muted" style="margin-top:14px;">So the exponential isn't a separate rule bolted onto the Schrödinger equation for this one scenario — it's the same equation as everywhere else in this app, just evaluated in a region where <span class="mono">V &gt; E</span> flips one sign, and oscillation turns into decay as an automatic consequence.</p>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step2"> I can explain why V&gt;E turns sines into exponentials
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — BARRIER SIMULATOR ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
     <h3>Shape the barrier, then fire particles at it</h3>
   </div>
   <div class="lesson-step-body">
@@ -60,37 +83,37 @@
     </div>
 
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step2"> I watched T drop as I made the barrier taller and wider
+      <input type="checkbox" data-step-check="step3"> I watched T drop as I made the barrier taller and wider
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 3 — BONUS: JOSEPHSON JUNCTION LINK ===================== -->
-<div class="lesson-step" data-step="step3">
+<!-- ===================== STEP 4 — BONUS: JOSEPHSON JUNCTION LINK ===================== -->
+<div class="lesson-step" data-step="step4">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">3</div>
+    <div class="lesson-step-num">4</div>
     <h3>Bonus: this is your qubit's hardware</h3>
   </div>
   <div class="lesson-step-body">
     <p class="muted">Every superconducting qubit you've simulated since Physical Qubit relies on exactly this effect: Cooper pairs of electrons tunneling through the thin insulating layer of a Josephson junction. Make that layer too thick and the qubit simply stops working — which is precisely the barrier-width slider above, at chip-fabrication scale.</p>
     <p class="muted"><a href="{{ url_for('hardware_lab') }}">Revisit Hardware Lab →</a> with this in mind and the Josephson junction diagram reads differently the second time.</p>
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step3"> I connected this back to the Josephson junction
+      <input type="checkbox" data-step-check="step4"> I connected this back to the Josephson junction
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 4 — TUNNELING IN THE WILD ===================== -->
-<div class="lesson-step" data-step="step4">
+<!-- ===================== STEP 5 — TUNNELING IN THE WILD ===================== -->
+<div class="lesson-step" data-step="step5">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">4</div>
+    <div class="lesson-step-num">5</div>
     <h3>Two more places this exact mechanism runs</h3>
   </div>
   <div class="lesson-step-body">
     <p class="muted"><strong>Alpha decay</strong>: an alpha particle sitting inside a heavy nucleus is trapped by the strong nuclear force the same way this lesson's particle is trapped by a barrier — not enough energy to classically escape, yet it eventually does, by tunneling out. George Gamow's 1928 tunneling theory of alpha decay was one of the first triumphs of quantum mechanics applied to nuclear physics, and it explains something classical physics genuinely couldn't: why different radioactive isotopes have wildly different half-lives (seconds to billions of years) for what looks like a similar barrier — tiny differences in barrier height and width get exponentially amplified by exactly the <span class="mono">e^(−2κL)</span> formula from Step 1.</p>
     <p class="muted"><strong>Scanning tunneling microscopy (STM)</strong>: a sharp metal tip held a fraction of a nanometer above a surface lets electrons tunnel across the vacuum gap between tip and sample. That tunneling current is exquisitely sensitive to gap width (again, the exponential), so measuring it while scanning the tip across a surface produces atomic-resolution images — the technique that provided the first direct images of individual atoms.</p>
     <label class="mark-done-check" style="margin-top:16px;">
-      <input type="checkbox" data-step-check="step4"> Alpha decay and scanning tunneling microscopy — same exponential, two more fields
+      <input type="checkbox" data-step-check="step5"> Alpha decay and scanning tunneling microscopy — same exponential, two more fields
     </label>
   </div>
 </div>

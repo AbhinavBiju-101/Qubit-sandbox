@@ -7,7 +7,7 @@
 
 <div class="pill" style="margin-bottom:14px;">MODULE 3 · THE MATH UNDERNEATH</div>
 <h1 style="margin-bottom:6px;">Bra-ket is a label, not new math.</h1>
-<p class="lede muted" style="font-size:1.05rem;">You've been writing states as (α, β) since Single Qubit. Bra-ket notation is just a naming convention for the exact same column vector — this lesson translates, it doesn't introduce.</p>
+<p class="lede muted" style="font-size:1.05rem;">You've been writing states as (α, β) since Single Qubit. Bra-ket notation is just a naming convention for the exact same column vector — this lesson translates, it doesn't introduce. Five steps, including why the bra needs a conjugate and not just a sideways vector.</p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -23,7 +23,7 @@
     <h3>Ket, bra, and the thing between them</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">A <strong>ket</strong> <span class="mono">|ψ⟩</span> is just a column vector — for one qubit, that's the pair <span class="mono">(α, β)</span> you already know. A <strong>bra</strong> <span class="mono">⟨ψ|</span> is the same vector laid on its side and complex-conjugated (flip the sign of every imaginary part): <span class="mono">⟨ψ| = (α*, β*)</span>.</p>
+    <p class="muted">A <strong>ket</strong> <span class="mono">|ψ⟩</span> is just a column vector — for one qubit, that's the pair <span class="mono">(α, β)</span> you already know. A <strong>bra</strong> <span class="mono">⟨ψ|</span> is the same vector laid on its side and complex-conjugated (flip the sign of every imaginary part): <span class="mono">⟨ψ| = (α*, β*)</span>. Step 2 explains why the conjugate specifically is non-negotiable.</p>
     <p class="muted">Put a bra in front of a ket and you get their <strong>inner product</strong>, a single complex number: <span class="mono">⟨φ|ψ⟩ = φ<sub>0</sub>*ψ<sub>0</sub> + φ<sub>1</sub>*ψ<sub>1</sub></span>. You've already used the special case of this constantly — <span class="mono">⟨ψ|ψ⟩ = |α|² + |β|² = 1</span> is exactly the normalization rule from QM Basics.</p>
     <div class="callout blue">General rule, one case you already knew: <span class="mono">⟨ψ|ψ⟩</span> is a state's inner product with itself, which is why normalizing a state and computing <span class="mono">⟨ψ|ψ⟩ = 1</span> are the same sentence.</div>
     <label class="mark-done-check" style="margin-top:16px;">
@@ -32,10 +32,27 @@
   </div>
 </div>
 
-<!-- ===================== STEP 2 — BUILD A STATE, SEE BOTH NOTATIONS ===================== -->
+<!-- ===================== STEP 2 — WHY THE CONJUGATE ===================== -->
 <div class="lesson-step" data-step="step2">
   <div class="lesson-step-head">
     <div class="lesson-step-num">2</div>
+    <h3>Why the conjugate — not just a sideways vector</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Worth asking directly: why does turning a ket into a bra involve conjugating, rather than just laying the same numbers on their side? Try the plain-transpose version without conjugating and see what breaks. For a state <span class="mono">|ψ⟩ = α|0⟩ + β|1⟩</span>, the un-conjugated "inner product with itself" would be <span class="mono">α² + β²</span> — and for complex α, β, that number generally isn't even real, let alone a valid probability between 0 and 1. Try it with <span class="mono">α = i/√2, β = 1/√2</span> (a perfectly legal, normalized state): <span class="mono">α² + β² = (i/√2)² + (1/√2)² = −1/2 + 1/2 = 0</span> — a state with 100% real probability of existing would report zero "length." Clearly not what a normalization check should say.</p>
+
+    <p class="muted">Conjugating fixes this by construction, using exactly the fact from Complex Numbers, Step 1: for any complex number <span class="mono">z</span>, <span class="mono">z* · z = |z|²</span> — always real, always non-negative, regardless of z's phase. So <span class="mono">⟨ψ|ψ⟩ = α*α + β*β = |α|² + |β|²</span> is guaranteed to be a real, non-negative number no matter what phases α and β carry — exactly what's required for it to mean "total probability." The conjugate in the bra isn't a notational quirk; it's the one modification that makes "inner product with yourself" land back in the world of real, meaningful numbers instead of wandering off into the complex plane.</p>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step2"> I checked the α=i/√2 example and saw why plain-transpose fails
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — BUILD A STATE, SEE BOTH NOTATIONS ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
     <h3>Build a state, watch both notations update</h3>
   </div>
   <div class="lesson-step-body">
@@ -64,19 +81,19 @@
     </div>
 
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step2"> I built a state and matched it to its bra
+      <input type="checkbox" data-step-check="step3"> I built a state and matched it to its bra
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 3 — INNER PRODUCT CALCULATOR ===================== -->
-<div class="lesson-step" data-step="step3">
+<!-- ===================== STEP 4 — INNER PRODUCT CALCULATOR ===================== -->
+<div class="lesson-step" data-step="step4">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">3</div>
+    <div class="lesson-step-num">4</div>
     <h3>⟨φ|ψ⟩ — the number that predicts measurement</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">Pick a reference state <span class="mono">|φ⟩</span> below. We'll compute <span class="mono">⟨φ|ψ⟩</span> against the <span class="mono">|ψ⟩</span> you built in Step 2, and — this is the payoff — <span class="mono">|⟨φ|ψ⟩|²</span> is exactly the probability of getting outcome φ if you measured in a basis that includes it. Born's rule was always this formula in disguise.</p>
+    <p class="muted">Pick a reference state <span class="mono">|φ⟩</span> below. We'll compute <span class="mono">⟨φ|ψ⟩</span> against the <span class="mono">|ψ⟩</span> you built in Step 3, and — this is the payoff — <span class="mono">|⟨φ|ψ⟩|²</span> is exactly the probability of getting outcome φ if you measured in a basis that includes it. Born's rule was always this formula in disguise. Worked example to check the sandbox against: with <span class="mono">|ψ⟩ = |1⟩</span> (click X first) and <span class="mono">|φ⟩ = |+⟩</span>, by hand: <span class="mono">⟨+|1⟩ = (1/√2)(0) + (1/√2)(1) = 1/√2</span>, so <span class="mono">|⟨+|1⟩|² = 1/2 = 50%</span> — matching the familiar fact that |1⟩ measured in the +/− basis (Lesson 0, Step 6) is a coin flip.</p>
 
     <div class="panel" style="margin-top:16px;">
       <div class="panel-label">SANDBOX · INNER PRODUCT</div>
@@ -93,22 +110,22 @@
     </div>
 
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step3"> I computed an inner product and matched it to a probability
+      <input type="checkbox" data-step-check="step4"> I computed an inner product and matched it to a probability
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 4 — OUTER PRODUCTS ===================== -->
-<div class="lesson-step" data-step="step4">
+<!-- ===================== STEP 5 — OUTER PRODUCTS ===================== -->
+<div class="lesson-step" data-step="step5">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">4</div>
+    <div class="lesson-step-num">5</div>
     <h3>Flip it around: outer products build operators</h3>
   </div>
   <div class="lesson-step-body">
     <p class="muted">A bra times a ket, <span class="mono">⟨φ|ψ⟩</span>, is a number. A ket times a bra, <span class="mono">|φ⟩⟨ψ|</span> — the <strong>outer product</strong> — is a matrix instead. <span class="mono">|0⟩⟨0|</span> is exactly the projector from Operator Types: it's the matrix <span class="mono">[[1,0],[0,0]]</span>, built from nothing but a ket and a bra multiplied the other way around.</p>
     <p class="muted">This generalizes further than one projector: <em>any</em> operator can be written as a sum of outer products. Z, for instance, is exactly <span class="mono">|0⟩⟨0| − |1⟩⟨1|</span> — its two eigenvectors, each weighted by its own eigenvalue. That's not a special trick for Z; it's the general recipe (the "spectral decomposition") for rebuilding any Hermitian operator once you know its eigenvectors and eigenvalues, which is exactly what Eigenvalues and Eigenvectors covers next.</p>
     <label class="mark-done-check" style="margin-top:16px;">
-      <input type="checkbox" data-step-check="step4"> Bra-ket = number; ket-bra = operator
+      <input type="checkbox" data-step-check="step5"> Bra-ket = number; ket-bra = operator
     </label>
   </div>
 </div>

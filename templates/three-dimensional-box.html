@@ -7,7 +7,7 @@
 
 <div class="pill amber" style="margin-bottom:14px;">MODULE 4 · WHERE QUANTUM COMES FROM</div>
 <h1 style="margin-bottom:6px;">Same box, two more directions, real degeneracy.</h1>
-<p class="lede muted" style="font-size:1.05rem;">Particle in a Box's degeneracy bonus was a preview. This is the full 3D calculation — and degeneracy stops being a curiosity and becomes something you compute.</p>
+<p class="lede muted" style="font-size:1.05rem;">Particle in a Box's degeneracy bonus was a preview. This is the full 3D calculation — and degeneracy stops being a curiosity and becomes something you compute. Five steps, ending with the whole module tied together.</p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -92,6 +92,23 @@
     <p class="muted">That's exactly why a hydrogen atom's n=2 shell contains one 2s orbital and three different 2p orbitals (differing in their m quantum number, or equivalently their orientation) all sharing the same energy — real atomic orbital degeneracy, produced by the identical "symmetric confinement → shared quantum numbers → shared energy" mechanism this cubic box demonstrated, just running on the sphere instead of the cube.</p>
     <label class="mark-done-check" style="margin-top:16px;">
       <input type="checkbox" data-step-check="step4"> Same mechanism, spherical confinement, real orbital degeneracy
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 5 — WHERE MODULE 4 LEAVES YOU ===================== -->
+<div class="lesson-step" data-step="step5">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">5</div>
+    <h3>The history, in one paragraph</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Worth pulling six lessons into one line before moving on. Classical physics predicted infinite energy from a hot object; Planck's fix — energy in discrete packets — is where "quantum" got its name (<a href="{{ url_for('blackbody_radiation') }}">Blackbody Radiation</a>). Particles turned out to have wavelengths too, via <span class="mono">λ=h/p</span> (<a href="{{ url_for('de_broglie') }}">de Broglie</a>), which the double slit showed was real and not just a formula — interference from single particles, one at a time (<a href="{{ url_for('wave_particle_duality') }}">Wave-Particle Duality</a>). Confine that wave and only certain standing-wave shapes fit, which is where discrete energy levels come from without any extra hypothesis (<a href="{{ url_for('particle_in_a_box') }}">Particle in a Box</a>, this lesson). A wave doesn't have to stop dead at a barrier taller than its energy — it decays, and sometimes reappears on the other side (<a href="{{ url_for('quantum_tunneling') }}">Quantum Tunneling</a>).</p>
+
+    <p class="muted">None of this was invented to explain qubits — it's the actual, decades-long historical struggle (roughly 1900 to 1930) to explain ordinary matter and light, full of experiments that flatly refused to match classical predictions. The state vectors, superposition, and interference from Modules 1–3 are the same mathematics this module's phenomena forced physicists to invent, just abstracted down to the simplest possible 2-level system. From here, Module 5 asks what happens when this idealized math meets real, imperfect, noisy hardware, and Module 6 puts entanglement and interference to work breaking and building cryptographic systems.</p>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step5"> I can trace the line from blackbody radiation to a qubit's state vector
     </label>
   </div>
 </div>

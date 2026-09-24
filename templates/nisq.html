@@ -7,7 +7,7 @@
 
 <div class="pill" style="margin-bottom:14px;">MODULE 5 · ERROR CORRECTION &amp; NOISE</div>
 <h1 style="margin-bottom:6px;">Noisy, intermediate-scale — right now.</h1>
-<p class="lede muted" style="font-size:1.05rem;">Every device Reality Check showed you real numbers for lives in this era. NISQ isn't a technology, it's an honest description of a limitation the whole field is currently working around.</p>
+<p class="lede muted" style="font-size:1.05rem;">Every device Reality Check showed you real numbers for lives in this era. NISQ isn't a technology, it's an honest description of a limitation the whole field is currently working around. Five steps, ending with the whole module tied together.</p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -63,16 +63,23 @@
   </div>
 </div>
 
-<!-- ===================== STEP 3 — BONUS ===================== -->
+<!-- ===================== STEP 3 — THE VARIATIONAL LOOP ===================== -->
 <div class="lesson-step" data-step="step3">
   <div class="lesson-step-head">
     <div class="lesson-step-num">3</div>
-    <h3>Bonus: so why bother, right now?</h3>
+    <h3>So why bother, right now? The variational loop</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">Two live strategies: run circuits shallow enough to survive the noise (variational algorithms, error mitigation techniques that estimate and subtract out noise statistically), or push hardware fidelity up so ε keeps shrinking. Real published gate fidelities have moved from roughly 99% to well above 99.9% over the past several years on leading platforms — every extra "9" directly multiplies how deep a circuit can go before this exact curve drags it to zero.</p>
-    <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step3"> Shallower circuits or better fidelity — the two live levers
+    <p class="muted">Step 2's curve looks discouraging, but there's a genuine strategy for living inside it: <strong>variational algorithms</strong> (VQE and QAOA are the two best-known), which don't try to run one long, deep, precise circuit at all. Instead they run a short loop, repeatedly:</p>
+    <ol style="margin: 14px 0; padding-left: 22px; color: var(--text-muted); font-size: 0.95rem; line-height:1.7;">
+      <li>Run a <em>shallow</em> circuit — few enough gates that Step 2's curve is still forgiving — built from a handful of tunable parameters (rotation angles, essentially RY(θ)-style knobs from Single Qubit, Step 6, just many of them at once).</li>
+      <li>Measure the output and compute one number from it (an "expectation value" — how good this attempt was for the problem at hand).</li>
+      <li>Hand that one number to an ordinary classical computer, which nudges the parameters in a direction that should improve it — classical optimization, nothing quantum about this step.</li>
+      <li>Repeat with the new parameters.</li>
+    </ol>
+    <p class="muted">The quantum computer never has to get the whole answer in one long, fragile shot; it only ever has to survive a short, noise-tolerant circuit many times over, while a classical computer does the heavy lifting of steering the search. This hybrid division of labor — quantum for the part only a quantum computer can do, classical for everything else — is the dominant practical strategy for extracting value from hardware before full error correction arrives, and it's specifically why NISQ-era research leans so heavily on shallow circuits rather than trying to brute-force through the noise.</p>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step3"> Shallow quantum circuit + classical optimizer, repeated — that's the whole trick
     </label>
   </div>
 </div>
@@ -88,6 +95,21 @@
     <p class="muted">It's not the only metric in use (others weight gate speed or specific application performance differently), and it's specifically not a measure of anything past the NISQ era — once real error correction is running, a "logical qubit count" replaces it as the number that actually matters. For now, though, quantum volume is the closest thing the field has to a single "how good is this chip" score.</p>
     <label class="mark-done-check" style="margin-top:16px;">
       <input type="checkbox" data-step-check="step4"> Quantum volume bundles count, connectivity, and fidelity into one number
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 5 — WHERE MODULE 5 LEAVES YOU ===================== -->
+<div class="lesson-step" data-step="step5">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">5</div>
+    <h3>Idealized math meets real hardware, in one paragraph</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Worth pulling three lessons into one line before moving on. Every gate in Modules 1–3 was a clean, length-preserving rotation — real qubits leak information to their environment instead, which shows up as the Bloch vector physically shrinking, a phenomenon that needs a genuinely new mathematical object (the density matrix) to even describe (<a href="{{ url_for('decoherence') }}">Why Qubits Decohere</a>). You can fight that leakage without ever peeking at the protected data, by spreading one logical qubit across several physical ones and reading only parity information (<a href="{{ url_for('bit_flip_code') }}">Bit-Flip and Phase-Flip Codes</a>). And today's real machines don't have nearly enough spare qubits to run that protection fully — so the field runs short, noise-tolerant circuits instead, with a classical computer steering a quantum one (this lesson).</p>
+    <p class="muted">This is the honest state of the field, not a simplification for teaching purposes — every real device Reality Check named lives exactly here. From here, Module 6 shows one place this NISQ-era hardware is already genuinely useful today, not someday: quantum cryptography, where even a single, noisy, unentangled qubit is enough to build a communication protocol that's provably secure against any eavesdropper, quantum or classical.</p>
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step5"> I can trace the line from decoherence to why NISQ algorithms stay shallow
     </label>
   </div>
 </div>

@@ -7,7 +7,7 @@
 
 <div class="pill" style="margin-bottom:14px;">MODULE 5 · ERROR CORRECTION &amp; NOISE</div>
 <h1 style="margin-bottom:6px;">The Bloch point doesn't just rotate — it shrinks.</h1>
-<p class="lede muted" style="font-size:1.05rem;">Every gate you've clicked so far kept the state vector's length pinned at 1. Real qubits leak information to their environment, and that shows up as the vector shrinking toward the center.</p>
+<p class="lede muted" style="font-size:1.05rem;">Every gate you've clicked so far kept the state vector's length pinned at 1. Real qubits leak information to their environment, and that shows up as the vector shrinking toward the center. Five steps, including what a shrunk point actually mathematically is.</p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -32,10 +32,29 @@
   </div>
 </div>
 
-<!-- ===================== STEP 2 — WATCH IT DECAY ===================== -->
+<!-- ===================== STEP 2 — WHAT A SHRUNK POINT ACTUALLY IS ===================== -->
 <div class="lesson-step" data-step="step2">
   <div class="lesson-step-head">
     <div class="lesson-step-num">2</div>
+    <h3>A point inside the sphere isn't a ket at all</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Worth pausing on something the Bloch sphere quietly assumed since Single Qubit: a valid ket <span class="mono">α|0⟩+β|1⟩</span> always has <span class="mono">|α|²+|β|²=1</span> — normalized states live exactly <em>on</em> the unit sphere's surface, never strictly inside it. So what is Step 3's shrinking point, once it's left the surface? It can't be a ket at all — kets don't have a "partially there" option. The honest answer needs a genuinely new mathematical object, the <strong>density matrix</strong> <span class="mono">ρ</span>, which represents not a single definite state but a <em>statistical mixture</em> of possible states, weighted by ordinary classical probabilities.</p>
+
+    <p class="muted">Concretely: if a qubit has some probability <span class="mono">p</span> of secretly being in state <span class="mono">|ψ⟩</span> and probability <span class="mono">1−p</span> of being in state <span class="mono">|φ⟩</span> — real classical ignorance about which pure state it's in, this time, unlike Lesson 0's insistence that superposition isn't secretly this — the density matrix is <span class="mono">ρ = p|ψ⟩⟨ψ| + (1−p)|φ⟩⟨φ|</span>, built from exactly the outer products Bra-Ket, Step 5 introduced. A fully decohered qubit (Bloch vector length 0) has density matrix <span class="mono">ρ = I/2 = 0.5|0⟩⟨0| + 0.5|1⟩⟨1|</span> — genuinely indistinguishable, by any measurement whatsoever, from an honest 50/50 classical coin.</p>
+
+    <div class="callout amber">Here's the subtle and important part: a coherent superposition like <span class="mono">|+⟩</span> also measures 50/50 in the Z basis, but its density matrix has nonzero <em>off-diagonal</em> entries (called <strong>coherences</strong>) that a classical 50/50 mixture's density matrix lacks entirely — those off-diagonal terms are exactly what encode the phase information from Single Qubit, Step 4. Decoherence, precisely stated in this language, is the process of those off-diagonal coherence terms decaying to zero over time — a quantum superposition mathematically turning into a classical-looking statistical mixture, which is exactly why the Bloch vector shrinks toward the center instead of just rotating.</div>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step2"> I can explain why a shrunk point needs ρ, not a ket
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — WATCH IT DECAY ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
     <h3>Dial in T2 and watch the vector spiral in</h3>
   </div>
   <div class="lesson-step-body">
@@ -56,36 +75,36 @@
     </div>
 
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step2"> I watched the vector shrink toward the center
+      <input type="checkbox" data-step-check="step3"> I watched the vector shrink toward the center
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 3 — BONUS ===================== -->
-<div class="lesson-step" data-step="step3">
+<!-- ===================== STEP 4 — BONUS ===================== -->
+<div class="lesson-step" data-step="step4">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">3</div>
+    <div class="lesson-step-num">4</div>
     <h3>Bonus: this is Physical Qubit's demo, named</h3>
   </div>
   <div class="lesson-step-body">
     <p class="muted">The temperature/decoherence demo in <a href="{{ url_for('physical_qubit') }}">Physical Qubit</a> was already showing you this exact shrinking effect — colder dilution-fridge temperatures push T1 and T2 longer, which is the entire reason those fridges exist. Now you have the vocabulary for what "worse at higher temperature" was actually doing to the sphere.</p>
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step3"> Temperature ↔ T1/T2 ↔ Bloch vector length, connected
+      <input type="checkbox" data-step-check="step4"> Temperature ↔ T1/T2 ↔ Bloch vector length, connected
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 4 — T1 AND T2 IN PRACTICE ===================== -->
-<div class="lesson-step" data-step="step4">
+<!-- ===================== STEP 5 — T1 AND T2 IN PRACTICE ===================== -->
+<div class="lesson-step" data-step="step5">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">4</div>
+    <div class="lesson-step-num">5</div>
     <h3>Real numbers, and why T2 can't beat T1</h3>
   </div>
   <div class="lesson-step-body">
     <p class="muted">Current leading superconducting qubits typically report T1 in the range of tens to a few hundred microseconds, with T2 usually somewhat shorter — the same real-hardware numbers Reality Check pulls from published specs. There's a strict mathematical relationship, not just an empirical pattern: <span class="mono">T2 ≤ 2·T1</span>, always. Losing amplitude information (T1, energy relaxation) necessarily scrambles phase information too, so phase can never survive strictly longer than twice the energy-relaxation time allows.</p>
     <p class="muted">That inequality is why serious qubit engineering reports both numbers, never just one — a long T1 with a much shorter T2 (common when dephasing noise dominates over energy loss) still limits how long a superposition survives, even though the qubit "should" theoretically live longer by its T1 alone.</p>
     <label class="mark-done-check" style="margin-top:16px;">
-      <input type="checkbox" data-step-check="step4"> T2 ≤ 2·T1, always — not a coincidence, a consequence
+      <input type="checkbox" data-step-check="step5"> T2 ≤ 2·T1, always — not a coincidence, a consequence
     </label>
   </div>
 </div>

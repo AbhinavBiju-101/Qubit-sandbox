@@ -7,7 +7,7 @@
 
 <div class="pill amber" style="margin-bottom:14px;">MODULE 4 · WHERE QUANTUM COMES FROM</div>
 <h1 style="margin-bottom:6px;">Confine a wave, and only certain shapes fit.</h1>
-<p class="lede muted" style="font-size:1.05rem;">Trap a particle between two walls and its wavefunction has to be zero at both ends — like a guitar string. Only a discrete ladder of wavelengths, and therefore energies, satisfies that.</p>
+<p class="lede muted" style="font-size:1.05rem;">Trap a particle between two walls and its wavefunction has to be zero at both ends — like a guitar string. Only a discrete ladder of wavelengths, and therefore energies, satisfies that. Five steps, including the full derivation and a genuine surprise at n=1.</p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -24,7 +24,7 @@
   </div>
   <div class="lesson-step-body">
     <p class="muted">Confine a particle to a box of width <span class="mono">L</span> with infinitely hard walls, and its wavefunction must vanish at both walls — exactly the same constraint as a guitar string pinned at both ends. Only whole numbers of half-wavelengths fit: <span class="mono">λₙ = 2L/n</span> for <span class="mono">n = 1, 2, 3, …</span>.</p>
-    <p class="muted">Through <span class="mono">λ = h/p</span> and <span class="mono">E = p²/2m</span>, that quantized wavelength ladder becomes a quantized <em>energy</em> ladder: <span class="mono">Eₙ = n²h² / (8mL²)</span>. This is the simplest possible model that produces discrete energy levels from first principles — no hypothesis needed, just "the wave has to fit."</p>
+    <p class="muted">Through <span class="mono">λ = h/p</span> and <span class="mono">E = p²/2m</span>, that quantized wavelength ladder becomes a quantized <em>energy</em> ladder: <span class="mono">Eₙ = n²h² / (8mL²)</span>. This is the simplest possible model that produces discrete energy levels from first principles — no hypothesis needed, just "the wave has to fit." Step 2 derives that formula in full.</p>
     <div class="callout blue">Notice the shape of the formula: energy climbs as n², and as 1/L². Shrink the box and the levels spread apart fast — which is exactly why quantized energy is obvious for an electron confined to an atom, and utterly unmeasurable for a marble confined to a room.</div>
     <label class="mark-done-check" style="margin-top:16px;">
       <input type="checkbox" data-step-check="step1"> Wavefunction pinned at both walls → discrete energies
@@ -32,10 +32,37 @@
   </div>
 </div>
 
-<!-- ===================== STEP 2 — WAVEFUNCTIONS ===================== -->
+<!-- ===================== STEP 2 — THE DERIVATION AND ZERO-POINT ENERGY ===================== -->
 <div class="lesson-step" data-step="step2">
   <div class="lesson-step-head">
     <div class="lesson-step-num">2</div>
+    <h3>Deriving Eₙ, and the surprise at n=1</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Two formulas from de Broglie, chained together: the fitting condition <span class="mono">λₙ = 2L/n</span>, and momentum from wavelength, <span class="mono">p = h/λ</span>. Substitute one into the other:</p>
+
+    <div class="panel" style="margin-top:12px; text-align:center;">
+      <div class="mono" style="font-size:0.95rem;">p<sub>n</sub> = h/λ<sub>n</sub> = h / (2L/n) = nh/(2L)</div>
+    </div>
+
+    <p class="muted" style="margin-top:14px;">Then kinetic energy, <span class="mono">E = p²/(2m)</span>:</p>
+
+    <div class="panel" style="margin-top:12px; text-align:center;">
+      <div class="mono" style="font-size:0.95rem;">E<sub>n</sub> = (nh/2L)² / (2m) = n²h² / (8mL²)</div>
+    </div>
+
+    <p class="muted" style="margin-top:14px;">Exactly Step 1's formula — nothing was asserted, only chained. Now notice what it says at the lowest possible level, <span class="mono">n=1</span>: <span class="mono">E₁ = h²/(8mL²)</span>, a number that's small but never zero. A classical particle "trapped and at rest" would have exactly zero energy — sitting perfectly still. Quantum mechanically, that option simply isn't on the ladder; <span class="mono">n=0</span> would mean <span class="mono">λ=∞</span>, a wave with no wiggles at all, which can't satisfy "zero at both walls" unless it's zero everywhere, which isn't a physical state. This unavoidable minimum, called <strong>zero-point energy</strong>, isn't a quirk of this one model — it's a direct consequence of the same uncertainty relation from Commutation Relations: confining a particle's position pins down <span class="mono">Δx</span>, and the uncertainty bound forces <span class="mono">Δp</span> (and therefore kinetic energy) to be strictly positive. A particle that's genuinely confined can never be genuinely at rest.</p>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step2"> I chained p=h/λ into E=p²/2m and see why E₁ can't be zero
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — WAVEFUNCTIONS ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
     <h3>Watch the standing waves and their energies</h3>
   </div>
   <div class="lesson-step-body">
@@ -58,19 +85,19 @@
     </div>
 
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step2"> I stepped through n=1..4 and watched the energy jump
+      <input type="checkbox" data-step-check="step3"> I stepped through n=1..4 and watched the energy jump
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 3 — BONUS: DEGENERACY ===================== -->
-<div class="lesson-step" data-step="step3">
+<!-- ===================== STEP 4 — BONUS: DEGENERACY ===================== -->
+<div class="lesson-step" data-step="step4">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">3</div>
+    <div class="lesson-step-num">4</div>
     <h3>Bonus: degeneracy in a 2D box</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">Add a second dimension and the energy becomes <span class="mono">E(nₓ,n_y) ∝ nₓ² + n_y²</span>. Different quantum numbers can now land on the exact same energy — that's called <strong>degeneracy</strong>, and it's not a coincidence when the box is square.</p>
+    <p class="muted">Add a second dimension and the energy becomes <span class="mono">E(nₓ,n_y) ∝ nₓ² + n_y²</span>. Different quantum numbers can now land on the exact same energy — that's called <strong>degeneracy</strong>, and it's not a coincidence when the box is square. This is the same word, and the same idea, as Eigenvalues and Eigenvectors, Step 5's identity matrix: one number (here, one energy) shared by more than one distinct state.</p>
     <div class="grid-3" style="margin-top:12px;">
       <div class="stat"><span class="num">(1,2) &amp; (2,1)</span><span class="label">both give nₓ²+n_y² = 5</span></div>
       <div class="stat"><span class="num">(1,4) &amp; (4,1) &amp; (2, √14)†</span><span class="label">not all match — degeneracy depends on the exact numbers</span></div>
@@ -79,22 +106,22 @@
     <p class="muted" style="font-size:0.85rem; margin-top:8px;">† only whole-number pairs count — that entry is there to show not every level has a partner, not every n has a degenerate twin.</p>
 
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step3"> I see why a square box's levels can share an energy
+      <input type="checkbox" data-step-check="step4"> I see why a square box's levels can share an energy
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 4 — NOT JUST A TOY PROBLEM ===================== -->
-<div class="lesson-step" data-step="step4">
+<!-- ===================== STEP 5 — NOT JUST A TOY PROBLEM ===================== -->
+<div class="lesson-step" data-step="step5">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">4</div>
+    <div class="lesson-step-num">5</div>
     <h3>Real systems this model actually predicts</h3>
   </div>
   <div class="lesson-step-body">
     <p class="muted"><strong>Quantum dots</strong> — nanometer-scale semiconductor crystals — confine electrons closely enough that this exact model, box width and all, predicts their optical properties: shrink the dot and <span class="mono">Eₙ ∝ 1/L²</span> pushes the energy levels apart, which shifts the color of light the dot absorbs and emits. That's not a loose analogy; quantum-dot displays and biological imaging tags are engineered by tuning dot size using essentially this formula.</p>
     <p class="muted">Chemists use the same model for <strong>conjugated molecules</strong> — long chains of alternating single/double bonds — treating the delocalized electrons as roughly free to move along the chain's length, confined at the ends. It's a simplification (a real molecule isn't a perfectly flat-bottomed box), but it gets the right qualitative answer: longer conjugated chains have more closely-spaced energy levels and absorb longer-wavelength light, exactly as <span class="mono">1/L²</span> predicts.</p>
     <label class="mark-done-check" style="margin-top:16px;">
-      <input type="checkbox" data-step-check="step4"> Quantum dots and conjugated molecules — the same formula, real chemistry
+      <input type="checkbox" data-step-check="step5"> Quantum dots and conjugated molecules — the same formula, real chemistry
     </label>
   </div>
 </div>

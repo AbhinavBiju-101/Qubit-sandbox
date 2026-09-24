@@ -7,7 +7,7 @@
 
 <div class="pill" style="margin-bottom:14px;">MODULE 3 · THE MATH UNDERNEATH</div>
 <h1 style="margin-bottom:6px;">Three properties, three completely different jobs.</h1>
-<p class="lede muted" style="font-size:1.05rem;">Every matrix this app has used is one of exactly three types — and which type it is determines whether it's a gate, an observable, or a measurement.</p>
+<p class="lede muted" style="font-size:1.05rem;">Every matrix this app has used is one of exactly three types — and which type it is determines whether it's a gate, an observable, or a measurement. Five steps, including one worked by hand with real i's in it.</p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -39,10 +39,37 @@
   </div>
 </div>
 
-<!-- ===================== STEP 2 — CLASSIFY ===================== -->
+<!-- ===================== STEP 2 — CHECK Y BY HAND ===================== -->
 <div class="lesson-step" data-step="step2">
   <div class="lesson-step-head">
     <div class="lesson-step-num">2</div>
+    <h3>Check Y by hand — the one with real i's in it</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Step 3's sandbox buttons are all real matrices, so conjugating them is a no-op and doesn't really test the "conjugate" part of conjugate-transpose. Worth doing one by hand where it actually matters: <span class="mono">Y = [[0,−i],[i,0]]</span>. Transpose first (swap the off-diagonal entries): <span class="mono">[[0,i],[−i,0]]</span>. Now conjugate every entry (flip the sign of each imaginary part): <span class="mono">i → −i</span> and <span class="mono">−i → i</span>, giving <span class="mono">[[0,−i],[i,0]]</span> — exactly Y again. So <span class="mono">Y† = Y</span>: Y is Hermitian, confirmed by hand.</p>
+
+    <p class="muted">Now check unitarity. Since <span class="mono">Y† = Y</span>, checking <span class="mono">Y†Y = I</span> is the same as checking <span class="mono">Y² = I</span>. Multiply it out, remembering <span class="mono">i × i = −1</span>:</p>
+
+    <div class="panel" style="margin-top:12px;">
+      <div class="mono" style="font-size:0.85rem; text-align:center;">
+        top-left: (0)(0) + (−i)(i) = −i² = −(−1) = 1<br>
+        top-right: (0)(−i) + (−i)(0) = 0<br>
+        bottom-left: (i)(0) + (0)(i) = 0<br>
+        bottom-right: (i)(−i) + (0)(0) = −i² = 1
+      </div>
+      <p class="muted" style="font-size:0.86rem; text-align:center; margin-top:10px; margin-bottom:0;">= [[1,0],[0,1]] = I. Y is both Hermitian and unitary, verified with actual complex arithmetic — not just read off a sandbox log.</p>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step2"> I multiplied out Y² by hand and got exactly I
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — CLASSIFY ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
     <h3>Classify every matrix you've been using</h3>
   </div>
   <div class="lesson-step-body">
@@ -62,36 +89,36 @@
     </div>
 
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step2"> I classified at least 4 matrices by computed property
+      <input type="checkbox" data-step-check="step3"> I classified at least 4 matrices by computed property
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 3 — BONUS ===================== -->
-<div class="lesson-step" data-step="step3">
+<!-- ===================== STEP 4 — BONUS ===================== -->
+<div class="lesson-step" data-step="step4">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">3</div>
+    <div class="lesson-step-num">4</div>
     <h3>Bonus: the odd one out</h3>
   </div>
   <div class="lesson-step-body">
     <p class="muted"><span class="mono">[[1,1],[0,1]]</span> is neither Hermitian, unitary, nor a projection — which is exactly why it never shows up as a gate or an observable anywhere in this app. Every legitimate quantum gate has to be unitary; a matrix that isn't simply doesn't correspond to any physically realizable operation on a qubit.</p>
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step3"> Not every matrix is a valid gate or observable
+      <input type="checkbox" data-step-check="step4"> Not every matrix is a valid gate or observable
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 4 — THE UMBRELLA CATEGORY ===================== -->
-<div class="lesson-step" data-step="step4">
+<!-- ===================== STEP 5 — THE UMBRELLA CATEGORY ===================== -->
+<div class="lesson-step" data-step="step5">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">4</div>
+    <div class="lesson-step-num">5</div>
     <h3>Hermitian and unitary are both special cases of one bigger idea</h3>
   </div>
   <div class="lesson-step-body">
     <p class="muted">Both Hermitian and unitary matrices share one deeper property: they <strong>commute with their own conjugate-transpose</strong> — <span class="mono">MM† = M†M</span>. Any matrix with that property is called <strong>normal</strong>, and it's the actual condition a theorem (the spectral theorem) needs to guarantee a clean set of orthonormal eigenvectors, the kind Eigenvalues and Eigenvectors relies on. Hermitian and unitary matrices are simply the two normal-matrix families that show up constantly in quantum mechanics — not a coincidence that both happen to diagonalize nicely, but a shared reason underneath.</p>
-    <p class="muted">The non-Hermitian example from Step 2, <span class="mono">[[1,1],[0,1]]</span>, fails to be normal too — which is the deeper reason it couldn't be classified as anything useful: without normality, there's no guarantee of finding orthonormal eigenvectors for it at all.</p>
+    <p class="muted">The non-Hermitian example from Step 3, <span class="mono">[[1,1],[0,1]]</span>, fails to be normal too — which is the deeper reason it couldn't be classified as anything useful: without normality, there's no guarantee of finding orthonormal eigenvectors for it at all. Y, from Step 2, is normal twice over — being both Hermitian and unitary simultaneously — which is exactly why it can serve double duty in this app's own vocabulary: an observable when you measure along the Y axis, a gate when you apply it to rotate a state.</p>
     <label class="mark-done-check" style="margin-top:16px;">
-      <input type="checkbox" data-step-check="step4"> Hermitian and unitary are both "normal" — that's what guarantees clean eigenvectors
+      <input type="checkbox" data-step-check="step5"> Hermitian and unitary are both "normal" — that's what guarantees clean eigenvectors
     </label>
   </div>
 </div>

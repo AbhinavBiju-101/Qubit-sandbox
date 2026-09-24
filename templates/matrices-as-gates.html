@@ -7,7 +7,7 @@
 
 <div class="pill" style="margin-bottom:14px;">MODULE 3 · THE MATH UNDERNEATH</div>
 <h1 style="margin-bottom:6px;">Every gate click has been this multiplication.</h1>
-<p class="lede muted" style="font-size:1.05rem;">Three steps: see the rule, do it by hand once with real numbers, then watch two gates disagree about order — the thing "operators don't commute" actually means.</p>
+<p class="lede muted" style="font-size:1.05rem;">Five steps: see the rule, prove that gates must be unitary instead of just calling them rotations, do a multiplication by hand with real numbers, watch two gates disagree about order, and see the same rule scale to 4×4.</p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -37,10 +37,38 @@
   </div>
 </div>
 
-<!-- ===================== STEP 2 — BY HAND ===================== -->
+<!-- ===================== STEP 2 — WHY UNITARY ===================== -->
 <div class="lesson-step" data-step="step2">
   <div class="lesson-step-head">
     <div class="lesson-step-num">2</div>
+    <h3>"Every gate is a rotation" — proven, not just described</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Single Qubit's Step 2 argued informally that every gate has to preserve normalization, so every gate is "a rotation." Bra-Ket's Step 1 now gives that a precise, checkable form: a matrix U is a legal gate exactly when <span class="mono">U†U = I</span> (the identity matrix), where <span class="mono">U†</span> — read "U dagger" — is U's <strong>conjugate transpose</strong>: flip rows and columns, then conjugate every entry, the exact same conjugate that turned a ket into a bra. A matrix satisfying this condition is called <strong>unitary</strong>. It's precisely the matrix-language way of saying "preserves every state's inner product with itself" — the general version of the normalization check from Bra-Ket, Step 1, applied to every input state at once rather than just one.</p>
+
+    <p class="muted">Check it for H, by hand, instead of taking it on faith. H is real, and it's symmetric (flipping rows and columns does nothing), so <span class="mono">H† = H</span> here — conjugating does nothing to real numbers, and transposing does nothing to a symmetric matrix. So the whole check collapses to verifying <span class="mono">H · H = I</span>:</p>
+
+    <div class="panel" style="margin-top:12px;">
+      <div class="mono" style="font-size:0.88rem; text-align:center;">
+        H·H = (1/√2)[[1,1],[1,−1]] · (1/√2)[[1,1],[1,−1]]<br><br>
+        top-left: (1/√2)(1/√2) + (1/√2)(1/√2) = 1/2 + 1/2 = 1<br>
+        top-right: (1/√2)(1/√2) + (1/√2)(−1/√2) = 1/2 − 1/2 = 0<br>
+        bottom-left: (1/√2)(1/√2) + (−1/√2)(1/√2) = 1/2 − 1/2 = 0<br>
+        bottom-right: (1/√2)(1/√2) + (−1/√2)(−1/√2) = 1/2 + 1/2 = 1
+      </div>
+      <p class="muted" style="font-size:0.86rem; text-align:center; margin-top:10px; margin-bottom:0;">= [[1,0],[0,1]] = I. Confirmed unitary — and this is the actual proof behind Single Qubit, Step 3's "click H twice, land back on |0⟩" experiment, not just an observation about one run.</p>
+    </div>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step2"> I verified H·H = I by hand
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — BY HAND ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
     <h3>Multiply one by hand</h3>
   </div>
   <div class="lesson-step-body">
@@ -60,15 +88,15 @@
     </div>
 
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step2"> I matched the arithmetic to the Bloch rotation
+      <input type="checkbox" data-step-check="step3"> I matched the arithmetic to the Bloch rotation
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 3 — COMMUTATION ===================== -->
-<div class="lesson-step" data-step="step3">
+<!-- ===================== STEP 4 — COMMUTATION ===================== -->
+<div class="lesson-step" data-step="step4">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">3</div>
+    <div class="lesson-step-num">4</div>
     <h3>Order matters: H then Z vs. Z then H</h3>
   </div>
   <div class="lesson-step-body">
@@ -89,23 +117,23 @@
     <div class="callout" style="margin-top:16px;" id="commute-callout">Run both orders to compare where they land.</div>
 
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step3"> I ran both orders and saw them disagree
+      <input type="checkbox" data-step-check="step4"> I ran both orders and saw them disagree
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 4 — BIGGER MATRICES FOR MORE QUBITS ===================== -->
-<div class="lesson-step" data-step="step4">
+<!-- ===================== STEP 5 — BIGGER MATRICES FOR MORE QUBITS ===================== -->
+<div class="lesson-step" data-step="step5">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">4</div>
+    <div class="lesson-step-num">5</div>
     <h3>CNOT is the same idea, just a 4×4 matrix</h3>
   </div>
   <div class="lesson-step-body">
     <p class="muted">Everything above used 2×2 matrices because one qubit lives in a 2-dimensional space. Two Qubits' CNOT gate acts on a 4-dimensional joint state (Tensor Products covers exactly why), so it has to be a 4×4 matrix instead — but it's the identical row-times-column rule, just with twice as many rows and columns:</p>
     <div class="callout blue mono" style="font-size:0.85rem;">CNOT = [[1,0,0,0], [0,1,0,0], [0,0,0,1], [0,0,1,0]]</div>
-    <p class="muted">Read it the same way as any gate here: multiply this matrix against the 4-number joint state vector (in the |00⟩,|01⟩,|10⟩,|11⟩ order), and out comes the new joint state. The only thing that changed going from 1 qubit to 2 is the matrix's size — <span class="mono">2ⁿ × 2ⁿ</span> for n qubits — which is exactly why classically simulating more than a few dozen qubits this way becomes impossible.</p>
+    <p class="muted">Read it the same way as any gate here: multiply this matrix against the 4-number joint state vector (in the |00⟩,|01⟩,|10⟩,|11⟩ order), and out comes the new joint state. The only thing that changed going from 1 qubit to 2 is the matrix's size — <span class="mono">2ⁿ × 2ⁿ</span> for n qubits — which is exactly why classically simulating more than a few dozen qubits this way becomes impossible. CNOT is unitary too, by the same Step 2 check, just with 16 entries to verify instead of 4 — the definition doesn't care how big the matrix gets.</p>
     <label class="mark-done-check" style="margin-top:16px;">
-      <input type="checkbox" data-step-check="step4"> Multi-qubit gates are bigger matrices, same rule
+      <input type="checkbox" data-step-check="step5"> Multi-qubit gates are bigger matrices, same rule
     </label>
   </div>
 </div>

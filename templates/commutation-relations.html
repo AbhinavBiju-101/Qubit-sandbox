@@ -7,7 +7,7 @@
 
 <div class="pill" style="margin-bottom:14px;">MODULE 3 · THE MATH UNDERNEATH</div>
 <h1 style="margin-bottom:6px;">Certain about one means uncertain about the other.</h1>
-<p class="lede muted" style="font-size:1.05rem;">Matrices as Gates showed H and Z landing in different places depending on order. This lesson turns that into the actual physical statement: some pairs of observables can never both be definite at once.</p>
+<p class="lede muted" style="font-size:1.05rem;">Matrices as Gates showed H and Z landing in different places depending on order. This lesson turns that into the actual physical statement: some pairs of observables can never both be definite at once. Five steps, ending with the whole module tied together.</p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -84,6 +84,23 @@
     <p class="muted">Plug in Z and X on the state Step 2 checked: <span class="mono">|0⟩</span> has zero spread in Z (100% certain) and maximum spread in X (50/50), which is exactly what "certain in one basis forces maximal uncertainty in a non-commuting one" looks like as actual numbers, not just a slogan.</p>
     <label class="mark-done-check" style="margin-top:16px;">
       <input type="checkbox" data-step-check="step4"> ΔA·ΔB ≥ |⟨[A,B]⟩|/2 — the qualitative rule, quantified
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 5 — WHERE MODULE 3 LEAVES YOU ===================== -->
+<div class="lesson-step" data-step="step5">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">5</div>
+    <h3>The whole formal toolkit, in one paragraph</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Worth pulling ten lessons into one line before moving on. States are kets, magnitude-squared inner products with themselves normalized to 1 (<a href="{{ url_for('complex_numbers') }}">Complex Numbers</a>, <a href="{{ url_for('bra_ket') }}">Bra-Ket</a>). Gates are unitary matrices, the exact condition that guarantees they preserve that normalization (<a href="{{ url_for('matrices_as_gates') }}">Matrices as Gates</a>). Measurement forces a collapse onto one of an observable's eigenvectors, returning its eigenvalue, and different observables can disagree about which basis is "definite" (<a href="{{ url_for('measurement_postulate') }}">Measurement</a>, <a href="{{ url_for('eigenvalues_eigenvectors') }}">Eigenvalues</a>). Time evolution between measurements is itself just another consequence of one equation, <span class="mono">iħ d|ψ⟩/dt = H|ψ⟩</span> (<a href="{{ url_for('schrodinger_equation') }}">Schrödinger Equation</a>). Any orthonormal set of vectors works as a coordinate system for the same physical state (<a href="{{ url_for('basis_vectors') }}">Basis Vectors</a>), combining systems multiplies dimensions rather than adding them (<a href="{{ url_for('tensor_products') }}">Tensor Products</a>), and every matrix in the whole toolkit falls into one of exactly three roles depending on one algebraic property (<a href="{{ url_for('operator_types') }}">Operator Types</a>). This lesson's non-commuting observables are the reason no basis is ever "the" right one to measure in — incompatibility, not mystery, is what's behind every "measuring X disturbed Z" result since Lesson 0.</p>
+
+    <p class="muted">None of this changes anything you already believed from Modules 1 and 2 — it's the same physics, the same interference, the same entanglement, now with notation precise enough to prove things instead of just demonstrate them. From here, Module 4 asks where all of this actually came from historically, Module 5 covers what happens when the idealized math meets real, noisy hardware, and Module 6 puts the whole toolkit to work in cryptography.</p>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step5"> I can name the ten lessons in one breath and see how they connect
     </label>
   </div>
 </div>

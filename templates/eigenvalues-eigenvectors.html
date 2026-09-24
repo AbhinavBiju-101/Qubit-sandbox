@@ -7,7 +7,7 @@
 
 <div class="pill" style="margin-bottom:14px;">MODULE 3 · THE MATH UNDERNEATH</div>
 <h1 style="margin-bottom:6px;">Measurement never returns anything but an eigenvalue.</h1>
-<p class="lede muted" style="font-size:1.05rem;">Every Stern-Gerlach "up" or "down," every single-qubit measurement in this app, has secretly been reporting one specific number: an eigenvalue of whatever you measured.</p>
+<p class="lede muted" style="font-size:1.05rem;">Every Stern-Gerlach "up" or "down," every single-qubit measurement in this app, has secretly been reporting one specific number: an eigenvalue of whatever you measured. Five steps, including how to actually find eigenvalues from scratch instead of just checking guesses.</p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -32,10 +32,37 @@
   </div>
 </div>
 
-<!-- ===================== STEP 2 — VERIFY ===================== -->
+<!-- ===================== STEP 2 — FINDING THEM FROM SCRATCH ===================== -->
 <div class="lesson-step" data-step="step2">
   <div class="lesson-step-head">
     <div class="lesson-step-num">2</div>
+    <h3>Where +1 and −1 for X actually come from</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Step 1 handed you X's eigenvalues and eigenvectors ready-made. Worth deriving them once instead of just trusting the claim — the general method is called the <strong>characteristic equation</strong>, and it works for any matrix, not just the ones this app happens to use. Rearrange <span class="mono">M|v⟩ = λ|v⟩</span> as <span class="mono">(M − λI)|v⟩ = 0</span>. A nonzero vector can only solve this if <span class="mono">M − λI</span> has no inverse, which happens exactly when its <strong>determinant</strong> is zero: <span class="mono">det(M − λI) = 0</span>.</p>
+
+    <p class="muted">Apply this to <span class="mono">X = [[0,1],[1,0]]</span>:</p>
+
+    <div class="panel" style="margin-top:12px;">
+      <div class="mono" style="font-size:0.9rem; text-align:center;">
+        X − λI = [[−λ, 1], [1, −λ]]<br><br>
+        det(X − λI) = (−λ)(−λ) − (1)(1) = λ² − 1 = 0<br><br>
+        λ² = 1 &nbsp;&nbsp;→&nbsp;&nbsp; λ = +1 or λ = −1
+      </div>
+    </div>
+
+    <p class="muted" style="margin-top:14px;">That confirms the eigenvalues without ever guessing a vector. Now find the actual eigenvector for <span class="mono">λ=1</span> by plugging back into <span class="mono">(X−I)|v⟩=0</span>: <span class="mono">[[−1,1],[1,−1]]</span> times <span class="mono">(v₀,v₁)</span> equals zero means <span class="mono">−v₀+v₁=0</span>, i.e. <span class="mono">v₀=v₁</span> — any vector with equal entries works, and normalizing gives exactly <span class="mono">(1/√2, 1/√2) = |+⟩</span>. The same process with <span class="mono">λ=−1</span> forces <span class="mono">v₀=−v₁</span>, giving <span class="mono">|−⟩</span>. Nothing in Step 1 was asserted without a reason — this is where both numbers, and both vectors, actually come from.</p>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step2"> I derived λ=±1 from det(X−λI)=0, not just verified a guess
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — VERIFY ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
     <h3>Check whether a vector is really an eigenvector</h3>
   </div>
   <div class="lesson-step-body">
@@ -65,36 +92,36 @@
     </div>
 
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step2"> I found a matching pair and a mismatched one
+      <input type="checkbox" data-step-check="step3"> I found a matching pair and a mismatched one
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 3 — BONUS ===================== -->
-<div class="lesson-step" data-step="step3">
+<!-- ===================== STEP 4 — BONUS ===================== -->
+<div class="lesson-step" data-step="step4">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">3</div>
+    <div class="lesson-step-num">4</div>
     <h3>Bonus: the sequential Stern-Gerlach experiment, in this language</h3>
   </div>
   <div class="lesson-step-body">
     <p class="muted">Measurement & Stern-Gerlach's Z→X→Z cascade makes perfect sense now: the atom starts as an eigenvector of Z. Measuring X forces a collapse onto an eigenvector of X instead — which is <em>not</em> an eigenvector of Z. So the following Z-measurement is back to a genuine 50/50, because the state has left Z's eigenbasis entirely.</p>
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step3"> An X-eigenvector is never a Z-eigenvector — that's the whole cascade
+      <input type="checkbox" data-step-check="step4"> An X-eigenvector is never a Z-eigenvector — that's the whole cascade
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 4 — WHEN EVERY VECTOR IS AN EIGENVECTOR ===================== -->
-<div class="lesson-step" data-step="step4">
+<!-- ===================== STEP 5 — WHEN EVERY VECTOR IS AN EIGENVECTOR ===================== -->
+<div class="lesson-step" data-step="step5">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">4</div>
+    <div class="lesson-step-num">5</div>
     <h3>Degenerate eigenvalues: more than one eigenvector, same number</h3>
   </div>
   <div class="lesson-step-body">
     <p class="muted">Z and X each have two <em>different</em> eigenvalues (+1 and −1), each with exactly one eigenvector (up to a phase). Some operators aren't so clean: the identity matrix <span class="mono">I</span> sends <em>every</em> vector to itself unchanged — <span class="mono">I|v⟩ = 1·|v⟩</span> for literally any <span class="mono">|v⟩</span>. Every vector in the whole space is an eigenvector of I, all sharing the single eigenvalue 1. That's called a <strong>degenerate</strong> eigenvalue — the same word Particle in a Box and The 3D Box used for energy levels shared by multiple distinct states, because it's the identical idea: one number, more than one eigenvector behind it.</p>
     <p class="muted">Degeneracy matters practically because a measurement that returns a degenerate eigenvalue tells you less than a non-degenerate one — you learn <em>which number</em> you got, but not which of the several eigenvectors sharing it the state collapsed to.</p>
     <label class="mark-done-check" style="margin-top:16px;">
-      <input type="checkbox" data-step-check="step4"> Degenerate eigenvalue = one number, more than one eigenvector
+      <input type="checkbox" data-step-check="step5"> Degenerate eigenvalue = one number, more than one eigenvector
     </label>
   </div>
 </div>

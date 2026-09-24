@@ -7,7 +7,7 @@
 
 <div class="pill blue" style="margin-bottom:14px;">MODULE 6 · QUANTUM CRYPTOGRAPHY</div>
 <h1 style="margin-bottom:6px;">Finding a hidden period is the whole trick.</h1>
-<p class="lede muted" style="font-size:1.05rem;">RSA encryption's security rests on factoring large numbers being classically hard. Shor's algorithm doesn't factor directly — it finds a repeating period exponentially faster, and period-finding turns out to be all factoring needs.</p>
+<p class="lede muted" style="font-size:1.05rem;">RSA encryption's security rests on factoring large numbers being classically hard. Shor's algorithm doesn't factor directly — it finds a repeating period exponentially faster, and period-finding turns out to be all factoring needs. Six steps, including the number theory behind the trick, and a look back at everything this app has built up to here.</p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -23,7 +23,7 @@
     <h3>From "find the period" to "here are the factors"</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">Pick a number <span class="mono">a</span> smaller than <span class="mono">N</span> (the number you want to factor) with no common factors. The sequence <span class="mono">a¹ mod N, a² mod N, a³ mod N, …</span> always repeats — call that repeat length its <strong>period</strong> <span class="mono">r</span>. Once you know <span class="mono">r</span>, a little classical algebra (<span class="mono">gcd(a^(r/2) − 1, N)</span> and <span class="mono">gcd(a^(r/2) + 1, N)</span>) hands you N's factors directly, most of the time.</p>
+    <p class="muted">Pick a number <span class="mono">a</span> smaller than <span class="mono">N</span> (the number you want to factor) with no common factors. The sequence <span class="mono">a¹ mod N, a² mod N, a³ mod N, …</span> always repeats — call that repeat length its <strong>period</strong> <span class="mono">r</span>. Once you know <span class="mono">r</span>, a little classical algebra (<span class="mono">gcd(a^(r/2) − 1, N)</span> and <span class="mono">gcd(a^(r/2) + 1, N)</span>) hands you N's factors directly, most of the time. Step 2 derives why that specific formula works.</p>
     <p class="muted">Finding <span class="mono">r</span> classically means checking values one by one — for an N with hundreds of digits (real RSA key sizes), that's longer than the age of the universe. Shor's quantum algorithm finds <span class="mono">r</span> using a quantum Fourier transform in roughly polynomial time instead — the exponential-vs-polynomial gap is the entire reason a large enough quantum computer would break RSA.</p>
     <div class="callout blue">Everything below this box is the easy, classical half of Shor's algorithm — the part any computer can do once <span class="mono">r</span> is known. The genuinely quantum half, finding <span class="mono">r</span> fast, needs more qubits and more error correction than exists today (see NISQ) to run on numbers anywhere near RSA scale.</div>
     <label class="mark-done-check" style="margin-top:16px;">
@@ -32,10 +32,33 @@
   </div>
 </div>
 
-<!-- ===================== STEP 2 — FIND THE PERIOD ===================== -->
+<!-- ===================== STEP 2 — WHY THE gcd FORMULA WORKS ===================== -->
 <div class="lesson-step" data-step="step2">
   <div class="lesson-step-head">
     <div class="lesson-step-num">2</div>
+    <h3>Why gcd(a^(r/2) ± 1, N) actually finds factors</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Worth deriving instead of taking on faith — it's ordinary algebra, not anything quantum. Let <span class="mono">x = a^(r/2) mod N</span> (this needs r to be even, which is why Step 3's sandbox sometimes tells you to try another a). Since a's period is exactly r, <span class="mono">a^r ≡ 1 (mod N)</span> by definition — and <span class="mono">a^r = (a^(r/2))² = x²</span>, so <span class="mono">x² ≡ 1 (mod N)</span>.</p>
+
+    <p class="muted">Rearranged, <span class="mono">x² − 1 ≡ 0 (mod N)</span>, which factors as ordinary difference-of-squares: <span class="mono">(x−1)(x+1) ≡ 0 (mod N)</span>. That says N divides the product <span class="mono">(x−1)(x+1)</span> exactly. Now the interesting case: as long as <span class="mono">x</span> isn't just <span class="mono">±1 mod N</span> itself (the "this a didn't work" case the sandbox flags), N can't divide <span class="mono">(x−1)</span> alone, and it can't divide <span class="mono">(x+1)</span> alone either — yet it divides their product. The only way that's possible is if N's own prime factors are <em>split</em> between the two terms, some dividing <span class="mono">(x−1)</span>, the rest dividing <span class="mono">(x+1)</span>.</p>
+
+    <div class="panel" style="margin-top:12px; text-align:center;">
+      <div class="mono" style="font-size:0.92rem;">gcd(x−1, N) and gcd(x+1, N) each pull out exactly the share of N's factors hiding in that term</div>
+    </div>
+
+    <p class="muted" style="margin-top:14px;">That's the whole trick — the greatest common divisor is a fast, purely classical way (Euclid's algorithm, over 2,000 years old) to extract "which factors of N are shared with this other number," and the algebra above guarantees the two numbers being checked, <span class="mono">x−1</span> and <span class="mono">x+1</span>, between them carry every one of N's prime factors. Nothing about finding <span class="mono">r</span> is classical or easy — but once you have it, everything from here is 2,000-year-old arithmetic.</p>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step2"> I can derive x²≡1 (mod N) → factors split between x−1 and x+1
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — FIND THE PERIOD ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
     <h3>Factor 15, by finding a period</h3>
   </div>
   <div class="lesson-step-body">
@@ -57,36 +80,55 @@
     </div>
 
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step2"> I found the period and got 15 = 3 × 5
+      <input type="checkbox" data-step-check="step3"> I found the period and got 15 = 3 × 5
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 3 — BONUS ===================== -->
-<div class="lesson-step" data-step="step3">
+<!-- ===================== STEP 4 — BONUS ===================== -->
+<div class="lesson-step" data-step="step4">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">3</div>
+    <div class="lesson-step-num">4</div>
     <h3>Bonus: BB84 vs. Shor's — two different quantum threats</h3>
   </div>
   <div class="lesson-step-body">
     <p class="muted">Worth keeping straight: BB84 (previous lesson) is quantum mechanics <em>defending</em> a key exchange. Shor's algorithm is quantum computing <em>attacking</em> classical RSA/factoring-based cryptography. That's not a contradiction — they're solving different problems, which is exactly why "quantum-safe" cryptography research exists: replace factoring-based schemes with ones Shor's algorithm doesn't help against, while quantum key distribution like BB84 sidesteps the whole issue by not relying on factoring in the first place.</p>
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step3"> Shor's attacks factoring; BB84 doesn't depend on it
+      <input type="checkbox" data-step-check="step4"> Shor's attacks factoring; BB84 doesn't depend on it
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 4 — THE REAL-WORLD RESPONSE, ALREADY UNDERWAY ===================== -->
-<div class="lesson-step" data-step="step4">
+<!-- ===================== STEP 5 — THE REAL-WORLD RESPONSE, ALREADY UNDERWAY ===================== -->
+<div class="lesson-step" data-step="step5">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">4</div>
+    <div class="lesson-step-num">5</div>
     <h3>Post-quantum cryptography: replacing the vulnerable math now</h3>
   </div>
   <div class="lesson-step-body">
     <p class="muted">A large enough fault-tolerant quantum computer doesn't exist yet (NISQ, Module 5, covers exactly why that's still hard) — but data encrypted today can potentially be recorded now and decrypted later once one does, which makes this a present-tense engineering problem, not a distant hypothetical one. The field's response is <strong>post-quantum cryptography</strong>: classical encryption schemes built on math problems Shor's algorithm (and every other known quantum algorithm) provides no speedup against — mainly problems based on structured lattices, rather than factoring or the related discrete-logarithm problem BB84 and RSA both ultimately lean on in different ways.</p>
-    <p class="muted">This isn't speculative research anymore — NIST finalized its first standardized post-quantum algorithms (including CRYSTALS-Kyber for encryption and CRYSTALS-Dilithium for digital signatures) in 2024, and major browsers and cloud providers have already begun deploying them alongside classical algorithms. The gcd arithmetic you ran in Step 2 is a toy version of the exact threat driving that real migration.</p>
+    <p class="muted">This isn't speculative research anymore — NIST finalized its first standardized post-quantum algorithms (including CRYSTALS-Kyber for encryption and CRYSTALS-Dilithium for digital signatures) in 2024, and major browsers and cloud providers have already begun deploying them alongside classical algorithms. The gcd arithmetic you ran in Step 3 is a toy version of the exact threat driving that real migration.</p>
     <label class="mark-done-check" style="margin-top:16px;">
-      <input type="checkbox" data-step-check="step4"> Post-quantum crypto: already standardized, already being deployed
+      <input type="checkbox" data-step-check="step5"> Post-quantum crypto: already standardized, already being deployed
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 6 — THE WHOLE CURRICULUM, LOOKING BACK ===================== -->
+<div class="lesson-step" data-step="step6">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">6</div>
+    <h3>Where you started, and where that got you</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">This is the last step in the app, worth spending a moment on. Everything traces back to two numbers and one rule: a state is <span class="mono">α</span> and <span class="mono">β</span>, and probability is those numbers squared (<a href="{{ url_for('qm_basics') }}">QM Basics</a>). Those numbers can be negative — or, in full generality, complex — and that single fact lets possibilities cancel each other out in a way plain probability never can (<a href="{{ url_for('single_qubit') }}">Single Qubit</a>). Combine qubits and some joint states can't be pulled apart into separate descriptions at all (<a href="{{ url_for('two_qubit') }}">Two Qubits</a>). Every gate you clicked in Modules 1 and 2 was a length-preserving rotation of that structure, and every algorithm — Deutsch-Jozsa, Grover's, teleportation, superdense coding, and the period-finding you just ran the classical half of — was, underneath, the exact same interference trick from Lesson 0, Step 5, aimed at a real problem.</p>
+
+    <p class="muted">That structure runs on real superconducting circuits, fighting a real tension between being controllable and being isolated (Physical Qubit, Hardware Lab), bottlenecked today more by wiring and compounding error than by exotic physics (Reality Check). The formal math — bra-kets, unitary matrices, eigenvalues, tensor products — was never a separate subject from any of that; it was the precise vocabulary for describing what the sliders were already doing (Module 3). None of it was invented for qubits either — blackbody radiation, electron diffraction, a particle trapped in a box, and a wave tunneling through a wall forced this mathematics into existence decades before anyone built a quantum computer (Module 4). And the idealized version meets real noise the moment you try to build anything with it, which is the honest, unglamorous state of the field right now (Module 5) — a state good enough, already, to build a cryptographic key exchange nothing can eavesdrop on undetected, and to threaten the classical cryptography protecting most of today's internet traffic (this module).</p>
+
+    <div class="callout blue">If any of that paragraph felt unfamiliar rather than like a memory, that's a genuine, useful signal — not a failure. Every lesson in this app links back to the specific earlier step it builds on; following one of those links back is usually faster than pushing forward confused. There's no final exam here, only whether the next new idea you meet, inside this app or outside it, feels a little more like something you could derive yourself.</div>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step6"> I can trace a straight line from Lesson 0's two numbers to this lesson's gcd
     </label>
   </div>
 </div>

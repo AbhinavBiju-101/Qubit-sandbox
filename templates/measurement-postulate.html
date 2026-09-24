@@ -7,7 +7,7 @@
 
 <div class="pill" style="margin-bottom:14px;">MODULE 3 · THE MATH UNDERNEATH</div>
 <h1 style="margin-bottom:6px;">The postulate you've been using since Lesson 1.</h1>
-<p class="lede muted" style="font-size:1.05rem;">Stern-Gerlach is the original, physical version of "measure in the Z basis" — a real 1922 experiment, not a metaphor. Choosing the magnet's orientation is choosing your measurement basis.</p>
+<p class="lede muted" style="font-size:1.05rem;">Stern-Gerlach is the original, physical version of "measure in the Z basis" — a real 1922 experiment, not a metaphor. Choosing the magnet's orientation is choosing your measurement basis. Five steps, including why the reset in Step 3 happens at all.</p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -105,17 +105,34 @@
   </div>
 </div>
 
-<!-- ===================== STEP 4 — REAL DETECTORS AREN'T PERFECT ===================== -->
+<!-- ===================== STEP 4 — WHY THE RESET HAPPENS ===================== -->
 <div class="lesson-step" data-step="step4">
   <div class="lesson-step-head">
     <div class="lesson-step-num">4</div>
+    <h3>Why the X-magnet erases what the Z-magnet knew</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Step 3's result is genuinely strange the first time you see it — the atom really was "up" along Z, and yet after an X-measurement, its Z-value is a coin flip again. Worth pinning down exactly why. |0⟩ ("Z-up") is an <strong>eigenvector</strong> of Z — measuring Z on it gives a certain, unchanging answer. But |0⟩ is <em>not</em> an eigenvector of X: written in terms of X's own eigenvectors, <span class="mono">|0⟩ = (|+⟩ + |−⟩)/√2</span> — an exactly 50/50 superposition of "X-up" and "X-down." So the moment you measure X, the atom is forced to collapse onto one of X's eigenvectors — |+⟩ or |−⟩, whichever the measurement returned — and neither of <em>those</em> is an eigenvector of Z. The atom didn't "forget" its Z-value through some vague quantum fuzziness; it was moved to a genuinely different point on the Bloch sphere, one where Z no longer has a definite answer, by the act of forcing an answer out of X.</p>
+
+    <p class="muted">Z and X are called <strong>incompatible observables</strong> precisely because they don't share eigenvectors — there's no state that's simultaneously certain for both. This is the same underlying fact the Commutation Relations lesson makes fully precise with the formula <span class="mono">[X,Z] ≠ 0</span>, and the same fact Matrices as Gates, Step 4 demonstrated on the gate side (H and Z landing in different places depending on order). Measurement incompatibility and gate non-commutation are two faces of one coin: whenever two operators don't commute, there's no shared eigenbasis, and forcing a definite answer from one necessarily scrambles the other.</p>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step4"> I can explain the reset via eigenvectors, not just "quantum weirdness"
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 5 — REAL DETECTORS AREN'T PERFECT ===================== -->
+<div class="lesson-step" data-step="step5">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">5</div>
     <h3>Everything above assumed a perfect measurement</h3>
   </div>
   <div class="lesson-step-body">
     <p class="muted">The projective measurement you just simulated — clean collapse onto an exact eigenvector, with probabilities given exactly by <span class="mono">|⟨outcome|ψ⟩|²</span> — is the textbook ideal. Real hardware readout is noisier: a superconducting qubit's measurement might report "0" when the qubit was actually in |1⟩, typically a few percent of the time on current devices. That's called <strong>readout error</strong>, and it's a separate, additional problem on top of the gate errors NISQ (Module 5) covers.</p>
     <p class="muted">The general mathematical tool for describing imperfect, noisy, or partial measurements is called a <strong>POVM</strong> (positive operator-valued measure) — a generalization of the clean projectors from Operator Types that can describe "measure, but with some chance of getting it wrong" directly in the math. This app always simulates the ideal case; real device calibration reports (the kind Reality Check pulls numbers from) are where you'd see the actual readout-error rate for a given piece of hardware.</p>
     <label class="mark-done-check" style="margin-top:16px;">
-      <input type="checkbox" data-step-check="step4"> Real measurement has its own error rate, separate from gate errors
+      <input type="checkbox" data-step-check="step5"> Real measurement has its own error rate, separate from gate errors
     </label>
   </div>
 </div>

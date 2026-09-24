@@ -515,16 +515,16 @@ MODULE_2_LESSONS = [
 # the person already has instead of front-loading formalism. See
 # futureplans.md for the module-level rationale.
 MODULE_3_LESSONS = [
-    {"id": "complex-numbers", "title": "Complex Numbers", "href": "/complex-numbers", "steps": 4, "icon": "complex", "description": "Apply a real phase gate to a live qubit and watch probabilities hold still while the Bloch point spins."},
-    {"id": "bra-ket", "title": "Bra-Ket, Demystified", "href": "/bra-ket", "steps": 4, "icon": "braket", "description": "Translate a state you build into ket and bra notation with real numbers, then compute live inner products."},
-    {"id": "matrices-as-gates", "title": "Matrices as Gates", "href": "/matrices-as-gates", "steps": 4, "icon": "matrix", "description": "Expand a gate's matrix multiplication by hand, then watch two gates disagree about order on the Bloch sphere."},
-    {"id": "measurement-postulate", "title": "Measurement & Stern-Gerlach", "href": "/measurement-postulate", "steps": 4, "icon": "measure", "description": "Build a real Stern-Gerlach simulator, then run the sequential Z→X→Z cascade that resets a 'known' spin."},
-    {"id": "schrodinger-equation", "title": "The Schrödinger Equation", "href": "/schrodinger-equation", "steps": 4, "icon": "waveeq", "description": "Watch a Bloch vector precess under free evolution, then drive it with a real Rabi-flopping rotation."},
-    {"id": "basis-vectors", "title": "Basis Vectors & Hilbert Space", "href": "/basis-vectors", "steps": 4, "icon": "basis", "description": "Express one built state in two different orthonormal bases and verify orthonormality live."},
-    {"id": "tensor-products", "title": "Tensor Products", "href": "/tensor-products", "steps": 4, "icon": "tensor", "description": "Build the 4-dimensional joint state of two qubits, then try — and fail — to factor a Bell state back apart."},
-    {"id": "operator-types", "title": "Hermitian, Unitary & Projection Operators", "href": "/operator-types", "steps": 4, "icon": "operator", "description": "Classify six real matrices as Hermitian, Unitary, and/or Projection by computing the properties directly."},
-    {"id": "eigenvalues-eigenvectors", "title": "Eigenvalues and Eigenvectors", "href": "/eigenvalues-eigenvectors", "steps": 4, "icon": "eigen", "description": "Check whether a candidate vector is really an eigenvector of Z or X, and read off its eigenvalue."},
-    {"id": "commutation-relations", "title": "Commutation Relations", "href": "/commutation-relations", "steps": 4, "icon": "commute", "description": "Watch a state go from certain to 50/50 across a non-commuting measurement, then verify [X,Z] by hand."},
+    {"id": "complex-numbers", "title": "Complex Numbers", "href": "/complex-numbers", "steps": 5, "icon": "complex", "description": "Derive why multiplying by i always rotates 90°, then apply a real phase gate to a live qubit and watch probabilities hold still while the Bloch point spins."},
+    {"id": "bra-ket", "title": "Bra-Ket, Demystified", "href": "/bra-ket", "steps": 5, "icon": "braket", "description": "Derive why the bra needs a conjugate, translate a state you build into ket and bra notation, then compute live inner products."},
+    {"id": "matrices-as-gates", "title": "Matrices as Gates", "href": "/matrices-as-gates", "steps": 5, "icon": "matrix", "description": "Prove H is unitary by hand, expand a gate's matrix multiplication, then watch two gates disagree about order on the Bloch sphere."},
+    {"id": "measurement-postulate", "title": "Measurement & Stern-Gerlach", "href": "/measurement-postulate", "steps": 5, "icon": "measure", "description": "Build a real Stern-Gerlach simulator, run the sequential Z→X→Z cascade that resets a 'known' spin, and see why via incompatible eigenvectors."},
+    {"id": "schrodinger-equation", "title": "The Schrödinger Equation", "href": "/schrodinger-equation", "steps": 5, "icon": "waveeq", "description": "Derive e^{-iEt/ħ} from iħ d|ψ⟩/dt = H|ψ⟩, watch a Bloch vector precess under free evolution, then drive it with a real Rabi-flopping rotation."},
+    {"id": "basis-vectors", "title": "Basis Vectors & Hilbert Space", "href": "/basis-vectors", "steps": 5, "icon": "basis", "description": "Express one built state in two different orthonormal bases, verify orthonormality live, and confirm the completeness relation holds for both."},
+    {"id": "tensor-products", "title": "Tensor Products", "href": "/tensor-products", "steps": 5, "icon": "tensor", "description": "Build the 4-dimensional joint state of two qubits, try and fail to factor a Bell state back apart, and see why that search complements rather than replaces a real proof."},
+    {"id": "operator-types", "title": "Hermitian, Unitary & Projection Operators", "href": "/operator-types", "steps": 5, "icon": "operator", "description": "Check Y by hand with real complex arithmetic, then classify six real matrices as Hermitian, Unitary, and/or Projection by computing the properties directly."},
+    {"id": "eigenvalues-eigenvectors", "title": "Eigenvalues and Eigenvectors", "href": "/eigenvalues-eigenvectors", "steps": 5, "icon": "eigen", "description": "Derive X's eigenvalues from the characteristic equation, check whether a candidate vector is really an eigenvector, and read off its eigenvalue."},
+    {"id": "commutation-relations", "title": "Commutation Relations", "href": "/commutation-relations", "steps": 5, "icon": "commute", "description": "Watch a state go from certain to 50/50 across a non-commuting measurement, verify [X,Z] by hand, and tie the whole module together."},
 ]
 
 # Module 4 — "Where Quantum Comes From": the historical/physical
@@ -533,27 +533,27 @@ MODULE_3_LESSONS = [
 # explain *why* nature needed quantum mechanics at all — cross-linked
 # back to Hardware Lab's Josephson-junction tunneling where relevant.
 MODULE_4_LESSONS = [
-    {"id": "wave-particle-duality", "title": "Wave-Particle Duality", "href": "/wave-particle-duality", "steps": 4, "icon": "duality", "description": "Fire particles one at a time through a double slit and watch the interference pattern build, dot by dot."},
-    {"id": "blackbody-radiation", "title": "Blackbody Radiation", "href": "/blackbody-radiation", "steps": 4, "icon": "blackbody", "description": "Plot Planck's law against the classical Rayleigh-Jeans prediction and watch the peak shift with temperature."},
-    {"id": "de-broglie", "title": "The de Broglie Wavelength", "href": "/de-broglie", "steps": 4, "icon": "debroglie", "description": "Compare an electron's and a thrown baseball's wavelength on one log-scale ruler."},
-    {"id": "particle-in-a-box", "title": "Particle in a Box", "href": "/particle-in-a-box", "steps": 4, "icon": "box", "description": "Watch quantized standing-wave energy levels appear from nothing but 'the wavefunction must fit.'"},
-    {"id": "quantum-tunneling", "title": "Quantum Tunneling", "href": "/quantum-tunneling", "steps": 4, "icon": "tunnel", "description": "Shape a barrier and fire particles at it — some tunnel through, at exactly the rate the math predicts."},
-    {"id": "three-dimensional-box", "title": "The 3D Box", "href": "/three-dimensional-box", "steps": 4, "icon": "cube", "description": "Search for real degenerate energy levels in a 3D box, computed live from quantum numbers up to 6."},
+    {"id": "wave-particle-duality", "title": "Wave-Particle Duality", "href": "/wave-particle-duality", "steps": 5, "icon": "duality", "description": "Derive the interference formula from two adding amplitudes, then fire particles one at a time through a double slit and watch the pattern build, dot by dot."},
+    {"id": "blackbody-radiation", "title": "Blackbody Radiation", "href": "/blackbody-radiation", "steps": 5, "icon": "blackbody", "description": "See why high-frequency modes get shut off, then plot Planck's law against the classical Rayleigh-Jeans prediction and watch the peak shift with temperature."},
+    {"id": "de-broglie", "title": "The de Broglie Wavelength", "href": "/de-broglie", "steps": 5, "icon": "debroglie", "description": "See how a confined wave's fitting condition leads to quantized energy, then compare an electron's and a thrown baseball's wavelength on one log-scale ruler."},
+    {"id": "particle-in-a-box", "title": "Particle in a Box", "href": "/particle-in-a-box", "steps": 5, "icon": "box", "description": "Derive Eₙ from de Broglie's formula, meet zero-point energy, and watch quantized standing-wave energy levels appear from nothing but 'the wavefunction must fit.'"},
+    {"id": "quantum-tunneling", "title": "Quantum Tunneling", "href": "/quantum-tunneling", "steps": 5, "icon": "tunnel", "description": "Derive why V>E turns oscillation into decay, then shape a barrier and fire particles at it — some tunnel through, at exactly the rate the math predicts."},
+    {"id": "three-dimensional-box", "title": "The 3D Box", "href": "/three-dimensional-box", "steps": 5, "icon": "cube", "description": "Search for real degenerate energy levels in a 3D box, computed live from quantum numbers up to 6, then tie the whole module together."},
 ]
 
 # Module 5 — "Error Correction & Noise". The bit-flip code lesson
 # reuses multiqubit.js at n=5 (3 data + 2 syndrome ancillas) — a real
 # non-demolition syndrome measurement, not a scripted animation.
 MODULE_5_LESSONS = [
-    {"id": "decoherence", "title": "Why Qubits Decohere", "href": "/decoherence", "steps": 4, "icon": "decohere", "description": "Watch a Bloch vector's length actually shrink as a qubit loses coherence over a tunable T2."},
-    {"id": "bit-flip-code", "title": "Bit-Flip and Phase-Flip Codes", "href": "/bit-flip-code", "steps": 4, "icon": "shield", "description": "Encode, corrupt, and correct a hidden bit-flip error across 5 real qubits, without ever measuring the secret."},
-    {"id": "nisq", "title": "NISQ", "href": "/nisq", "steps": 4, "icon": "chip", "description": "Plot how fast circuit success probability collapses as gate count grows, at a realistic per-gate error rate."},
+    {"id": "decoherence", "title": "Why Qubits Decohere", "href": "/decoherence", "steps": 5, "icon": "decohere", "description": "Meet the density matrix a shrunk Bloch vector actually is, then watch its length shrink as a qubit loses coherence over a tunable T2."},
+    {"id": "bit-flip-code", "title": "Bit-Flip and Phase-Flip Codes", "href": "/bit-flip-code", "steps": 5, "icon": "shield", "description": "Work out the syndrome truth table, then encode, corrupt, and correct a hidden bit-flip error across 5 real qubits, without ever measuring the secret."},
+    {"id": "nisq", "title": "NISQ", "href": "/nisq", "steps": 5, "icon": "chip", "description": "See how the variational loop works around the noise, plot how fast circuit success probability collapses as gate count grows, and tie the whole module together."},
 ]
 
 # Module 6 — "Quantum Cryptography".
 MODULE_6_LESSONS = [
-    {"id": "bb84", "title": "BB84 Key Distribution", "href": "/bb84", "steps": 4, "icon": "key", "description": "Run a 16-qubit BB84 key exchange with an Eve toggle, and watch the error rate reveal eavesdropping."},
-    {"id": "shors-algorithm", "title": "Why Factoring Matters", "href": "/shors-algorithm", "steps": 4, "icon": "factor", "description": "Find a hidden period in aˣ mod 15 and watch it hand you the factors, 3 × 5, via ordinary gcd."},
+    {"id": "bb84", "title": "BB84 Key Distribution", "href": "/bb84", "steps": 5, "icon": "key", "description": "Derive exactly where the 25% eavesdropping error rate comes from, then run a 16-qubit BB84 key exchange with an Eve toggle and watch the error rate reveal eavesdropping."},
+    {"id": "shors-algorithm", "title": "Why Factoring Matters", "href": "/shors-algorithm", "steps": 6, "icon": "factor", "description": "Derive why gcd(a^(r/2)±1,N) finds factors, find a hidden period in aˣ mod 15, and look back across the whole curriculum."},
 ]
 
 # One continuous sequence across every built-in module, in display

@@ -7,7 +7,7 @@
 
 <div class="pill" style="margin-bottom:14px;">MODULE 5 · ERROR CORRECTION &amp; NOISE</div>
 <h1 style="margin-bottom:6px;">Catch the error without looking at the data.</h1>
-<p class="lede muted" style="font-size:1.05rem;">The simplest quantum error-correcting code: spread 1 logical qubit across 3 physical ones, and use 2 extra "syndrome" qubits to find a flipped bit — without ever measuring, and therefore destroying, the logical state itself.</p>
+<p class="lede muted" style="font-size:1.05rem;">The simplest quantum error-correcting code: spread 1 logical qubit across 3 physical ones, and use 2 extra "syndrome" qubits to find a flipped bit — without ever measuring, and therefore destroying, the logical state itself. Five steps, including the truth table behind "which qubit flipped."</p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -24,7 +24,7 @@
   </div>
   <div class="lesson-step-body">
     <p class="muted">Classical error correction can just look at a bit and see if it flipped. Measuring a qubit directly would collapse any superposition it's carrying — so quantum error correction has to detect <em>that</em> an error happened, and <em>which</em> qubit it hit, without ever learning the logical α or β. The trick: encode 1 logical qubit into 3 physical ones (<span class="mono">α|0⟩+β|1⟩ → α|000⟩+β|111⟩</span>, using two CNOTs — literally the entangling gate from Two Qubits, twice), then use two extra ancilla qubits to measure only the <em>parity</em> between pairs of data qubits, never the data qubits themselves.</p>
-    <p class="muted">Those two parity bits — the "syndrome" — pinpoint exactly which of the 3 qubits flipped (or that none did), and a single corrective X fixes it. The logical superposition was never touched.</p>
+    <p class="muted">Those two parity bits — the "syndrome" — pinpoint exactly which of the 3 qubits flipped (or that none did), and a single corrective X fixes it. The logical superposition was never touched. Step 2 works out exactly why two parity bits are enough to pin down one of four possibilities.</p>
     <div class="callout blue">Phase-flip errors get corrected the same way, just rotated: apply H to all 3 qubits before and after the exact same bit-flip circuit, and a phase-flip error becomes a bit-flip error in the rotated basis. One trick, two error types.</div>
     <label class="mark-done-check" style="margin-top:16px;">
       <input type="checkbox" data-step-check="step1"> Syndrome measurement finds the error without reading the data
@@ -32,10 +32,35 @@
   </div>
 </div>
 
-<!-- ===================== STEP 2 — RUN THE CODE ===================== -->
+<!-- ===================== STEP 2 — THE SYNDROME TRUTH TABLE ===================== -->
 <div class="lesson-step" data-step="step2">
   <div class="lesson-step-head">
     <div class="lesson-step-num">2</div>
+    <h3>Why two parity bits are enough to find one flipped qubit</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Two parity checks are wired deliberately so they overlap: the first ancilla checks <span class="mono">parity(qubit 0, qubit 1)</span>, the second checks <span class="mono">parity(qubit 1, qubit 2)</span> — qubit 1 sits in <em>both</em> checks, qubits 0 and 2 each sit in only one. A single bit-flip on any one data qubit flips exactly the parities that qubit participates in, and leaves the others alone. Work through all four cases:</p>
+
+    <table style="margin-top:12px;">
+      <tr><th>Which qubit flipped</th><th>Check 1: parity(0,1)</th><th>Check 2: parity(1,2)</th><th>Syndrome (s₀,s₁)</th></tr>
+      <tr><td>none</td><td class="mono">even → 0</td><td class="mono">even → 0</td><td class="mono">(0,0)</td></tr>
+      <tr><td class="mono">qubit 0</td><td class="mono">odd → 1</td><td class="mono">even → 0</td><td class="mono">(1,0)</td></tr>
+      <tr><td class="mono">qubit 1</td><td class="mono">odd → 1</td><td class="mono">odd → 1</td><td class="mono">(1,1)</td></tr>
+      <tr><td class="mono">qubit 2</td><td class="mono">even → 0</td><td class="mono">odd → 1</td><td class="mono">(0,1)</td></tr>
+    </table>
+
+    <p class="muted" style="margin-top:14px;">Four possible syndromes, four possible situations (no error, or one of three specific qubits) — every case gets its own unique two-bit code, so reading the syndrome is enough to identify the exact fix with total certainty, the same way the sandbox's <span class="mono">faultyQubit</span> logic looks up this exact table. Two bits can distinguish at most four possibilities (<span class="mono">2²=4</span>), and there are exactly four possibilities here — the code is precisely large enough for the job, no wasted capacity, no gaps.</p>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step2"> I can read any syndrome pair straight off the table
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — RUN THE CODE ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
     <h3>Encode, corrupt, detect, fix</h3>
   </div>
   <div class="lesson-step-body">
@@ -63,36 +88,36 @@
     </div>
 
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step2"> I found and fixed a hidden error without measuring the secret
+      <input type="checkbox" data-step-check="step3"> I found and fixed a hidden error without measuring the secret
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 3 — BONUS ===================== -->
-<div class="lesson-step" data-step="step3">
+<!-- ===================== STEP 4 — BONUS ===================== -->
+<div class="lesson-step" data-step="step4">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">3</div>
+    <div class="lesson-step-num">4</div>
     <h3>Bonus: this doesn't catch everything</h3>
   </div>
   <div class="lesson-step-body">
     <p class="muted">This code corrects exactly one bit-flip error among the three qubits. Two simultaneous bit-flips would be misdiagnosed as a single flip on the third qubit and "corrected" the wrong way — which is exactly why real quantum computers stack multiple layers of these codes (and use many more physical qubits per logical one) rather than relying on this simplest version alone.</p>
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step3"> This code has limits — that's why real QEC stacks codes
+      <input type="checkbox" data-step-check="step4"> This code has limits — that's why real QEC stacks codes
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 4 — WHAT REAL HARDWARE ACTUALLY RUNS ===================== -->
-<div class="lesson-step" data-step="step4">
+<!-- ===================== STEP 5 — WHAT REAL HARDWARE ACTUALLY RUNS ===================== -->
+<div class="lesson-step" data-step="step5">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">4</div>
+    <div class="lesson-step-num">5</div>
     <h3>Surface codes: the 2D version that's actually deployed</h3>
   </div>
   <div class="lesson-step-body">
     <p class="muted">The 5-qubit code above only protects against bit-flips. A real quantum computer needs protection against both bit-flip and phase-flip errors (and everything in between) simultaneously, arranged so every physical qubit is only ever wired to its nearest neighbors — matching how chips are actually fabricated (recall Hardware Lab's chip layout). The dominant real answer is the <strong>surface code</strong>: data qubits and syndrome-measurement qubits arranged in a 2D checkerboard grid, running the same core idea as this lesson's parity checks, just repeated in both directions and continuously in time rather than once.</p>
     <p class="muted">There's a genuine threshold: if the per-gate physical error rate is below roughly 1%, adding more physical qubits per logical qubit (a "larger code distance") makes the logical error rate <em>fall</em> — error correction actually winning. Above that threshold, adding more qubits makes things worse instead. That threshold, and how close current hardware's real gate fidelities (NISQ, next lesson) sit to it, is one of the field's central open engineering problems right now.</p>
     <label class="mark-done-check" style="margin-top:16px;">
-      <input type="checkbox" data-step-check="step4"> Surface codes: this lesson's idea, in 2D, with a real error-rate threshold
+      <input type="checkbox" data-step-check="step5"> Surface codes: this lesson's idea, in 2D, with a real error-rate threshold
     </label>
   </div>
 </div>

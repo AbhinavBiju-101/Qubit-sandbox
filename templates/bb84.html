@@ -7,7 +7,7 @@
 
 <div class="pill blue" style="margin-bottom:14px;">MODULE 6 · QUANTUM CRYPTOGRAPHY</div>
 <h1 style="margin-bottom:6px;">A secret key, with eavesdropping built to be detectable.</h1>
-<p class="lede muted" style="font-size:1.05rem;">Not encryption itself — a way for Alice and Bob to agree on a random secret key while making it physically impossible for Eve to listen in without leaving evidence.</p>
+<p class="lede muted" style="font-size:1.05rem;">Not encryption itself — a way for Alice and Bob to agree on a random secret key while making it physically impossible for Eve to listen in without leaving evidence. Five steps, including exactly where "25%" comes from.</p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -24,7 +24,7 @@
   </div>
   <div class="lesson-step-body">
     <p class="muted">For each bit, Alice picks a random value (0 or 1) <em>and</em> a random basis — Z (|0⟩/|1⟩) or X (|+⟩/|−⟩) — and sends a qubit prepared accordingly. Bob measures each incoming qubit in his own randomly chosen basis. When his basis happens to match Alice's, he gets her bit back with certainty; when it doesn't, he gets a random, useless result. Afterward, Alice and Bob publicly compare <em>which bases</em> they used (never the bits) and keep only the positions where they matched — that surviving subset is the "sifted key."</p>
-    <p class="muted">Here's the security: Measurement & Stern-Gerlach already showed you that measuring in the wrong basis genuinely disturbs a state. If Eve intercepts a qubit and measures it (she doesn't know Alice's basis either, so she guesses), roughly half the time she guesses wrong and disturbs it before resending — introducing errors that show up when Alice and Bob compare a sample of their sifted key out loud.</p>
+    <p class="muted">Here's the security: Measurement & Stern-Gerlach already showed you that measuring in the wrong basis genuinely disturbs a state. If Eve intercepts a qubit and measures it (she doesn't know Alice's basis either, so she guesses), roughly half the time she guesses wrong and disturbs it before resending — introducing errors that show up when Alice and Bob compare a sample of their sifted key out loud. Step 2 derives exactly how big that error rate is.</p>
     <div class="callout blue">No eavesdropping ⇒ sifted-key error rate ≈ 0%. Eve intercepting-and-resending every qubit ⇒ error rate ≈ 25% on the sifted key. That gap isn't a software patch someone could sneak past — it's the measurement postulate itself, working as a tripwire.</div>
     <label class="mark-done-check" style="margin-top:16px;">
       <input type="checkbox" data-step-check="step1"> Wrong-basis measurement disturbs the state — that's the security
@@ -32,10 +32,36 @@
   </div>
 </div>
 
-<!-- ===================== STEP 2 — RUN A KEY EXCHANGE ===================== -->
+<!-- ===================== STEP 2 — DERIVING 25% ===================== -->
 <div class="lesson-step" data-step="step2">
   <div class="lesson-step-head">
     <div class="lesson-step-num">2</div>
+    <h3>Where exactly "25%" comes from</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Worth deriving Step 1's headline number instead of taking it on faith — it's two independent 50/50 coin flips multiplied together, and it's worth being precise about exactly which two. Condition on a position that survives sifting (Alice and Bob's <em>own</em> bases matched — that's what "sifted" means). Eve, intercepting in between, doesn't know Alice's basis any more than Bob does, so she has to guess it independently:</p>
+
+    <div class="panel" style="margin-top:12px;">
+      <div class="mono" style="font-size:0.9rem; text-align:center;">
+        P(Eve guesses the wrong basis) = 1/2<br><br>
+        Given that, P(Bob still gets a mismatched bit) = 1/2<br>
+        <span class="muted" style="font-size:0.8rem;">(Eve resent a qubit prepared in the wrong basis — from Bob's perspective, that's a fresh 50/50 coin, exactly like measuring |+⟩ in the Z basis back in Lesson 0, Step 6)</span><br><br>
+        P(error on a sifted position) = 1/2 × 1/2 = <strong>1/4 = 25%</strong>
+      </div>
+    </div>
+
+    <p class="muted" style="margin-top:14px;">When Eve happens to guess Alice's basis correctly (the other 1/2 of the time), she measures and resends a perfect copy — no disturbance, no error, and no way for Alice or Bob to ever detect that interception on those particular qubits. That's precisely why BB84 doesn't claim to catch <em>every single intercepted qubit</em> — only enough of them, on average, that eavesdropping on a long-enough key becomes statistically unmissable. A handful of sampled bits at a clean 0% is expected under normal noise; a handful sitting near 25% is Eve's fingerprint, not noise, and 25% is exactly the number Step 3's sandbox should converge toward with Eve toggled on.</p>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step2"> I can multiply the two 1/2's and land on 25%
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — RUN A KEY EXCHANGE ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
     <h3>Exchange a key, with Eve as an optional toggle</h3>
   </div>
   <div class="lesson-step-body">
@@ -62,36 +88,36 @@
     </div>
 
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step2"> I compared the error rate with Eve on and off
+      <input type="checkbox" data-step-check="step3"> I compared the error rate with Eve on and off
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 3 — BONUS ===================== -->
-<div class="lesson-step" data-step="step3">
+<!-- ===================== STEP 4 — BONUS ===================== -->
+<div class="lesson-step" data-step="step4">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">3</div>
+    <div class="lesson-step-num">4</div>
     <h3>Bonus: this secures the key, not the message</h3>
   </div>
   <div class="lesson-step-body">
     <p class="muted">BB84 only gets Alice and Bob a shared random secret string with a provable eavesdropping check — the actual message still gets encrypted classically (commonly with that key as a one-time pad, or feeding a standard symmetric cipher). The quantum part's entire job is solving "how do two people agree on a secret over a public channel without anyone else usably copying it" — which, per the no-cloning theorem, Shor's Algorithm's next lesson will connect to why factoring-based classical cryptography is the thing actually at risk from quantum computers, not this.</p>
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step3"> BB84 secures the key; the cipher still does the encrypting
+      <input type="checkbox" data-step-check="step4"> BB84 secures the key; the cipher still does the encrypting
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 4 — ENTANGLEMENT-BASED QKD ===================== -->
-<div class="lesson-step" data-step="step4">
+<!-- ===================== STEP 5 — ENTANGLEMENT-BASED QKD ===================== -->
+<div class="lesson-step" data-step="step5">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">4</div>
+    <div class="lesson-step-num">5</div>
     <h3>BB84's cousin: security from a Bell inequality instead</h3>
   </div>
   <div class="lesson-step-body">
     <p class="muted">BB84 uses single qubits prepared and measured in random bases. A related protocol, <strong>E91</strong> (Artur Ekert, 1991), instead distributes entangled Bell pairs — the exact states from Two Qubits — one particle to Alice, one to Bob. Its security proof works differently: Alice and Bob check whether their correlated measurement results violate a Bell inequality (a statistical test that no classical, non-entangled explanation could pass). If the violation is there, genuine entanglement was present and untampered with; if Eve had intercepted and measured the particles, the entanglement — and the violation — would be destroyed.</p>
     <p class="muted">This gives E91 a property BB84 doesn't have on its own: the security proof doesn't need to trust that Alice and Bob's devices are working correctly, only that the statistics violate the inequality — a idea called <strong>device-independent</strong> security, an active area of real quantum-cryptography research.</p>
     <label class="mark-done-check" style="margin-top:16px;">
-      <input type="checkbox" data-step-check="step4"> E91: same goal as BB84, entanglement and a Bell-inequality check instead
+      <input type="checkbox" data-step-check="step5"> E91: same goal as BB84, entanglement and a Bell-inequality check instead
     </label>
   </div>
 </div>

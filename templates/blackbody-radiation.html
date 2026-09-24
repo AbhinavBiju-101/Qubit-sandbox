@@ -7,7 +7,7 @@
 
 <div class="pill amber" style="margin-bottom:14px;">MODULE 4 · WHERE QUANTUM COMES FROM</div>
 <h1 style="margin-bottom:6px;">The curve that forced quantization.</h1>
-<p class="lede muted" style="font-size:1.05rem;">Classical physics predicted infinite energy from a hot object. Planck's fix — energy comes in discrete chunks — is where "quantum" got its name.</p>
+<p class="lede muted" style="font-size:1.05rem;">Classical physics predicted infinite energy from a hot object. Planck's fix — energy comes in discrete chunks — is where "quantum" got its name. Five steps, including the actual mechanism behind the fix, not just its effect.</p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -32,14 +32,33 @@
   </div>
 </div>
 
-<!-- ===================== STEP 2 — THE CURVE ===================== -->
+<!-- ===================== STEP 2 — THE ACTUAL MECHANISM ===================== -->
 <div class="lesson-step" data-step="step2">
   <div class="lesson-step-head">
     <div class="lesson-step-num">2</div>
+    <h3>Why high frequencies specifically get shut off</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">"One constant, one division" explains that the curve bends, but not <em>why</em> it bends specifically at high frequency. The real mechanism is worth seeing once. Classically, a result called <strong>equipartition</strong> says every vibrational mode of the radiation field, whatever its frequency, should carry the same average thermal energy: <span class="mono">kT</span>, full stop, no dependence on frequency at all. Since there are more and more possible modes as frequency increases (there's more "room" for short-wavelength wiggles), and each one gets the same fixed <span class="mono">kT</span>, the total energy is an unbounded sum — the ultraviolet catastrophe, arithmetically.</p>
+
+    <p class="muted">Planck's discreteness breaks that equal split. If a mode can only gain or lose energy in whole chunks of size <span class="mono">hf</span>, its <em>average</em> thermal energy works out to <span class="mono">hf / (e^{hf/kT} − 1)</span> instead of a flat <span class="mono">kT</span>. For low frequencies, where <span class="mono">hf</span> is much smaller than the thermal energy <span class="mono">kT</span> available, this formula is barely different from plain <span class="mono">kT</span> — classical physics was never wrong there, which is exactly why Rayleigh-Jeans agrees with Planck's curve at long wavelengths. But once <span class="mono">hf</span> grows past <span class="mono">kT</span>, exciting that mode at all requires a whole quantum's worth of energy that the surrounding heat bath essentially never manages to hand over in one lump — so that mode's average energy collapses toward zero, exponentially fast, rather than staying pinned at <span class="mono">kT</span>.</p>
+
+    <div class="callout blue">This is the same "all or nothing" idea from every gate in this app: you can't apply "half a click of X." A thermal bath trying to excite a high-frequency mode faces the same wall — it either delivers a full quantum of energy or it delivers nothing, and at high enough frequency, "nothing" is overwhelmingly what happens.</div>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step2"> High-frequency modes need a whole quantum, which thermal energy usually can't supply
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — THE CURVE ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
     <h3>Planck's curve vs. the classical prediction</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">Drag the temperature. The solid curve is Planck's law (what real objects do); the dashed curve is the classical Rayleigh-Jeans prediction, which only agrees at long wavelengths and diverges everywhere to the left.</p>
+    <p class="muted">Drag the temperature. The solid curve is Planck's law (what real objects do); the dashed curve is the classical Rayleigh-Jeans prediction, which only agrees at long wavelengths and diverges everywhere to the left — exactly Step 2's story, drawn instead of derived.</p>
 
     <div class="panel" style="margin-top:16px;">
       <div class="panel-label">SANDBOX · SPECTRAL RADIANCE</div>
@@ -55,34 +74,34 @@
     </div>
 
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step2"> I watched the peak shift with temperature (Wien's law)
+      <input type="checkbox" data-step-check="step3"> I watched the peak shift with temperature (Wien's law)
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 3 — BONUS ===================== -->
-<div class="lesson-step" data-step="step3">
+<!-- ===================== STEP 4 — BONUS ===================== -->
+<div class="lesson-step" data-step="step4">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">3</div>
+    <div class="lesson-step-num">4</div>
     <h3>Bonus: why the classical curve explodes</h3>
   </div>
   <div class="lesson-step-body">
     <p class="muted">The classical Rayleigh-Jeans law has no <span class="mono">h</span> in it at all — nothing stops short wavelengths from contributing more and more energy, without limit. Planck's law divides by <span class="mono">e^{hc/λkT} − 1</span> instead, and for small <span class="mono">λ</span> that denominator explodes fast enough to crush the curve back to zero. One constant, one division, no more catastrophe.</p>
 
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step3"> I see why h is what fixes the divergence
+      <input type="checkbox" data-step-check="step4"> I see why h is what fixes the divergence
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 4 — TOTAL POWER, NOT JUST THE PEAK ===================== -->
-<div class="lesson-step" data-step="step4">
+<!-- ===================== STEP 5 — TOTAL POWER, NOT JUST THE PEAK ===================== -->
+<div class="lesson-step" data-step="step5">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">4</div>
+    <div class="lesson-step-num">5</div>
     <h3>Add up the whole curve: the Stefan-Boltzmann law</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">Wien's law (Step 2) tells you where the curve peaks. Integrating the <em>entire</em> Planck curve — every wavelength's contribution, added up — gives the total power radiated per unit area: <span class="mono">P = σT⁴</span>, with <span class="mono">σ</span> a fixed constant. That fourth power is dramatic: double an object's absolute temperature and it radiates <strong>16 times</strong> the power, not twice.</p>
+    <p class="muted">Wien's law (Step 3) tells you where the curve peaks. Integrating the <em>entire</em> Planck curve — every wavelength's contribution, added up — gives the total power radiated per unit area: <span class="mono">P = σT⁴</span>, with <span class="mono">σ</span> a fixed constant. That fourth power is dramatic: double an object's absolute temperature and it radiates <strong>16 times</strong> the power, not twice.</p>
 
     <div class="panel" style="margin-top:16px;">
       <div class="panel-label">SANDBOX · STEFAN-BOLTZMANN</div>
@@ -93,7 +112,7 @@
 
     <p class="muted" style="margin-top:14px;">This is the entire reason a blue-white star is so much brighter than a dim red one — it isn't burning proportionally more fuel, it's just a bit hotter feeding into a fourth-power law.</p>
     <label class="mark-done-check" style="margin-top:16px;">
-      <input type="checkbox" data-step-check="step4"> Doubling temperature means 16× the radiated power, not 2×
+      <input type="checkbox" data-step-check="step5"> Doubling temperature means 16× the radiated power, not 2×
     </label>
   </div>
 </div>

@@ -7,7 +7,7 @@
 
 <div class="pill amber" style="margin-bottom:14px;">MODULE 4 · WHERE QUANTUM COMES FROM</div>
 <h1 style="margin-bottom:6px;">One particle at a time, building a wave pattern.</h1>
-<p class="lede muted" style="font-size:1.05rem;">The experiment that started all of this. Fire particles one at a time through two slits — each lands as a single dot, yet the dots collectively build the interference pattern only a wave should make.</p>
+<p class="lede muted" style="font-size:1.05rem;">The experiment that started all of this. Fire particles one at a time through two slits — each lands as a single dot, yet the dots collectively build the interference pattern only a wave should make. Five steps, including the exact formula behind that pattern.</p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -32,10 +32,33 @@
   </div>
 </div>
 
-<!-- ===================== STEP 2 — BUILD-UP SIMULATOR ===================== -->
+<!-- ===================== STEP 2 — THE FORMULA, DERIVED ===================== -->
 <div class="lesson-step" data-step="step2">
   <div class="lesson-step-head">
     <div class="lesson-step-num">2</div>
+    <h3>The exact formula — the same arrows from Lesson 0, now in real space</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Step 3's simulator secretly draws from the density <span class="mono">(1 + cos(phase))/2</span> at each screen position. Worth deriving that instead of taking it on faith — it's Lesson 0, Step 5's two-arrows-adding picture, run with an actual physical variable instead of an abstract toy example. A particle reaching screen position <span class="mono">x</span> can get there via slit 1 or slit 2, and — exactly as Lesson 0 established — quantum mechanics says you add the two <em>amplitudes</em> for those paths, not the two probabilities.</p>
+
+    <p class="muted">Each path's amplitude has the same size (the slits are identical) but a different <em>phase</em>, because the two paths are slightly different lengths — and a wave's phase advances steadily as it travels, so a longer path arrives phase-shifted relative to a shorter one. Call that phase difference <span class="mono">φ</span>. The total amplitude at <span class="mono">x</span> is <span class="mono">A(1 + e^{iφ})</span> for some constant A, and Born's rule (probability = amplitude magnitude squared, same rule since Lesson 0) gives:</p>
+
+    <div class="panel" style="margin-top:12px; text-align:center;">
+      <div class="mono" style="font-size:0.95rem;">P(x) ∝ |1 + e^{iφ}|² = 2 + 2cos(φ) = 4·cos²(φ/2)</div>
+    </div>
+
+    <p class="muted" style="margin-top:14px;">Where <span class="mono">φ=0</span> (equal path lengths, dead center) the two amplitudes point the same direction and add fully — a bright fringe, 4× a single slit's rate, not 2×, exactly the constructive-interference arithmetic from Lesson 0, Step 5. Where <span class="mono">φ=π</span> (paths differ by half a wavelength) the amplitudes point opposite directions and cancel completely — a dark fringe, zero particles landing there, even though each individual slit, covered alone, would happily send particles to that exact spot. The phase φ itself depends on position through simple geometry (φ is proportional to <span class="mono">d·x/λ</span>, where d is slit separation), which is exactly why Step 4's sliders for d and λ stretch or squeeze the fringe spacing — they're changing how fast φ sweeps through a full cycle as x moves across the screen.</p>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step2"> I can derive P(x) ∝ cos²(φ/2) from two adding amplitudes
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — BUILD-UP SIMULATOR ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
     <h3>Fire particles and watch the pattern build</h3>
   </div>
   <div class="lesson-step-body">
@@ -54,16 +77,18 @@
       </div>
     </div>
 
+    <p class="muted" style="margin-top:14px;">Toggle the which-path detector on and the fringes flatten to a plain double-bump pattern — Step 2's formula reduces to just adding <em>probabilities</em> instead of amplitudes once you know which slit each particle went through, because forcing a definite answer to "which path?" is a measurement, and Lesson 0, Step 6 already established that a definite answer to one question can make a related question's interference vanish. The detector doesn't jostle the particle into a different physical path here — it destroys the very superposition of "both paths" that the interference formula depended on.</p>
+
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step2"> I saw the fringes appear, then vanish with the detector on
+      <input type="checkbox" data-step-check="step3"> I saw the fringes appear, then vanish with the detector on
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 3 — BONUS: FRINGE SPACING ===================== -->
-<div class="lesson-step" data-step="step3">
+<!-- ===================== STEP 4 — BONUS: FRINGE SPACING ===================== -->
+<div class="lesson-step" data-step="step4">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">3</div>
+    <div class="lesson-step-num">4</div>
     <h3>Bonus: what sets the fringe spacing</h3>
   </div>
   <div class="lesson-step-body">
@@ -76,22 +101,22 @@
     </div>
 
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step3"> I stretched and squeezed the fringes
+      <input type="checkbox" data-step-check="step4"> I stretched and squeezed the fringes
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 4 — DELAYED CHOICE ===================== -->
-<div class="lesson-step" data-step="step4">
+<!-- ===================== STEP 5 — DELAYED CHOICE ===================== -->
+<div class="lesson-step" data-step="step5">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">4</div>
+    <div class="lesson-step-num">5</div>
     <h3>Bonus: what if you decide to look after the fact?</h3>
   </div>
   <div class="lesson-step-body">
     <p class="muted">A genuinely strange real experiment (delayed-choice, and its more careful cousin the delayed-choice quantum eraser) arranges the which-path detector so the decision to check it — or to erase that information instead — happens <em>after</em> each particle has already passed through the slits, but before it's recorded on the screen. The result: interference appears or vanishes based on that later choice, exactly as if which-path information had or hadn't been available all along.</p>
     <p class="muted">Worth being precise about what this does and doesn't mean: nothing here sends a signal backward in time or lets you influence the past — you only ever learn which outcome you got by comparing detector and screen records afterward, and no individual measurement result can be predicted or controlled. It's less "retrocausality" and more a sharp reminder that "did the particle take a definite path" was never a well-defined question until an actual measurement settled it.</p>
     <label class="mark-done-check" style="margin-top:16px;">
-      <input type="checkbox" data-step-check="step4"> Delayed-choice: real, verified, but not backward-in-time signaling
+      <input type="checkbox" data-step-check="step5"> Delayed-choice: real, verified, but not backward-in-time signaling
     </label>
   </div>
 </div>

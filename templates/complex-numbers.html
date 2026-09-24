@@ -7,7 +7,7 @@
 
 <div class="pill" style="margin-bottom:14px;">MODULE 3 · THE MATH UNDERNEATH</div>
 <h1 style="margin-bottom:6px;">Why amplitudes need complex numbers.</h1>
-<p class="lede muted" style="font-size:1.05rem;">You've been multiplying complex numbers since Single Qubit without being told — this lesson just names what you were already doing, then shows why a real number alone couldn't have done the job.</p>
+<p class="lede muted" style="font-size:1.05rem;">You've been multiplying complex numbers since Single Qubit without being told — this lesson just names what you were already doing, then shows why a real number alone couldn't have done the job. Five steps, including the derivation behind "multiply by i rotates 90°."</p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -32,14 +32,40 @@
   </div>
 </div>
 
-<!-- ===================== STEP 2 — COMPLEX PLANE ===================== -->
+<!-- ===================== STEP 2 — WHY MULTIPLICATION ROTATES ===================== -->
 <div class="lesson-step" data-step="step2">
   <div class="lesson-step-head">
     <div class="lesson-step-num">2</div>
+    <h3>Why multiplying by i rotates 90° — for any number, always</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Step 3's sandbox has a "multiply by i" button that always rotates the point 90°, no matter where it started. Worth deriving that instead of just watching it happen, because the same rule is what makes the phase gate in Step 4 work at all. Write any complex number in <strong>polar form</strong>: instead of <span class="mono">a + bi</span>, write it as <span class="mono">r·(cos θ + i·sin θ)</span> — magnitude and angle, exactly what Step 3's r and θ sliders control. Euler's formula gives this a compact name: <span class="mono">r·e^{iθ}</span>.</p>
+
+    <p class="muted">Multiply two complex numbers in this form, <span class="mono">r₁e^{iθ₁}</span> and <span class="mono">r₂e^{iθ₂}</span>, and the exponent rule for multiplication (<span class="mono">e^x · e^y = e^{x+y}</span>, true for complex exponents too) gives a strikingly clean result:</p>
+
+    <div class="panel" style="margin-top:14px; text-align:center;">
+      <div class="mono" style="font-size:1.05rem;">r₁e^{iθ₁} × r₂e^{iθ₂} = (r₁×r₂) · e^{i(θ₁+θ₂)}</div>
+      <p class="muted" style="font-size:0.86rem; margin-top:10px; margin-bottom:0;">Magnitudes multiply. Angles <em>add</em>.</p>
+    </div>
+
+    <p class="muted" style="margin-top:14px;">Now check the button: <span class="mono">i</span> itself, written in polar form, is <span class="mono">1·e^{iπ/2}</span> — magnitude 1, angle exactly 90°. Multiply <em>any</em> complex number <span class="mono">z = r·e^{iθ}</span> by i and the rule above says the new magnitude is <span class="mono">r × 1 = r</span> (unchanged) and the new angle is <span class="mono">θ + 90°</span>. That's the whole mechanism: multiplying by a magnitude-1 number never changes how far a point is from the origin, only which direction it points — a pure rotation, and always by exactly the multiplier's own angle, regardless of what you started with.</p>
+
+    <div class="callout blue">This is the exact same rule the phase gate in Step 4 uses, just with a dial instead of a fixed 90°: <span class="mono">P(θ) = diag(1, e^{iθ})</span> multiplies β by a magnitude-1 number <span class="mono">e^{iθ}</span>, so by this step's rule, β's magnitude can't change (probabilities stay put — Step 4's whole point) while its angle shifts by exactly θ. "Multiply by i" was a 90°-only preview of the general phase gate you're about to meet.</div>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step2"> I can explain why any magnitude-1 multiplier only ever rotates
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 3 — COMPLEX PLANE ===================== -->
+<div class="lesson-step" data-step="step3">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">3</div>
     <h3>The complex plane</h3>
   </div>
   <div class="lesson-step-body">
-    <p class="muted">Plot <span class="mono">a</span> on the horizontal axis and <span class="mono">b</span> on the vertical axis, and every complex number becomes a point — equivalently, an arrow from the origin with a length (<span class="mono">r</span>) and an angle (<span class="mono">θ</span>). Drag the sliders and watch both descriptions stay in sync.</p>
+    <p class="muted">Plot <span class="mono">a</span> on the horizontal axis and <span class="mono">b</span> on the vertical axis, and every complex number becomes a point — equivalently, an arrow from the origin with a length (<span class="mono">r</span>) and an angle (<span class="mono">θ</span>). Drag the sliders and watch both descriptions stay in sync — and watch "multiply by i" add exactly 90° to θ while leaving r untouched, precisely as Step 2 derived.</p>
 
     <div class="grid-2" style="margin-top:18px;">
       <div class="panel">
@@ -64,15 +90,15 @@
     </div>
 
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step2"> I rotated the point and watched θ change
+      <input type="checkbox" data-step-check="step3"> I rotated the point and watched θ change
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 3 — PHASE ON A REAL QUBIT ===================== -->
-<div class="lesson-step" data-step="step3">
+<!-- ===================== STEP 4 — PHASE ON A REAL QUBIT ===================== -->
+<div class="lesson-step" data-step="step4">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">3</div>
+    <div class="lesson-step-num">4</div>
     <h3>A phase real numbers couldn't hide</h3>
   </div>
   <div class="lesson-step-body">
@@ -99,15 +125,15 @@
     </div>
 
     <label class="mark-done-check" style="margin-top:18px;">
-      <input type="checkbox" data-step-check="step3"> I swept θ and watched the probabilities not move
+      <input type="checkbox" data-step-check="step4"> I swept θ and watched the probabilities not move
     </label>
   </div>
 </div>
 
-<!-- ===================== STEP 4 — WHERE PHASE DOES REAL WORK ===================== -->
-<div class="lesson-step" data-step="step4">
+<!-- ===================== STEP 5 — WHERE PHASE DOES REAL WORK ===================== -->
+<div class="lesson-step" data-step="step5">
   <div class="lesson-step-head">
-    <div class="lesson-step-num">4</div>
+    <div class="lesson-step-num">5</div>
     <h3>Invisible to one qubit, decisive to two</h3>
   </div>
   <div class="lesson-step-body">
@@ -115,7 +141,7 @@
     <p class="muted">You've also already used this algorithmically: Grover's Search's oracle step flipped a sign — a pure phase change, invisible on its own, exactly like this lesson's slider. It was only the diffusion step, which <em>adds</em> that phased amplitude to the others, that turned it into a visible 25%→100% probability jump. Same mechanism, two different lessons.</p>
     <div class="callout blue">Rule of thumb worth keeping: a phase on a single amplitude never matters. A phase <em>difference</em> between amplitudes that later get combined always might.</div>
     <label class="mark-done-check" style="margin-top:16px;">
-      <input type="checkbox" data-step-check="step4"> Phase alone is invisible; phase differences under addition are not
+      <input type="checkbox" data-step-check="step5"> Phase alone is invisible; phase differences under addition are not
     </label>
   </div>
 </div>

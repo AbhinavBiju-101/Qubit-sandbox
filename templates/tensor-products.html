@@ -7,7 +7,7 @@
 
 <div class="pill" style="margin-bottom:14px;">MODULE 3 · THE MATH UNDERNEATH</div>
 <h1 style="margin-bottom:6px;">How two 2-dimensional qubits become one 4-dimensional system.</h1>
-<p class="lede muted" style="font-size:1.05rem;">Two Qubits showed you the 4-number joint state. This is where that 4-dimensional space actually comes from — and it's also the cleanest possible definition of what entanglement even means.</p>
+<p class="lede muted" style="font-size:1.05rem;">Two Qubits showed you the 4-number joint state. This is where that 4-dimensional space actually comes from — and it's also the cleanest possible definition of what entanglement even means. Five steps, including why a random search can never quite substitute for a real proof.</p>
 
 <div class="lesson-progress-row">
   <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lp-fill"></div></div>
@@ -85,10 +85,27 @@
   </div>
 </div>
 
-<!-- ===================== STEP 4 — WHY N QUBITS GET HARD TO SIMULATE ===================== -->
+<!-- ===================== STEP 4 — SEARCH VS. PROOF ===================== -->
 <div class="lesson-step" data-step="step4">
   <div class="lesson-step-head">
     <div class="lesson-step-num">4</div>
+    <h3>Why the search convinces, but doesn't prove</h3>
+  </div>
+  <div class="lesson-step-body">
+    <p class="muted">Worth being precise about what Step 3 actually showed. 5,000 random tries landing nowhere close to zero error is strong evidence the Bell state can't be factored — but it's not a <em>proof</em>. No matter how many random pairs you try, there's always, in principle, some untested corner of the search space; a search can suggest impossibility but can never rule out every last possibility the way a proof does. This is a genuinely important distinction in mathematics and science generally, not a pedantic one — "we searched extensively and found nothing" and "this is provably impossible" are different claims with different strength.</p>
+
+    <p class="muted">The actual proof already exists, and it doesn't need a single random trial: Two Qubits, Step 4 showed that assuming a factorization <span class="mono">(a|0⟩+b|1⟩) ⊗ (c|0⟩+d|1⟩) = (|00⟩+|11⟩)/√2</span> forces <span class="mono">ad = 0</span> and <span class="mono">bd = 1/√2</span> simultaneously — a direct algebraic contradiction, true with certainty, for every possible a, b, c, d, not just the ones a random search happened to try. That's why this lesson's search and that lesson's algebra aren't doing the same job: the search builds intuition and makes the gap viscerally obvious (watch the error number refuse to shrink, run after run), while the algebra is what actually closes the question. Good scientific and mathematical practice uses both — search or simulation to build a hypothesis and check it against reality, proof to actually settle it.</p>
+
+    <label class="mark-done-check" style="margin-top:16px;">
+      <input type="checkbox" data-step-check="step4"> I can explain why "5,000 tries failed" isn't the same claim as "provably impossible"
+    </label>
+  </div>
+</div>
+
+<!-- ===================== STEP 5 — WHY N QUBITS GET HARD TO SIMULATE ===================== -->
+<div class="lesson-step" data-step="step5">
+  <div class="lesson-step-head">
+    <div class="lesson-step-num">5</div>
     <h3>The 2ⁿ wall</h3>
   </div>
   <div class="lesson-step-body">
@@ -101,7 +118,7 @@
     </div>
     <p class="muted" style="margin-top:14px;">Past roughly 50 qubits, that number exceeds what every computer on Earth combined could store as ordinary floating-point numbers — which is the actual, concrete reason a classical computer can't just brute-force-simulate a large quantum computer's full state, and why this app's own multi-qubit engine stays deliberately small (2-5 qubits) everywhere it's used.</p>
     <label class="mark-done-check" style="margin-top:16px;">
-      <input type="checkbox" data-step-check="step4"> 2ⁿ amplitudes — tiny for n=2, impossible for n=50
+      <input type="checkbox" data-step-check="step5"> 2ⁿ amplitudes — tiny for n=2, impossible for n=50
     </label>
   </div>
 </div>
